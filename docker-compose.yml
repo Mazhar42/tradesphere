@@ -1,0 +1,61 @@
+name: tradesphere
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: tradesphere
+      POSTGRES_PASSWORD: tradesphere
+      POSTGRES_DB: tradesphere
+      TZ: UTC
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tradesphere -d tradesphere"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  db-test:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: tradesphere
+      POSTGRES_PASSWORD: tradesphere
+      POSTGRES_DB: tradesphere_test
+      TZ: UTC
+    ports:
+      - "5433:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    command: ["postgres", "-c", "fsync=off", "-c", "synchronous_commit=off", "-c", "full_page_writes=off"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tradesphere -d tradesphere_test"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build:
+      context: ./backend
+      target: dev
+    environment:
+      DATABASE_URL: postgresql+psycopg://tradesphere:tradesphere@db:5432/tradesphere
+      TEST_DATABASE_URL: postgresql+psycopg://tradesphere:tradesphere@db-test:5432/tradesphere_test
+      JWT_SECRET: dev-only-secret-change-me-in-production-0123456789
+      CORS_ORIGINS: '["http://localhost:5173"]'
+      ENVIRONMENT: development
+      WATCHFILES_FORCE_POLLING: "true"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      db-test:
+        condition: service_healthy
+
+volumes:
+  pgdata:
