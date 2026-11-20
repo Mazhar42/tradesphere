@@ -1,0 +1,71 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Design tokens. Components use these semantic names, never raw palette colours. */
+@theme {
+  --font-sans: 'Inter', 'Noto Sans Bengali', ui-sans-serif, system-ui, sans-serif;
+  --font-bn: 'Noto Sans Bengali', 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  --color-background: oklch(0.985 0.002 247);
+  --color-surface: oklch(1 0 0);
+  --color-surface-muted: oklch(0.967 0.003 264);
+  --color-foreground: oklch(0.21 0.034 264);
+  --color-muted: oklch(0.551 0.027 264);
+  --color-border: oklch(0.922 0.006 264);
+  --color-ring: oklch(0.6 0.118 184.7);
+
+  --color-primary: oklch(0.511 0.096 186.4);
+  --color-primary-hover: oklch(0.437 0.078 188.2);
+  --color-primary-soft: oklch(0.953 0.051 180.8);
+  --color-primary-foreground: oklch(1 0 0);
+
+  --color-danger: oklch(0.577 0.245 27.3);
+  --color-danger-soft: oklch(0.971 0.013 17.4);
+  --color-warning: oklch(0.666 0.179 58.3);
+  --color-warning-soft: oklch(0.987 0.022 95.3);
+  --color-success: oklch(0.596 0.145 163.2);
+  --color-success-soft: oklch(0.979 0.021 166.1);
+
+  --color-sidebar: oklch(0.208 0.042 265.8);
+  --color-sidebar-foreground: oklch(0.869 0.022 252.9);
+  --color-sidebar-active: oklch(0.279 0.041 260);
+  --color-sidebar-muted: oklch(0.554 0.046 257.4);
+}
+
+.dark {
+  --color-background: oklch(0.17 0.02 265);
+  --color-surface: oklch(0.21 0.025 265);
+  --color-surface-muted: oklch(0.25 0.03 265);
+  --color-foreground: oklch(0.95 0.01 250);
+  --color-muted: oklch(0.7 0.02 255);
+  --color-border: oklch(0.3 0.03 262);
+  --color-primary: oklch(0.7 0.12 183);
+  --color-primary-hover: oklch(0.77 0.12 182);
+  --color-primary-soft: oklch(0.3 0.05 185);
+  --color-primary-foreground: oklch(0.18 0.03 190);
+  --color-danger-soft: oklch(0.3 0.08 25);
+  --color-warning-soft: oklch(0.32 0.06 70);
+  --color-success-soft: oklch(0.3 0.06 165);
+  --color-sidebar: oklch(0.14 0.02 265);
+  --color-sidebar-active: oklch(0.22 0.03 262);
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+  html[lang='bn'] body {
+    font-family: var(--font-bn);
+  }
+  /* Tabular figures keep money columns aligned. */
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
+}
