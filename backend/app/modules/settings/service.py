@@ -3,7 +3,7 @@ from datetime import date
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.core.errors import BusinessRuleError
+from app.core.errors import BusinessRuleError, ConflictError
 from app.core.permissions import CurrentUser
 from app.modules.settings.models import AppSetting
 from app.modules.settings.schemas import BusinessProfile, PeriodLock, Preferences, SettingsRead
@@ -62,3 +62,14 @@ def set_period_lock(session: Session, value: PeriodLock, actor: CurrentUser) -> 
 
 def period_lock_date(session: Session) -> date | None:
     return get_setting(session, "period_lock", PeriodLock).lock_date
+
+
+def ensure_period_open(session: Session, on: date) -> None:
+    """Reject postings dated on or before the period lock date."""
+    lock = period_lock_date(session)
+    if lock is not None and on <= lock:
+        raise ConflictError(
+            f"The period up to {lock.isoformat()} is locked; nothing can be posted or reversed "
+            f"on {on.isoformat()}.",
+            code="period_locked",
+        )
