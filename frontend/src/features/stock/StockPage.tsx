@@ -1,5 +1,6 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { useInfiniteQuery } from '@tanstack/react-query'
+import { useNavigate } from '@tanstack/react-router'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -107,6 +108,7 @@ export function StockPage() {
   const { t } = useTranslation()
   const { lang, pick } = useLang()
   const { can } = useAuth()
+  const navigate = useNavigate()
   const showCost = can('reports:profit')
   const categories = useCategories()
   const [tab, setTab] = useState<'product' | 'batch'>('product')
@@ -199,7 +201,17 @@ export function StockPage() {
 
   return (
     <>
-      <PageHeader title={t('stock.title')} description={t('stock.subtitle')} />
+      <PageHeader
+        title={t('stock.title')}
+        description={t('stock.subtitle')}
+        actions={
+          can('inventory:adjust') && (
+            <Button variant="outline" onClick={() => void navigate({ to: '/stock/documents' })}>
+              {t('stockDocs.title')}
+            </Button>
+          )
+        }
+      />
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {showCost && (
           <Card className="p-4">

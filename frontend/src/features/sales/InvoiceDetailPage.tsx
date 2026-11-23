@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams } from '@tanstack/react-router'
-import { Banknote, Pencil, Printer, RotateCcw, Trash2 } from 'lucide-react'
+import { Banknote, Pencil, Printer, RotateCcw, Trash2, Undo2 } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
@@ -217,6 +217,11 @@ export function InvoiceDetailPage() {
                 </Button>
               </>
             )}
+            {isPosted && can('sales:return') && (
+              <Button variant="outline" onClick={() => void navigate({ to: '/sales/$invoiceId/return', params: { invoiceId } })}>
+                <Undo2 className="size-4" /> {t('returns.returnGoods')}
+              </Button>
+            )}
             {isPosted && can('sales:reverse') && (
               <Button variant="outline" onClick={() => setConfirm('reverse')}>
                 <RotateCcw className="size-4" /> {t('sales.reverseInvoice')}
@@ -257,6 +262,9 @@ export function InvoiceDetailPage() {
             <Line label={t('sales.dealerDiscount')} value={<Taka value={inv.dealer_discount} />} />
             <Line label={t('sales.companyDiscount')} value={<Taka value={inv.company_discount} />} hint={t('sales.companyDiscountHint')} />
             <Line label={t('sales.net')} value={<Taka value={inv.net_amount} />} strong />
+            {Number(inv.returned_amount) > 0 && (
+              <Line label={t('returns.returnedValue')} value={<Taka value={inv.returned_amount} />} />
+            )}
             {inv.payment_account_name && (
               <Line label={t('sales.paidInto')} value={<span>{inv.payment_account_name}</span>} />
             )}
