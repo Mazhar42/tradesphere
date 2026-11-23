@@ -8,6 +8,7 @@ from app.modules.accounting.models import (
     PaymentAccount,
 )
 from app.modules.catalog.models import Brand, Category, Product, ProductUom, Uom
+from app.modules.claims.models import ClaimableItem
 from app.modules.inventory.models import (
     Batch,
     InventoryMovement,
@@ -24,6 +25,14 @@ from app.modules.purchasing.models import (
     PurchaseOrderItem,
     SupplierPayment,
 )
+from app.modules.sales.models import (
+    CustomerReceipt,
+    DailySalesSummary,
+    ReceiptAllocation,
+    SaleItemBatch,
+    SalesInvoice,
+    SalesInvoiceItem,
+)
 from app.modules.settings.models import AppSetting
 from app.modules.users.models import Permission, RefreshToken, Role, User
 from app.shared.audit import AuditLog
@@ -39,7 +48,10 @@ __all__ = [
     "Batch",
     "Brand",
     "Category",
+    "ClaimableItem",
     "Customer",
+    "CustomerReceipt",
+    "DailySalesSummary",
     "DocumentSequence",
     "GoodsReceipt",
     "GoodsReceiptItem",
@@ -57,8 +69,12 @@ __all__ = [
     "ProductUom",
     "PurchaseOrder",
     "PurchaseOrderItem",
+    "ReceiptAllocation",
     "RefreshToken",
     "Role",
+    "SaleItemBatch",
+    "SalesInvoice",
+    "SalesInvoiceItem",
     "StockBalance",
     "Supplier",
     "SupplierPayment",
