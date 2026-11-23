@@ -313,9 +313,12 @@ def get_customer_aging(db: DbSession, _: CanReports, as_of: date | None = None) 
 @router.get("/reports/sales-summary", response_model=list[SalesSummaryRow])
 def get_sales_summary(
     db: DbSession,
-    _: CanReports,
+    user: CanReports,
     date_from: date,
     date_to: date,
     group: Annotated[str, Query(pattern="^(day|month)$")] = "day",
 ) -> list[SalesSummaryRow]:
-    return reports.sales_summary(db, date_from=date_from, date_to=date_to, group=group)
+    rows = reports.sales_summary(db, date_from=date_from, date_to=date_to, group=group)
+    if user.has("reports:profit"):
+        return rows
+    return [row.model_copy(update={"cogs": None, "gross_profit": None}) for row in rows]
