@@ -47,9 +47,10 @@ services:
 
   # React app. Built from source; /api is proxied to the API on the same origin, so the
   # refresh-token cookie and CORS behave as they do in production.
-  - type: static
+  # Static sites are `type: web` with `runtime: static` in a Blueprint.
+  - type: web
+    runtime: static
     name: tradesphere-web
-    plan: free
     rootDir: frontend
     buildCommand: npm install -g pnpm@12 && pnpm install --frozen-lockfile && pnpm build
     staticPublishPath: ./dist
