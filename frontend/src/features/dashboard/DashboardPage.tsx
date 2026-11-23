@@ -8,11 +8,23 @@ import { PageHeader } from '@/components/layout/page'
 import { Card, CardHeader } from '@/components/ui/card'
 import { useAuth } from '@/features/auth/auth-context'
 import { useLang } from '@/i18n'
-import { formatMoney, formatNumber } from '@/lib/format'
+import { formatDate, formatMoney, formatNumber } from '@/lib/format'
 
-function Kpi({ label, icon: Icon, value, hint }: { label: string; icon: LucideIcon; value?: string | null; hint?: string }) {
+function Kpi({
+  label,
+  icon: Icon,
+  value,
+  hint,
+  restricted,
+}: {
+  label: string
+  icon: LucideIcon
+  /** undefined while loading, null when the role may not see it, else the formatted amount */
+  value?: string | null
+  hint?: string
+  restricted?: boolean
+}) {
   const { t } = useTranslation()
-  const live = value !== undefined && value !== null
   return (
     <Card className="p-5">
       <div className="flex items-center justify-between">
@@ -21,9 +33,29 @@ function Kpi({ label, icon: Icon, value, hint }: { label: string; icon: LucideIc
           <Icon className="size-4" aria-hidden />
         </span>
       </div>
-      <p className={`num mt-3 text-2xl font-semibold ${live ? '' : 'text-muted/60'}`}>{live ? value : '৳ —'}</p>
-      <p className="mt-1 text-xs text-muted">{live ? hint : t('dashboard.availableLater')}</p>
+      <p className={`num mt-3 text-2xl font-semibold ${value ? '' : 'text-muted/60'}`}>{value ?? '৳ —'}</p>
+      <p className="mt-1 text-xs text-muted">{restricted ? t('dashboard.restricted') : hint}</p>
     </Card>
+  )
+}
+
+/** Net sales for each of the last 30 days, as a plain bar strip (no charting library). */
+function SalesBars({ days }: { days: { business_date: string; net_sales: string }[] }) {
+  const { t } = useTranslation()
+  const { lang } = useLang()
+  const values = days.map((d) => Number(d.net_sales))
+  const max = Math.max(1, ...values)
+  return (
+    <div role="img" aria-label={t('dashboard.last30')} className="flex h-28 items-end gap-0.5">
+      {days.map((d, i) => (
+        <div
+          key={d.business_date}
+          title={`${formatDate(d.business_date, lang)}: ${formatMoney(d.net_sales, lang)}`}
+          className="flex-1 rounded-sm bg-primary/70"
+          style={{ height: `${(values[i]! / max) * 100}%`, minHeight: values[i]! > 0 ? '2px' : 0 }}
+        />
+      ))}
+    </div>
   )
 }
 
@@ -42,6 +74,15 @@ export function DashboardPage() {
   const { t } = useTranslation()
   const { lang } = useLang()
   const { user, can } = useAuth()
+
+  const dashboard = useQuery({
+    queryKey: ['dashboard'],
+    queryFn: () => unwrap(api.GET('/api/v1/reports/dashboard')),
+    enabled: can('reports:read'),
+    staleTime: 30_000,
+  })
+  const d = dashboard.data
+  const money = (value: string | null | undefined) => (value === undefined || value === null ? null : formatMoney(value, lang))
 
   const settings = useQuery({
     queryKey: ['settings'],
@@ -68,13 +109,6 @@ export function DashboardPage() {
     queryFn: () => unwrap(api.GET('/api/v1/inventory/stock/totals')),
     enabled: can('inventory:read'),
   })
-  const stockValue = stockTotals.data?.total_value
-  const cashAccounts = useQuery({
-    queryKey: ['payment-accounts'],
-    queryFn: () => unwrap(api.GET('/api/v1/payment-accounts')),
-    enabled: can('purchasing:pay'),
-  })
-  const cashTotal = cashAccounts.data?.reduce((sum, a) => sum + Number(a.balance), 0)
 
   const profileDone = settings.data ? settings.data.business_profile.name !== 'My Dealership' : null
   const steps = [
@@ -97,23 +131,34 @@ export function DashboardPage() {
         description={t('dashboard.subtitle')}
       />
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Kpi label={t('dashboard.todaySales')} icon={Banknote} />
-        <Kpi label={t('dashboard.grossProfit')} icon={TrendingUp} />
-        <Kpi label={t('dashboard.customerDues')} icon={HandCoins} />
+        <Kpi label={t('dashboard.todaySales')} icon={Banknote} value={d ? money(d.today_net_sales) : undefined} hint={t('dashboard.todayHint')} />
+        <Kpi
+          label={t('dashboard.grossProfit')}
+          icon={TrendingUp}
+          value={d ? money(d.today_gross_profit) : undefined}
+          restricted={d !== undefined && d.today_gross_profit === null}
+          hint={
+            d?.today_margin_pct !== null && d?.today_margin_pct !== undefined
+              ? t('dashboard.marginHint', { pct: formatNumber(d.today_margin_pct, lang, 2) })
+              : undefined
+          }
+        />
+        <Kpi label={t('dashboard.customerDues')} icon={HandCoins} value={d ? money(d.customer_dues) : undefined} hint={t('dashboard.duesHint')} />
         <Kpi
           label={t('dashboard.stockValue')}
           icon={Boxes}
-          value={stockValue === undefined || stockValue === null ? null : formatMoney(stockValue, lang)}
+          value={d ? money(d.stock_value) : undefined}
+          restricted={d !== undefined && d.stock_value === null}
           hint={t('dashboard.stockValueHint')}
         />
       </div>
 
-      {(cashTotal !== undefined || stockTotals.data) && (
+      {(d || stockTotals.data) && (
         <div className="mt-4 grid gap-4 sm:grid-cols-3">
-          {cashTotal !== undefined && (
+          {d && (
             <Card className="p-5">
               <p className="text-sm font-medium text-muted">{t('dashboard.cashAndBank')}</p>
-              <p className="num mt-2 text-xl font-semibold">{formatMoney(cashTotal.toFixed(2), lang)}</p>
+              <p className="num mt-2 text-xl font-semibold">{money(d.cash_total)}</p>
               <Link to="/accounts" className="mt-1 inline-block text-xs text-primary hover:underline">{t('dashboard.viewAccounts')}</Link>
             </Card>
           )}
@@ -132,6 +177,13 @@ export function DashboardPage() {
             </>
           )}
         </div>
+      )}
+
+      {d && (
+        <Card className="mt-4 p-5">
+          <p className="mb-3 text-sm font-medium text-muted">{t('dashboard.last30')}</p>
+          <SalesBars days={d.sales_last_30_days} />
+        </Card>
       )}
 
       <Card className="mt-6">

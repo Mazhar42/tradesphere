@@ -13,6 +13,7 @@ from app.modules.accounting.journal import INVENTORY
 from app.modules.accounting.models import Account, JournalLine
 from app.modules.inventory.models import InventoryMovement, ProductCost, StockBalance
 from app.modules.inventory.schemas import ReconcileIssue, ReconcileRead
+from app.modules.sales.rebuild import projection_drift
 
 
 def reconcile(session: Session) -> ReconcileRead:
@@ -104,5 +105,9 @@ def reconcile(session: Session) -> ReconcileRead:
         issues.append(
             ReconcileIssue(check="trial_balance", detail=f"debits {debit} != credits {credit}")
         )
+
+    # 5. the daily sales projection == the posted invoices and returns it summarises
+    for detail in projection_drift(session):
+        issues.append(ReconcileIssue(check="daily_sales", detail=detail))
 
     return ReconcileRead(ok=not issues, issues=issues)

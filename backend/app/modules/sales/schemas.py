@@ -230,8 +230,10 @@ class SalesSummaryRow(ReadSchema):
     dealer_discount: Money
     company_discount: Money
     net_amount: Money
-    cogs: Money
-    gross_profit: Money  # (gross - dealer discounts) - cogs; company-funded discounts excluded
+    # Cost and margin are null for users without reports:profit.
+    cogs: Money | None = None
+    # (gross - dealer discounts) - cogs; company-funded discounts excluded
+    gross_profit: Money | None = None
 
 
 InvoiceRead.model_rebuild()

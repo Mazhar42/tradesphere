@@ -73,7 +73,8 @@
     "audit": "Audit log",
     "sectionOperations": "Operations",
     "sectionMasterData": "Master data",
-    "sectionAdmin": "Administration"
+    "sectionAdmin": "Administration",
+    "finance": "Finance"
   },
   "theme": {
     "light": "Light",
@@ -108,7 +109,12 @@
     "cashAndBank": "Cash and bank",
     "stockValueHint": "At weighted average cost",
     "viewAccounts": "View accounts",
-    "viewStock": "View stock"
+    "viewStock": "View stock",
+    "restricted": "Owners and managers only",
+    "todayHint": "After returns and dealer discounts",
+    "marginHint": "Margin {{pct}}% today",
+    "duesHint": "Owed by customers",
+    "last30": "Net sales, last 30 days"
   },
   "products": {
     "title": "Products",
@@ -795,5 +801,152 @@
     "transferHint": "Move stock between locations, for example sellable to expired. The cost moves with it.",
     "transfers": "Transfers",
     "writeOffNote": "Booked as a write-off, not as a stock difference."
+  },
+  "finance": {
+    "title": "Finance",
+    "subtitle": "Expenses, money moved between accounts, and owner capital or drawings.",
+    "tabs": {
+      "expenses": "Expenses",
+      "transfers": "Transfers",
+      "owner": "Owner money"
+    },
+    "actions": {
+      "expenses": "Record expense",
+      "transfers": "Transfer money",
+      "owner": "Record owner money"
+    },
+    "columns": {
+      "date": "Date",
+      "doc": "Number",
+      "account": "Expense account",
+      "payee": "Paid to",
+      "paidFrom": "Paid from",
+      "from": "From",
+      "to": "To",
+      "charges": "Charges",
+      "reference": "Reference",
+      "kind": "Type",
+      "notes": "Notes"
+    },
+    "kinds": {
+      "capital": "Capital in",
+      "drawing": "Drawings out"
+    },
+    "empty": "Nothing recorded yet.",
+    "recorded": "{{doc}} recorded.",
+    "chooseAccount": "Choose an account",
+    "expense": {
+      "title": "Record an expense",
+      "hint": "Money paid out to run the business. It is booked to the expense account and taken from the account you pick.",
+      "account": "Expense account",
+      "chooseExpense": "Choose an expense account",
+      "payee": "Paid to",
+      "paidFrom": "Paid from"
+    },
+    "transfer": {
+      "title": "Move money between accounts",
+      "hint": "Moves money from one account to another. Charges are booked as bank and MFS charges.",
+      "sameAccount": "Choose two different accounts",
+      "reference": "Reference"
+    },
+    "owner": {
+      "title": "Owner capital or drawings",
+      "hint": "Capital is money the owner puts into the business; drawings are money the owner takes out. Neither is income or an expense.",
+      "kind": "Type",
+      "account": "Account"
+    }
+  },
+  "reports": {
+    "title": "Reports",
+    "subtitle": "Profit, cash, stock and receivables. Every figure comes from the books, not from typed-in totals.",
+    "export": "Download Excel",
+    "noAccess": "Your role has no reports. Ask the owner for access.",
+    "empty": "Nothing in this period.",
+    "from": "From",
+    "to": "To",
+    "asOf": "As of",
+    "withinDays": "Expiring within (days)",
+    "account": "Account",
+    "allAccounts": "All accounts",
+    "groupBy": "Group by",
+    "by": {
+      "product": "Product",
+      "customer": "Customer",
+      "category": "Category",
+      "brand": "Brand"
+    },
+    "group": {
+      "day": "Day",
+      "month": "Month"
+    },
+    "tabs": {
+      "pl": "Profit & loss",
+      "cashbook": "Cashbook",
+      "margin": "Margins",
+      "valuation": "Stock value",
+      "expiry": "Near expiry",
+      "claims": "Claims aging",
+      "po": "Purchase orders",
+      "sales": "Sales summary"
+    },
+    "plNote": "Net profit = gross profit + scheme and other income − write-offs − dealer commission − operating expenses. Owner money and transfers are not income or expense.",
+    "pl": {
+      "grossSales": "Gross sales",
+      "salesReturns": "Less: sales returns",
+      "dealerDiscounts": "Less: dealer discounts",
+      "netSales": "Net sales",
+      "cogs": "Less: cost of goods sold",
+      "grossProfit": "Gross profit",
+      "grossMargin": "Gross margin %",
+      "schemeIncome": "Scheme and claim income",
+      "otherIncome": "Other income",
+      "writeOffs": "Less: write-offs",
+      "dealerCommission": "Less: dealer commission",
+      "operatingExpenses": "Less: operating expenses",
+      "netProfit": "Net profit"
+    },
+    "cashbook": {
+      "opening": "Opening",
+      "inflow": "Money in",
+      "outflow": "Money out",
+      "closing": "Closing"
+    },
+    "valuation": {
+      "total": "Total stock value"
+    },
+    "columns": {
+      "date": "Date",
+      "period": "Period",
+      "label": "Item",
+      "sku": "SKU",
+      "product": "Product",
+      "qty": "Qty (base)",
+      "gross": "Gross",
+      "returns": "Returns",
+      "dealer": "Dealer discounts",
+      "netSales": "Net sales",
+      "cogs": "COGS",
+      "grossProfit": "Gross profit",
+      "marginPct": "Margin %",
+      "avgCost": "Avg cost",
+      "value": "Value",
+      "batch": "Batch",
+      "expiry": "Expiry",
+      "daysLeft": "Days left",
+      "company": "Company",
+      "bucket0_30": "0–30 days",
+      "bucket31_60": "31–60 days",
+      "bucket61_90": "61–90 days",
+      "bucketOver90": "Over 90 days",
+      "total": "Total",
+      "po": "PO",
+      "status": "Status",
+      "ordered": "Ordered",
+      "received": "Received",
+      "undelivered": "Not yet received",
+      "paid": "Paid",
+      "balanceDue": "Balance due",
+      "advance": "Advance"
+    }
   }
 }
