@@ -6,7 +6,7 @@ Safe to run on every deploy; existing rows are updated, nothing is deleted.
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.modules.accounting.models import Account
+from app.modules.accounting.models import Account, PaymentAccount
 from app.modules.catalog.models import Uom
 from app.modules.inventory.models import Location
 from app.modules.parties.models import Customer
@@ -132,6 +132,24 @@ def seed_accounts(session: Session) -> None:
     session.flush()
 
 
+PAYMENT_ACCOUNTS = [
+    ("Cash in Hand", "cash", "1000"),
+    ("bKash", "mfs", "1020"),
+    ("Nagad", "mfs", "1030"),
+]
+
+
+def seed_payment_accounts(session: Session) -> None:
+    existing = set(session.scalars(select(PaymentAccount.name)).all())
+    accounts = {a.code: a for a in session.scalars(select(Account)).all()}
+    for name, kind, code in PAYMENT_ACCOUNTS:
+        if name not in existing:
+            session.add(
+                PaymentAccount(name=name, kind=kind, account_id=accounts[code].id, is_system=True)
+            )
+    session.flush()
+
+
 def seed_walk_in_customer(session: Session) -> None:
     if session.scalar(select(Customer.id).where(Customer.is_walk_in.is_(True))) is None:
         session.add(Customer(code="WALK-IN", name="Walk-in Customer", is_walk_in=True))
@@ -155,5 +173,6 @@ def run_seed(session: Session) -> None:
     seed_uoms(session)
     seed_locations(session)
     seed_accounts(session)
+    seed_payment_accounts(session)
     seed_walk_in_customer(session)
     seed_settings(session)
