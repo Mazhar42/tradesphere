@@ -416,7 +416,7 @@ Sales returns (good/damaged/expired; refund or credit), purchase returns, stock 
 Expenses, fund transfers, owner transactions, cashbook, P&L, margin reports, dashboard, stock valuation, aging, near-expiry, claims aging, trial balance, Excel export, reconcile & rebuild commands.
 **Acceptance:** monthly P&L matches hand-calculated scenario fixture; reconcile reports zero drift.
 
-### Phase 6 — Production readiness
+### Phase 6 — Production readiness 🚧 *(in progress: see [operations.md](operations.md))*
 Prod Docker images, Caddy (auto HTTPS), VPS deploy, nightly `pg_dump` + off-site copy (S3-compatible), restore drill, Sentry + uptime monitoring, load test of sales posting, data migration from manual books (opening stock, customer dues, supplier balance, pending claims), user training.
 
 ### Later

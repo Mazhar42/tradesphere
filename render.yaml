@@ -1,0 +1,74 @@
+# Render Blueprint: a TEMPORARY hosting of TradeSphere (API, web app and PostgreSQL), free plans.
+#
+# Free plans have limits: the database expires after 30 days and has no backups, web services
+# sleep after 15 minutes idle, and the disk is not persistent. Use for demos and trials with
+# test data only. See docs/deploy-render.md.
+#
+# Deploy: Render dashboard > New > Blueprint > connect the repository and branch that contain
+# this file. Then fill the variables marked `sync: false`.
+
+services:
+  # FastAPI API. Runs migrations, seeds reference data, creates the first owner (only if none
+  # exists), then serves on $PORT, which Render provides.
+  - type: web
+    name: tradesphere-api
+    runtime: docker
+    plan: free
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    healthCheckPath: /api/health
+    dockerCommand: >-
+      sh -c 'alembic upgrade head &&
+      python -m app.cli seed &&
+      python -m app.cli bootstrap-owner &&
+      exec uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 1
+      --proxy-headers --forwarded-allow-ips "*" --no-access-log'
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: LOG_FORMAT
+        value: json
+      - key: DATABASE_URL
+        fromDatabase:
+          name: tradesphere-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      # Must match the web service's public address (no trailing slash).
+      - key: CORS_ORIGINS
+        value: '["https://tradesphere-web.onrender.com"]'
+      # First owner account. Created on the first start only; remove the password afterwards.
+      - key: BOOTSTRAP_OWNER_USERNAME
+        sync: false
+      - key: BOOTSTRAP_OWNER_FULL_NAME
+        sync: false
+      - key: BOOTSTRAP_OWNER_PASSWORD
+        sync: false
+
+  # React app. Built from source; /api is proxied to the API on the same origin, so the
+  # refresh-token cookie and CORS behave as they do in production.
+  - type: static
+    name: tradesphere-web
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install -g pnpm@12 && pnpm install --frozen-lockfile && pnpm build
+    staticPublishPath: ./dist
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+    routes:
+      # Must come before the catch-all. If the API service gets a different name, edit this.
+      - type: rewrite
+        source: /api/*
+        destination: https://tradesphere-api.onrender.com/api/*
+      # Single-page app: unknown paths load the app shell, and the router takes over.
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+databases:
+  - name: tradesphere-db
+    plan: free
+    databaseName: tradesphere
+    user: tradesphere
+    postgresMajorVersion: "17"

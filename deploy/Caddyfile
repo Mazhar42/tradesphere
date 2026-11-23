@@ -1,0 +1,23 @@
+# Caddy: HTTPS for the site, the SPA as static files, /api proxied to the API container.
+# SITE_ADDRESS is a domain (automatic HTTPS) or http://host for a local test without TLS.
+{$SITE_ADDRESS}
+
+encode zstd gzip
+
+header {
+	Strict-Transport-Security "max-age=31536000"
+	X-Content-Type-Options "nosniff"
+	X-Frame-Options "DENY"
+	Referrer-Policy "strict-origin-when-cross-origin"
+	-Server
+}
+
+handle /api/* {
+	reverse_proxy api:8000
+}
+
+handle {
+	root * /srv
+	try_files {path} /index.html
+	file_server
+}

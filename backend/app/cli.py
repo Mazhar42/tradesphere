@@ -1,11 +1,13 @@
 """Operational commands: `python -m app.cli --help`."""
 
+import os
 from datetime import datetime
 from typing import Annotated
 
 import typer
 
 import app.models as _models  # noqa: F401  (register all tables)
+from app.bootstrap import ensure_owner
 from app.core.db import SessionLocal
 from app.modules.inventory.reconcile import reconcile as run_reconcile
 from app.modules.sales.rebuild import rebuild_sales_summary
@@ -69,6 +71,21 @@ def rebuild_projections(
         count = rebuild_sales_summary(session, from_date.date() if from_date else None)
         session.commit()
     typer.echo(f"Rebuilt the daily sales projection from {count} documents.")
+
+
+@cli.command("bootstrap-owner")
+def bootstrap_owner() -> None:
+    """Create the first owner from BOOTSTRAP_OWNER_* variables, if no owner exists yet."""
+    username = os.environ.get("BOOTSTRAP_OWNER_USERNAME")
+    password = os.environ.get("BOOTSTRAP_OWNER_PASSWORD")
+    if not username or not password:
+        typer.echo("Owner bootstrap skipped: BOOTSTRAP_OWNER_USERNAME/PASSWORD not set.")
+        return
+    full_name = os.environ.get("BOOTSTRAP_OWNER_FULL_NAME", username)
+    with SessionLocal() as session:
+        created = ensure_owner(session, username=username, full_name=full_name, password=password)
+        session.commit()
+    typer.echo("Owner created." if created else "Owner already exists; nothing to do.")
 
 
 if __name__ == "__main__":
