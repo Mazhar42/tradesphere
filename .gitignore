@@ -19,6 +19,10 @@ dist/
 .env.*
 !.env.example
 
+# Backups hold customer and financial data: never commit dumps
+deploy/backups/
+*.dump
+
 # OS / editors
 .DS_Store
 Thumbs.db
