@@ -41,6 +41,8 @@ const PoDetailPage = lazyRouteComponent(() => import('@/features/purchases/PoDet
 const SupplierAccountPage = lazyRouteComponent(() => import('@/features/parties/SupplierAccountPage'), 'SupplierAccountPage')
 const AccountsPage = lazyRouteComponent(() => import('@/features/accounts/AccountsPage'), 'AccountsPage')
 const OpeningBalancesPage = lazyRouteComponent(() => import('@/features/accounts/OpeningBalancesPage'), 'OpeningBalancesPage')
+const FinancePage = lazyRouteComponent(() => import('@/features/finance/FinancePage'), 'FinancePage')
+const ReportsPage = lazyRouteComponent(() => import('@/features/reports/ReportsPage'), 'ReportsPage')
 
 export interface RouterContext {
   auth: AuthContextValue
@@ -117,6 +119,8 @@ const routeTree = rootRoute.addChildren([
     guarded('/purchases/$poId', 'purchasing:read', PoDetailPage),
     guarded('/purchases/$poId/edit', 'purchasing:write', PoFormPage),
     guarded('/accounts', 'finance:read', AccountsPage),
+    guarded('/finance', 'finance:read', FinancePage),
+    guarded('/reports', 'reports:read', ReportsPage),
     guarded('/opening-balances', 'finance:opening', OpeningBalancesPage),
     guarded('/users', 'users:read', UsersPage),
     guarded('/settings', 'settings:read', SettingsPage),

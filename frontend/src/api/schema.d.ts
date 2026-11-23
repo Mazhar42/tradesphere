@@ -1195,6 +1195,196 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/expenses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Expenses */
+        get: operations["list_expenses"];
+        put?: never;
+        /** Create Expense */
+        post: operations["create_expense"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/fund-transfers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Fund Transfers */
+        get: operations["list_fund_transfers"];
+        put?: never;
+        /** Create Fund Transfer */
+        post: operations["create_fund_transfer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/owner-transactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Owner Transactions */
+        get: operations["list_owner_transactions"];
+        put?: never;
+        /** Create Owner Transaction */
+        post: operations["create_owner_transaction"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/profit-loss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Profit Loss Report */
+        get: operations["profit_loss_report"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/cashbook": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Cashbook Report */
+        get: operations["cashbook_report"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/margin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Margin Report */
+        get: operations["margin_report"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/stock-valuation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stock Valuation Report */
+        get: operations["stock_valuation_report"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/near-expiry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Near Expiry Report */
+        get: operations["near_expiry_report"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/claims-aging": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Claims Aging Report */
+        get: operations["claims_aging_report"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/po-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Po Status Report */
+        get: operations["po_status_report"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Dashboard Report */
+        get: operations["dashboard_report"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/locations": {
         parameters: {
             query?: never;
@@ -1826,6 +2016,52 @@ export interface components {
             /** Invoice Footer */
             invoice_footer?: string | null;
         };
+        /** CashAccountBalance */
+        CashAccountBalance: {
+            /** Name */
+            name: string;
+            /** Balance */
+            balance: string;
+        };
+        /** CashDay */
+        CashDay: {
+            /**
+             * Business Date
+             * Format: date
+             */
+            business_date: string;
+            /** Opening */
+            opening: string;
+            /** Inflow */
+            inflow: string;
+            /** Outflow */
+            outflow: string;
+            /** Closing */
+            closing: string;
+        };
+        /** Cashbook */
+        Cashbook: {
+            /**
+             * From Date
+             * Format: date
+             */
+            from_date: string;
+            /**
+             * To Date
+             * Format: date
+             */
+            to_date: string;
+            /** Opening */
+            opening: string;
+            /** Inflow */
+            inflow: string;
+            /** Outflow */
+            outflow: string;
+            /** Closing */
+            closing: string;
+            /** Days */
+            days: components["schemas"]["CashDay"][];
+        };
         /** CategoryCreate */
         CategoryCreate: {
             /** Name En */
@@ -1858,6 +2094,21 @@ export interface components {
             parent_id?: number | null;
             /** Is Active */
             is_active?: boolean | null;
+        };
+        /** ClaimAgingRow */
+        ClaimAgingRow: {
+            /** Supplier */
+            supplier: string;
+            /** Current */
+            current: string;
+            /** Days 31 60 */
+            days_31_60: string;
+            /** Days 61 90 */
+            days_61_90: string;
+            /** Days Over 90 */
+            days_over_90: string;
+            /** Total */
+            total: string;
         };
         /** ClaimLineRead */
         ClaimLineRead: {
@@ -1936,6 +2187,18 @@ export interface components {
             claim_amount: string;
             /** Status */
             status: string;
+        };
+        /** ClaimsAging */
+        ClaimsAging: {
+            /**
+             * As Of
+             * Format: date
+             */
+            as_of: string;
+            /** Rows */
+            rows: components["schemas"]["ClaimAgingRow"][];
+            /** Total */
+            total: string;
         };
         /** CommissionCreate */
         CommissionCreate: {
@@ -2176,6 +2439,125 @@ export interface components {
             is_active?: boolean | null;
             /** Notes */
             notes?: string | null;
+        };
+        /** Dashboard */
+        Dashboard: {
+            /**
+             * Today
+             * Format: date
+             */
+            today: string;
+            /** Today Gross */
+            today_gross: string;
+            /** Today Returns */
+            today_returns: string;
+            /** Today Net Sales */
+            today_net_sales: string;
+            /** Today Gross Profit */
+            today_gross_profit: string | null;
+            /** Today Margin Pct */
+            today_margin_pct: string | null;
+            /** Cash Total */
+            cash_total: string;
+            /** Cash Accounts */
+            cash_accounts: components["schemas"]["CashAccountBalance"][];
+            /** Customer Dues */
+            customer_dues: string;
+            /** Supplier Advance */
+            supplier_advance: string;
+            /** Claims Outstanding */
+            claims_outstanding: string;
+            /** Stock Value */
+            stock_value: string | null;
+            /** Low Stock Count */
+            low_stock_count: number;
+            /** Near Expiry Count */
+            near_expiry_count: number;
+            /** Sales Last 30 Days */
+            sales_last_30_days: components["schemas"]["SalesDay"][];
+        };
+        /** ExpenseCreate */
+        ExpenseCreate: {
+            /** Expense Account Id */
+            expense_account_id: number;
+            /** Amount */
+            amount: number | string;
+            /** Payment Account Id */
+            payment_account_id: number;
+            /** Business Date */
+            business_date?: string | null;
+            /** Payee */
+            payee?: string | null;
+            /** Notes */
+            notes?: string | null;
+        };
+        /** ExpenseRead */
+        ExpenseRead: {
+            /** Id */
+            id: number;
+            /** Doc No */
+            doc_no: string;
+            /**
+             * Business Date
+             * Format: date
+             */
+            business_date: string;
+            /** Expense Account Code */
+            expense_account_code: string;
+            /** Expense Account Name */
+            expense_account_name: string;
+            /** Amount */
+            amount: string;
+            /** Payment Account Name */
+            payment_account_name: string;
+            /** Payee */
+            payee: string | null;
+            /** Notes */
+            notes: string | null;
+        };
+        /** FundTransferCreate */
+        FundTransferCreate: {
+            /** From Payment Account Id */
+            from_payment_account_id: number;
+            /** To Payment Account Id */
+            to_payment_account_id: number;
+            /** Amount */
+            amount: number | string;
+            /**
+             * Charges
+             * @default 0
+             */
+            charges?: number | string;
+            /** Business Date */
+            business_date?: string | null;
+            /** Reference */
+            reference?: string | null;
+            /** Notes */
+            notes?: string | null;
+        };
+        /** FundTransferRead */
+        FundTransferRead: {
+            /** Id */
+            id: number;
+            /** Doc No */
+            doc_no: string;
+            /**
+             * Business Date
+             * Format: date
+             */
+            business_date: string;
+            /** From Account */
+            from_account: string;
+            /** To Account */
+            to_account: string;
+            /** Amount */
+            amount: string;
+            /** Charges */
+            charges: string;
+            /** Reference */
+            reference: string | null;
+            /** Notes */
+            notes: string | null;
         };
         /** GrnCreate */
         GrnCreate: {
@@ -2605,6 +2987,44 @@ export interface components {
             /** Password */
             password: string;
         };
+        /** Margin */
+        Margin: {
+            /** By */
+            by: string;
+            /**
+             * From Date
+             * Format: date
+             */
+            from_date: string;
+            /**
+             * To Date
+             * Format: date
+             */
+            to_date: string;
+            /** Rows */
+            rows: components["schemas"]["MarginRow"][];
+        };
+        /** MarginRow */
+        MarginRow: {
+            /** Label */
+            label: string;
+            /** Qty Base */
+            qty_base: string;
+            /** Gross Sales */
+            gross_sales: string;
+            /** Returns */
+            returns: string;
+            /** Dealer Discounts */
+            dealer_discounts: string;
+            /** Net Sales */
+            net_sales: string;
+            /** Cogs */
+            cogs: string;
+            /** Gross Profit */
+            gross_profit: string;
+            /** Margin Pct */
+            margin_pct: string;
+        };
         /** MeRead */
         MeRead: {
             /** Id */
@@ -2659,6 +3079,33 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+        };
+        /** NearExpiry */
+        NearExpiry: {
+            /** Days */
+            days: number;
+            /** Rows */
+            rows: components["schemas"]["NearExpiryRow"][];
+        };
+        /** NearExpiryRow */
+        NearExpiryRow: {
+            /** Sku */
+            sku: string;
+            /** Name */
+            name: string;
+            /** Batch No */
+            batch_no: string;
+            /**
+             * Expiry Date
+             * Format: date
+             */
+            expiry_date: string;
+            /** Days Left */
+            days_left: number;
+            /** Qty Base */
+            qty_base: string;
+            /** Value */
+            value: string;
         };
         /** OpeningBalanceRead */
         OpeningBalanceRead: {
@@ -2758,6 +3205,49 @@ export interface components {
             direction: "advance" | "payable";
             /** Amount */
             amount: number | string;
+        };
+        /** OwnerTransactionCreate */
+        OwnerTransactionCreate: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "capital" | "drawing";
+            /** Amount */
+            amount: number | string;
+            /** Payment Account Id */
+            payment_account_id: number;
+            /** Business Date */
+            business_date?: string | null;
+            /** Notes */
+            notes?: string | null;
+        };
+        /** OwnerTransactionRead */
+        OwnerTransactionRead: {
+            /** Id */
+            id: number;
+            /** Doc No */
+            doc_no: string;
+            /**
+             * Business Date
+             * Format: date
+             */
+            business_date: string;
+            /** Kind */
+            kind: string;
+            /** Amount */
+            amount: string;
+            /** Payment Account Name */
+            payment_account_name: string;
+            /** Notes */
+            notes: string | null;
+        };
+        /** PLLine */
+        PLLine: {
+            /** Label */
+            label: string;
+            /** Amount */
+            amount: string;
         };
         /** POCreate */
         POCreate: {
@@ -2898,6 +3388,32 @@ export interface components {
             item_count: number;
             summary: components["schemas"]["POSummary"];
         };
+        /** POStatus */
+        POStatus: {
+            /** Rows */
+            rows: components["schemas"]["POStatusRow"][];
+        };
+        /** POStatusRow */
+        POStatusRow: {
+            /** Doc No */
+            doc_no: string;
+            /** Supplier */
+            supplier: string;
+            /** Status */
+            status: string;
+            /** Ordered */
+            ordered: string;
+            /** Received */
+            received: string;
+            /** Undelivered */
+            undelivered: string;
+            /** Paid */
+            paid: string;
+            /** Balance Due */
+            balance_due: string;
+            /** Advance */
+            advance: string;
+        };
         /** POSummary */
         POSummary: {
             /** Ordered Value */
@@ -3005,6 +3521,28 @@ export interface components {
             /** Page Size */
             page_size: number;
         };
+        /** Page[ExpenseRead] */
+        Page_ExpenseRead_: {
+            /** Items */
+            items: components["schemas"]["ExpenseRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+        };
+        /** Page[FundTransferRead] */
+        Page_FundTransferRead_: {
+            /** Items */
+            items: components["schemas"]["FundTransferRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+        };
         /** Page[GrnListItem] */
         Page_GrnListItem_: {
             /** Items */
@@ -3042,6 +3580,17 @@ export interface components {
         Page_LedgerEntryRead_: {
             /** Items */
             items: components["schemas"]["LedgerEntryRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+        };
+        /** Page[OwnerTransactionRead] */
+        Page_OwnerTransactionRead_: {
+            /** Items */
+            items: components["schemas"]["OwnerTransactionRead"][];
             /** Total */
             total: number;
             /** Page */
@@ -3439,6 +3988,47 @@ export interface components {
             /** Uoms */
             uoms?: components["schemas"]["ProductUomIn"][] | null;
         };
+        /** ProfitLoss */
+        ProfitLoss: {
+            /**
+             * From Date
+             * Format: date
+             */
+            from_date: string;
+            /**
+             * To Date
+             * Format: date
+             */
+            to_date: string;
+            /** Gross Sales */
+            gross_sales: string;
+            /** Sales Returns */
+            sales_returns: string;
+            /** Dealer Discounts */
+            dealer_discounts: string;
+            /** Net Sales */
+            net_sales: string;
+            /** Cogs */
+            cogs: string;
+            /** Gross Profit */
+            gross_profit: string;
+            /** Gross Margin Pct */
+            gross_margin_pct: string;
+            /** Scheme Income */
+            scheme_income: string;
+            /** Other Income */
+            other_income: string;
+            /** Write Offs */
+            write_offs: string;
+            /** Dealer Commission */
+            dealer_commission: string;
+            /** Operating Expenses */
+            operating_expenses: string;
+            /** Net Profit */
+            net_profit: string;
+            /** Expense Lines */
+            expense_lines: components["schemas"]["PLLine"][];
+        };
         /** PurchaseReturnCreate */
         PurchaseReturnCreate: {
             /** Supplier Id */
@@ -3777,6 +4367,16 @@ export interface components {
             /** Permissions */
             permissions: string[];
         };
+        /** SalesDay */
+        SalesDay: {
+            /**
+             * Business Date
+             * Format: date
+             */
+            business_date: string;
+            /** Net Sales */
+            net_sales: string;
+        };
         /** SalesReturnCreate */
         SalesReturnCreate: {
             /** Invoice Id */
@@ -3882,9 +4482,9 @@ export interface components {
             /** Net Amount */
             net_amount: string;
             /** Cogs */
-            cogs: string;
+            cogs?: string | null;
             /** Gross Profit */
-            gross_profit: string;
+            gross_profit?: string | null;
         };
         /** SettingsRead */
         SettingsRead: {
@@ -3953,6 +4553,13 @@ export interface components {
             expiring_soon_count: number;
             /** Near Expiry Days */
             near_expiry_days: number;
+        };
+        /** StockValuation */
+        StockValuation: {
+            /** Rows */
+            rows: components["schemas"]["ValuationRow"][];
+            /** Total Value */
+            total_value: string;
         };
         /** SupplierCreate */
         SupplierCreate: {
@@ -4298,6 +4905,19 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /** ValuationRow */
+        ValuationRow: {
+            /** Sku */
+            sku: string;
+            /** Name */
+            name: string;
+            /** Qty Base */
+            qty_base: string;
+            /** Avg Cost */
+            avg_cost: string;
+            /** Value */
+            value: string;
         };
         /** AllocationIn */
         app__modules__purchasing__schemas__AllocationIn: {
@@ -7577,6 +8197,457 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_expenses: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_ExpenseRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_expense: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Unique key (e.g. a UUID) that makes retries of this request safe. */
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExpenseCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExpenseRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_fund_transfers: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_FundTransferRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_fund_transfer: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Unique key (e.g. a UUID) that makes retries of this request safe. */
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FundTransferCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FundTransferRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_owner_transactions: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_OwnerTransactionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_owner_transaction: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Unique key (e.g. a UUID) that makes retries of this request safe. */
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OwnerTransactionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OwnerTransactionRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    profit_loss_report: {
+        parameters: {
+            query: {
+                date_from: string;
+                date_to: string;
+                format?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfitLoss"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cashbook_report: {
+        parameters: {
+            query: {
+                date_from: string;
+                date_to: string;
+                payment_account_id?: number | null;
+                format?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Cashbook"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    margin_report: {
+        parameters: {
+            query: {
+                date_from: string;
+                date_to: string;
+                by?: string;
+                format?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Margin"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stock_valuation_report: {
+        parameters: {
+            query?: {
+                format?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockValuation"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    near_expiry_report: {
+        parameters: {
+            query?: {
+                days?: number;
+                format?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NearExpiry"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    claims_aging_report: {
+        parameters: {
+            query?: {
+                as_of?: string | null;
+                format?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimsAging"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    po_status_report: {
+        parameters: {
+            query?: {
+                format?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["POStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    dashboard_report: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Dashboard"];
                 };
             };
         };

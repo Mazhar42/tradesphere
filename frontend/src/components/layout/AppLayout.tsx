@@ -24,6 +24,7 @@ import {
   Undo2,
   Users,
   UserCog,
+  Wallet,
   type LucideIcon,
 } from 'lucide-react'
 import { useState } from 'react'
@@ -60,8 +61,9 @@ const SECTIONS: NavSection[] = [
       { to: '/sales', label: 'nav.sales', icon: ShoppingCart, permission: 'sales:read' },
       { to: '/returns', label: 'nav.returns', icon: Undo2, permission: 'sales:read' },
       { to: '/claims', label: 'nav.claims', icon: HandCoins, permission: 'claims:read' },
+      { to: '/finance', label: 'nav.finance', icon: Wallet, permission: 'finance:read' },
       { to: '/accounts', label: 'nav.accounts', icon: Receipt, permission: 'finance:read' },
-      { to: '/reports', label: 'nav.reports', icon: BarChart3, soon: true },
+      { to: '/reports', label: 'nav.reports', icon: BarChart3, permission: 'reports:read' },
     ],
   },
   {
