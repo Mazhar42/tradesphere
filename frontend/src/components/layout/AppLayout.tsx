@@ -57,7 +57,7 @@ const SECTIONS: NavSection[] = [
       { to: '/', label: 'nav.dashboard', icon: LayoutDashboard },
       { to: '/stock', label: 'nav.stock', icon: Boxes, permission: 'inventory:read' },
       { to: '/purchases', label: 'nav.purchases', icon: Truck, permission: 'purchasing:read' },
-      { to: '/sales', label: 'nav.sales', icon: ShoppingCart, soon: true },
+      { to: '/sales', label: 'nav.sales', icon: ShoppingCart, permission: 'sales:read' },
       { to: '/returns', label: 'nav.returns', icon: Undo2, soon: true },
       { to: '/claims', label: 'nav.claims', icon: HandCoins, soon: true },
       { to: '/accounts', label: 'nav.accounts', icon: Receipt, permission: 'finance:read' },

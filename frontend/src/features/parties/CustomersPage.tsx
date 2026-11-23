@@ -12,6 +12,7 @@ import { type Column, DataTable } from '@/components/data/data-table'
 import { Pagination } from '@/components/data/pagination'
 import { SearchInput } from '@/components/data/search-input'
 import { ErrorState, PageHeader, Toolbar } from '@/components/layout/page'
+import { useNavigate } from '@tanstack/react-router'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -19,7 +20,9 @@ import { Dialog } from '@/components/ui/dialog'
 import { Field } from '@/components/ui/field'
 import { Checkbox, Input, Select, Textarea } from '@/components/ui/input'
 import { useAuth } from '@/features/auth/auth-context'
+import { Taka } from '@/features/purchases/shared'
 import { useLang } from '@/i18n'
+import { cmpMoney } from '@/lib/decimal'
 import { applyServerErrors, blankToNull, MONEY_PATTERN } from '@/lib/forms'
 import { formatMoney, formatNumber } from '@/lib/format'
 
@@ -214,6 +217,19 @@ export function CustomersPage() {
     setOpen(true)
   }
 
+  const navigate = useNavigate()
+  // Balances per customer (from the aging report) give the dues column without a call per row.
+  const agingQuery = useQuery({
+    queryKey: ['customer-aging', 'dues'],
+    enabled: can('reports:read'),
+    queryFn: () => unwrap(api.GET('/api/v1/reports/customer-aging')),
+    staleTime: 30_000,
+  })
+  const dues = useMemo(
+    () => new Map((agingQuery.data?.rows ?? []).map((r) => [r.customer_id, r.total] as const)),
+    [agingQuery.data],
+  )
+
   const columns = useMemo<Column<Customer>[]>(
     () => [
       {
@@ -260,8 +276,36 @@ export function CustomersPage() {
             <Badge>{t('common.inactive')}</Badge>
           ),
       },
+      {
+        header: t('customers.dues'),
+        align: 'right',
+        cell: (row) => {
+          const due = dues.get(row.id)
+          return due !== undefined && cmpMoney(due, '0') > 0 ? (
+            <Taka value={due} className="text-danger" />
+          ) : (
+            <span className="text-muted">—</span>
+          )
+        },
+      },
+      {
+        header: '',
+        align: 'right',
+        cell: (row) => (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation()
+              void navigate({ to: '/customers/$customerId', params: { customerId: String(row.id) } })
+            }}
+          >
+            {t('customers.statement')}
+          </Button>
+        ),
+      },
     ],
-    [t, lang],
+    [t, lang, dues, navigate],
   )
 
   return (
@@ -270,11 +314,18 @@ export function CustomersPage() {
         title={t('customers.title')}
         description={t('customers.subtitle')}
         actions={
-          canWrite && (
-            <Button onClick={() => openDialog(null)}>
-              <Plus className="size-4" /> {t('customers.new')}
-            </Button>
-          )
+          <>
+            {can('reports:read') && (
+              <Button variant="outline" onClick={() => void navigate({ to: '/customers/aging' })}>
+                {t('customers.aging')}
+              </Button>
+            )}
+            {canWrite && (
+              <Button onClick={() => openDialog(null)}>
+                <Plus className="size-4" /> {t('customers.new')}
+              </Button>
+            )}
+          </>
         }
       />
       {query.isError ? (

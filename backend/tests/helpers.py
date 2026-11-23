@@ -98,6 +98,9 @@ class Shop:
         track_expiry: bool = False,
         carton: int | None = None,
         reorder_level: str = "0",
+        dp: str | None = None,
+        tp: str | None = None,
+        mrp: str | None = None,
     ) -> dict[str, Any]:
         n = self._next()
         body: dict[str, Any] = {
@@ -108,6 +111,9 @@ class Shop:
             "track_expiry": track_expiry,
             "reorder_level": reorder_level,
         }
+        for field, value in (("dp", dp), ("tp", tp), ("mrp", mrp)):
+            if value is not None:
+                body[field] = value
         if carton:
             body["uoms"] = [{"uom_id": self.uom_id("CTN"), "factor_to_base": str(carton)}]
         return dict(self.post("/api/v1/products", body, expect=201))
@@ -188,3 +194,97 @@ class Shop:
 
     def reconcile(self) -> dict[str, Any]:
         return dict(self.get("/api/v1/inventory/reconcile"))
+
+    def receive(
+        self,
+        product: dict[str, Any],
+        qty: str,
+        *,
+        price: str = "10",
+        batch: str | None = None,
+        expiry_days: int | None = None,
+    ) -> dict[str, Any]:
+        """Buy and receive stock in one go (PO + posted GRN). Returns the GRN."""
+        po = self.po(self.supplier(), [self.line(product, qty, price)])
+        fields: dict[str, Any] = {"received_qty_base": qty}
+        if batch is not None:
+            fields["batch_no"] = batch
+        if expiry_days is not None:
+            fields["expiry_date"] = in_days(expiry_days)
+        return self.grn(po, [fields])
+
+    # -- sales ----------------------------------------------------------------------------
+    def customer(self, *, credit_limit: str = "0", name: str | None = None) -> dict[str, Any]:
+        n = self._next()
+        body = {"name": name or f"Shop {n}", "credit_limit": credit_limit}
+        return dict(self.post("/api/v1/customers", body, expect=201))
+
+    def sale_line(self, product: dict[str, Any], qty: str, **extra: Any) -> dict[str, Any]:
+        return {"product_id": product["id"], **extra, "qty": qty}
+
+    def invoice(
+        self,
+        customer_id: int,
+        lines: list[dict[str, Any]],
+        *,
+        paid: str = "0",
+        account: str = "Cash in Hand",
+        business_date: str | None = None,
+        expect: int = 201,
+    ) -> Any:
+        body: dict[str, Any] = {"customer_id": customer_id, "items": lines, "paid_amount": paid}
+        if paid != "0":
+            body["payment_account_id"] = self.payment_account_id(account)
+        if business_date:
+            body["business_date"] = business_date
+        return self.post("/api/v1/sales-invoices", body, expect=expect)
+
+    def payment_account_id(self, name: str) -> int:
+        options = self.get("/api/v1/sales-payment-accounts")
+        return int(next(a["id"] for a in options if a["name"] == name))
+
+    def post_sale(self, invoice_id: int, *, expect: int = 200, idem_key: str | None = None) -> Any:
+        """Post an invoice. Pass `idem_key` to replay a request; otherwise a fresh key is sent."""
+        headers = {"Idempotency-Key": idem_key} if idem_key else key()
+        response = self.client.post(
+            f"/api/v1/sales-invoices/{invoice_id}/post", headers={**self.headers, **headers}
+        )
+        assert response.status_code == expect, f"post: {response.status_code} {response.text}"
+        return response.json()
+
+    def reverse_sale(self, invoice_id: int, *, expect: int = 200) -> Any:
+        return self.post(f"/api/v1/sales-invoices/{invoice_id}/reverse", expect=expect, idem=True)
+
+    def receipt(
+        self,
+        customer_id: int,
+        amount: str,
+        *,
+        allocations: list[dict[str, Any]] | None = None,
+        account: str = "Cash in Hand",
+        expect: int = 201,
+    ) -> Any:
+        body: dict[str, Any] = {
+            "customer_id": customer_id,
+            "amount": amount,
+            "payment_account_id": self.payment_account_id(account),
+            "allocations": allocations or [],
+        }
+        return self.post("/api/v1/customer-receipts", body, expect=expect, idem=True)
+
+    def customer_summary(self, customer_id: int) -> dict[str, Any]:
+        return dict(self.get(f"/api/v1/customers/{customer_id}/summary"))
+
+    def put_preferences(self, **changes: Any) -> dict[str, Any]:
+        current = self.get("/api/v1/settings")["preferences"]
+        response = self.client.put(
+            "/api/v1/settings/preferences", headers=self.headers, json={**current, **changes}
+        )
+        assert response.status_code == 200, response.text
+        return dict(response.json())
+
+    def put_period_lock(self, lock_date: str) -> None:
+        response = self.client.put(
+            "/api/v1/settings/period-lock", headers=self.headers, json={"lock_date": lock_date}
+        )
+        assert response.status_code == 200, response.text
