@@ -23,7 +23,8 @@ PERMISSIONS: dict[str, str] = {
     "inventory:adjust": "Post stock adjustments, transfers and write-offs",
     "purchasing:read": "View purchase orders and goods receipts",
     "purchasing:write": "Create purchase orders and receive goods",
-    "purchasing:pay": "Record supplier payments",
+    "purchasing:pay": "Record supplier payments and view supplier accounts",
+    "purchasing:reverse": "Reverse posted goods receipts and supplier payments",
     # Sales (phase 3/4)
     "sales:read": "View sales invoices and returns",
     "sales:write": "Create and post sales invoices and receipts",
@@ -36,6 +37,7 @@ PERMISSIONS: dict[str, str] = {
     # Finance & reports (phase 5)
     "finance:read": "View accounts, cashbook and journals",
     "finance:write": "Record expenses, transfers and owner transactions",
+    "finance:opening": "Post or reverse opening balances (go-live data load)",
     "reports:read": "View operational reports",
     "reports:profit": "View cost, profit and margin figures",
 }
@@ -45,7 +47,7 @@ ROLES: dict[str, tuple[str, str, frozenset[str]]] = {
     "manager": (
         "Manager",
         "Runs daily operations; cannot manage users or lock periods",
-        frozenset(PERMISSIONS) - {"users:write", "settings:write"},
+        frozenset(PERMISSIONS) - {"users:write", "settings:write", "finance:opening"},
     ),
     "cashier": (
         "Cashier",

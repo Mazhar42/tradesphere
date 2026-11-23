@@ -70,7 +70,12 @@ def db(engine: Engine) -> Iterator[Session]:
 @pytest.fixture
 def client(db: Session) -> Iterator[TestClient]:
     def _override() -> Iterator[Session]:
-        yield db
+        # Same as production get_db: a failed request rolls back its uncommitted work.
+        try:
+            yield db
+        except Exception:
+            db.rollback()
+            raise
 
     app.dependency_overrides[get_db] = _override
     with TestClient(app) as test_client:

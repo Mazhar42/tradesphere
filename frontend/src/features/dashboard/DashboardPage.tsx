@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { Banknote, Boxes, CheckCircle2, Circle, HandCoins, TrendingUp, type LucideIcon } from 'lucide-react'
+import { AlertTriangle, Banknote, Boxes, CheckCircle2, Circle, HandCoins, TrendingUp, type LucideIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { api, unwrap } from '@/api/client'
@@ -8,10 +8,11 @@ import { PageHeader } from '@/components/layout/page'
 import { Card, CardHeader } from '@/components/ui/card'
 import { useAuth } from '@/features/auth/auth-context'
 import { useLang } from '@/i18n'
-import { formatNumber } from '@/lib/format'
+import { formatMoney, formatNumber } from '@/lib/format'
 
-function Kpi({ label, icon: Icon }: { label: string; icon: LucideIcon }) {
+function Kpi({ label, icon: Icon, value, hint }: { label: string; icon: LucideIcon; value?: string | null; hint?: string }) {
   const { t } = useTranslation()
+  const live = value !== undefined && value !== null
   return (
     <Card className="p-5">
       <div className="flex items-center justify-between">
@@ -20,8 +21,8 @@ function Kpi({ label, icon: Icon }: { label: string; icon: LucideIcon }) {
           <Icon className="size-4" aria-hidden />
         </span>
       </div>
-      <p className="num mt-3 text-2xl font-semibold text-muted/60">৳ —</p>
-      <p className="mt-1 text-xs text-muted">{t('dashboard.availableLater')}</p>
+      <p className={`num mt-3 text-2xl font-semibold ${live ? '' : 'text-muted/60'}`}>{live ? value : '৳ —'}</p>
+      <p className="mt-1 text-xs text-muted">{live ? hint : t('dashboard.availableLater')}</p>
     </Card>
   )
 }
@@ -62,6 +63,19 @@ export function DashboardPage() {
     unwrap(api.GET('/api/v1/users', { params: { query: { page_size: 1 } } })),
   )
 
+  const stockTotals = useQuery({
+    queryKey: ['stock', 'totals'],
+    queryFn: () => unwrap(api.GET('/api/v1/inventory/stock/totals')),
+    enabled: can('inventory:read'),
+  })
+  const stockValue = stockTotals.data?.total_value
+  const cashAccounts = useQuery({
+    queryKey: ['payment-accounts'],
+    queryFn: () => unwrap(api.GET('/api/v1/payment-accounts')),
+    enabled: can('purchasing:pay'),
+  })
+  const cashTotal = cashAccounts.data?.reduce((sum, a) => sum + Number(a.balance), 0)
+
   const profileDone = settings.data ? settings.data.business_profile.name !== 'My Dealership' : null
   const steps = [
     { to: '/settings', label: 'dashboard.stepProfile', hint: 'dashboard.stepProfileHint', done: profileDone, count: null },
@@ -86,8 +100,39 @@ export function DashboardPage() {
         <Kpi label={t('dashboard.todaySales')} icon={Banknote} />
         <Kpi label={t('dashboard.grossProfit')} icon={TrendingUp} />
         <Kpi label={t('dashboard.customerDues')} icon={HandCoins} />
-        <Kpi label={t('dashboard.stockValue')} icon={Boxes} />
+        <Kpi
+          label={t('dashboard.stockValue')}
+          icon={Boxes}
+          value={stockValue === undefined || stockValue === null ? null : formatMoney(stockValue, lang)}
+          hint={t('dashboard.stockValueHint')}
+        />
       </div>
+
+      {(cashTotal !== undefined || stockTotals.data) && (
+        <div className="mt-4 grid gap-4 sm:grid-cols-3">
+          {cashTotal !== undefined && (
+            <Card className="p-5">
+              <p className="text-sm font-medium text-muted">{t('dashboard.cashAndBank')}</p>
+              <p className="num mt-2 text-xl font-semibold">{formatMoney(cashTotal.toFixed(2), lang)}</p>
+              <Link to="/accounts" className="mt-1 inline-block text-xs text-primary hover:underline">{t('dashboard.viewAccounts')}</Link>
+            </Card>
+          )}
+          {stockTotals.data && (
+            <>
+              <Card className="p-5">
+                <p className="flex items-center gap-1.5 text-sm font-medium text-muted"><AlertTriangle className="size-4 text-warning" aria-hidden />{t('stock.lowStock')}</p>
+                <p className="num mt-2 text-xl font-semibold">{formatNumber(stockTotals.data.low_stock_count, lang)}</p>
+                <Link to="/stock" className="mt-1 inline-block text-xs text-primary hover:underline">{t('dashboard.viewStock')}</Link>
+              </Card>
+              <Card className="p-5">
+                <p className="flex items-center gap-1.5 text-sm font-medium text-muted"><AlertTriangle className="size-4 text-warning" aria-hidden />{t('stock.expiringSoon')}</p>
+                <p className="num mt-2 text-xl font-semibold">{formatNumber(stockTotals.data.expiring_soon_count, lang)}</p>
+                <p className="mt-1 text-xs text-muted">{t('stock.withinDays', { days: formatNumber(stockTotals.data.near_expiry_days, lang) })}</p>
+              </Card>
+            </>
+          )}
+        </div>
+      )}
 
       <Card className="mt-6">
         <CardHeader title={t('dashboard.setupTitle')} description={t('dashboard.setupSubtitle')} />

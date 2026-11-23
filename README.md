@@ -5,7 +5,7 @@ Dealership inventory, sales, purchasing, company-claims and accounts system for 
 - **Backend:** FastAPI · SQLAlchemy 2 · PostgreSQL 17 · Alembic · Pydantic v2
 - **Frontend:** React 19 · TypeScript · Vite · Tailwind CSS v4 · TanStack Router / Query / Table · i18next (English + বাংলা)
 
-The full product and technical specification is in **[docs/plan.md](docs/plan.md)**. It covers the data model, posting rules, API, screens and the phase roadmap. Phase 1 (foundation) is implemented.
+The full product and technical specification is in **[docs/plan.md](docs/plan.md)**. It covers the data model, posting rules, API, screens and the phase roadmap. Phases 1 (foundation) and 2 (inventory core and purchasing) are implemented.
 
 ## Quick start (development)
 
@@ -47,7 +47,7 @@ backend/
   app/
     core/        config, db session, errors (problem+json), security, permissions
     shared/      base models, money types, BD dates/fiscal year, sequences, audit, pagination
-    modules/     auth, users, catalog, parties, inventory, accounting, settings, audit
+    modules/     auth, users, catalog, parties, inventory, purchasing, accounting, settings, audit
     seed.py      permissions, roles, units, locations, chart of accounts
     cli.py       seed / create-owner
   alembic/       migrations
@@ -56,7 +56,7 @@ frontend/
   src/
     api/         generated OpenAPI types + typed client (token refresh, problem+json errors)
     components/  ui primitives, data table, layout
-    features/    auth, dashboard, products, catalog, parties, users, settings, audit
+    features/    auth, dashboard, products, catalog, parties, stock, purchases, accounts, users, settings, audit
     i18n/        en.json, bn.json
     lib/         money/date formatting (lakh/crore, Bangla digits), unit conversion
 docs/plan.md     master specification

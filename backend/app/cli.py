@@ -6,6 +6,7 @@ import typer
 
 import app.models as _models  # noqa: F401  (register all tables)
 from app.core.db import SessionLocal
+from app.modules.inventory.reconcile import reconcile as run_reconcile
 from app.modules.users.schemas import UserCreate
 from app.modules.users.service import count_active_owners, create_user, get_by_username
 from app.seed import run_seed
@@ -42,6 +43,19 @@ def create_owner(
         typer.echo(
             f"Owner '{user.username}' created. Active owners: {count_active_owners(session)}."
         )
+
+
+@cli.command()
+def reconcile() -> None:
+    """Check stock/cost projections and the books against the ledgers (exit 1 on drift)."""
+    with SessionLocal() as session:
+        result = run_reconcile(session)
+    if result.ok:
+        typer.echo("Reconcile OK: stock, cost, inventory account and trial balance agree.")
+        return
+    for issue in result.issues:
+        typer.echo(f"[{issue.check}] {issue.detail}", err=True)
+    raise typer.Exit(1)
 
 
 if __name__ == "__main__":
