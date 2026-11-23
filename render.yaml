@@ -56,7 +56,7 @@ services:
       # Must come before the catch-all. If the API service gets a different name, edit this.
       - type: rewrite
         source: /api/*
-        destination: https://tradesphere-api.onrender.com/api/*
+        destination: https://tradesphere-api-m8s0.onrender.com/api/*
       # Single-page app: unknown paths load the app shell, and the router takes over.
       - type: rewrite
         source: /*

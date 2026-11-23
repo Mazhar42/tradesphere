@@ -45,7 +45,7 @@ repository you own. Then connect that repository in Render. Render must be grant
 4. **Open the app.** Go to `https://tradesphere-web.onrender.com` and sign in with the owner account.
 5. **Remove the password.** Delete `BOOTSTRAP_OWNER_PASSWORD` from `tradesphere-api` (the owner already
    exists, so the variable is no longer needed). Render restarts the service.
-6. **Check.** `https://tradesphere-api.onrender.com/api/health` shows `{"status":"ok"}`, and
+6. **Check.** `https://tradesphere-api-m8s0.onrender.com/api/health` (your API's actual address) shows `{"status":"ok"}`, and
    `https://tradesphere-web.onrender.com/api/docs` shows 404 (docs are off in production).
 
 ## If the service names differ
