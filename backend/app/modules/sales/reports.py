@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from app.modules.accounting.journal import RECEIVABLE
 from app.modules.accounting.models import Account, JournalLine
 from app.modules.parties.models import Customer
-from app.modules.sales.ledger import customer_balance, posted_receipt_allocations
+from app.modules.sales.ledger import credit_notes, customer_balance, posted_receipt_allocations
 from app.modules.sales.models import DailySalesSummary, SalesInvoice
 from app.modules.sales.schemas import AgingReport, AgingRow, CustomerSummary, SalesSummaryRow
 from app.shared.money import ZERO
@@ -19,12 +19,18 @@ from app.shared.money import ZERO
 def customer_summary(session: Session, customer: Customer) -> CustomerSummary:
     balance = customer_balance(session, customer.id)
     received = posted_receipt_allocations().subquery()
+    credited = credit_notes().subquery()
     rows = session.execute(
-        select(SalesInvoice.net_amount, func.coalesce(received.c.received, ZERO))
+        select(
+            SalesInvoice.net_amount,
+            func.coalesce(received.c.received, ZERO),
+            func.coalesce(credited.c.credited, ZERO),
+        )
         .outerjoin(received, received.c.invoice_id == SalesInvoice.id)
+        .outerjoin(credited, credited.c.invoice_id == SalesInvoice.id)
         .where(SalesInvoice.customer_id == customer.id, SalesInvoice.status == "posted")
     ).all()
-    open_invoices = sum(1 for net, got in rows if net - Decimal(got) > 0)
+    open_invoices = sum(1 for net, got, cr in rows if net - Decimal(got) - Decimal(cr) > 0)
     return CustomerSummary(
         customer_id=customer.id,
         code=customer.code,
@@ -53,19 +59,22 @@ def aging(session: Session, as_of: date) -> AgingReport:
     receipts not yet matched to an invoice). It is shown so the rows always add up to the ledger.
     """
     received = posted_receipt_allocations().subquery()
+    credited = credit_notes().subquery()
     open_rows = session.execute(
         select(
             SalesInvoice.customer_id,
             SalesInvoice.business_date,
             SalesInvoice.net_amount,
             func.coalesce(received.c.received, ZERO),
+            func.coalesce(credited.c.credited, ZERO),
         )
         .outerjoin(received, received.c.invoice_id == SalesInvoice.id)
+        .outerjoin(credited, credited.c.invoice_id == SalesInvoice.id)
         .where(SalesInvoice.status == "posted")
     ).all()
     buckets: dict[int, dict[str, Decimal]] = defaultdict(lambda: defaultdict(lambda: ZERO))
-    for customer_id, invoice_date, net, got in open_rows:
-        owed = net - Decimal(got)
+    for customer_id, invoice_date, net, got, cr in open_rows:
+        owed = net - Decimal(got) - Decimal(cr)
         if owed > 0:
             buckets[customer_id][_bucket((as_of - invoice_date).days)] += owed
 
@@ -147,6 +156,7 @@ def sales_summary(
             {
                 "qty_base": ZERO,
                 "gross_amount": ZERO,
+                "returns_amount": ZERO,
                 "dealer_discount": ZERO,
                 "company_discount": ZERO,
                 "net_amount": ZERO,
@@ -155,6 +165,7 @@ def sales_summary(
         )
         bucket["qty_base"] += row.qty_base
         bucket["gross_amount"] += row.gross_amount
+        bucket["returns_amount"] += row.returns_amount
         bucket["dealer_discount"] += row.dealer_discount
         bucket["company_discount"] += row.company_discount
         bucket["net_amount"] += row.net_amount
@@ -167,12 +178,15 @@ def sales_summary(
                 period=period,
                 qty_base=b["qty_base"],
                 gross_amount=b["gross_amount"],
+                returns_amount=b["returns_amount"],
                 dealer_discount=b["dealer_discount"],
                 company_discount=b["company_discount"],
                 net_amount=b["net_amount"],
                 cogs=b["cogs"],
-                # Company-funded discounts are not a reduction of sales (the company pays them).
-                gross_profit=(b["gross_amount"] - b["dealer_discount"]) - b["cogs"],
+                # Net sales = gross - returns - dealer discounts. Company-funded discounts are
+                # not a reduction of sales (the company pays them).
+                gross_profit=(b["gross_amount"] - b["returns_amount"] - b["dealer_discount"])
+                - b["cogs"],
             )
         )
     return result

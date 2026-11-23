@@ -404,11 +404,11 @@ Repo, Docker Compose (Postgres), CI; backend core (config, DB session/unit of wo
 Inventory movement/balance/WAC engine, batches, journal posting engine (+ balance trigger), payment accounts, opening balances wizard, PO, multi-shipment GRN, short-close, supplier payments with PO allocation, supplier ledger, idempotency middleware, period lock.
 **Acceptance:** Tk 1M PO paid in full, Tk 600k + Tk 200k received → PO shows Tk 200k undelivered and supplier advance Tk 200k; second PO tracked separately; free goods lower WAC; trial balance balances.
 
-### Phase 3 — Sales ✅ *(this repo)*
+### Phase 3 — Sales ✅
 Invoice entry with FEFO batch allocation, cash/credit/partial, company-funded discounts & free goods (claimables), receipts with auto-allocation, customer ledger & aging, invoice print, daily_sales_summary.
 **Acceptance:** concurrent last-unit sale → exactly one succeeds; duplicate submit with same Idempotency-Key → one invoice; FEFO picks earliest expiry; Tk 300k sale with Tk 200k paid → Tk 100k due.
 
-### Phase 4 — Returns & company claims
+### Phase 4 — Returns & company claims ✅ *(this repo)*
 Sales returns (good/damaged/expired; refund or credit), purchase returns, stock transfers/adjustments/write-offs, claimable items, claims, settlements (cash / supplier credit / rejection), commission payments.
 **Acceptance:** 1000 sold, 200 returned → net 800 and COGS reversed at original cost; damaged return not sellable; Tk 10k commission, Tk 6k settled in cash and Tk 4k as supplier credit → claim settled, AP advance +4k.
 

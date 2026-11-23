@@ -30,6 +30,12 @@ const AgingPage = lazyRouteComponent(() => import('@/features/parties/AgingPage'
 const SalesPage = lazyRouteComponent(() => import('@/features/sales/SalesPage'), 'SalesPage')
 const InvoiceFormPage = lazyRouteComponent(() => import('@/features/sales/InvoiceFormPage'), 'InvoiceFormPage')
 const InvoiceDetailPage = lazyRouteComponent(() => import('@/features/sales/InvoiceDetailPage'), 'InvoiceDetailPage')
+const ReturnsPage = lazyRouteComponent(() => import('@/features/returns/ReturnsPage'), 'ReturnsPage')
+const SalesReturnPage = lazyRouteComponent(() => import('@/features/returns/SalesReturnPage'), 'SalesReturnPage')
+const PurchaseReturnPage = lazyRouteComponent(() => import('@/features/returns/PurchaseReturnPage'), 'PurchaseReturnPage')
+const StockDocumentsPage = lazyRouteComponent(() => import('@/features/stock/StockDocumentsPage'), 'StockDocumentsPage')
+const ClaimsPage = lazyRouteComponent(() => import('@/features/claims/ClaimsPage'), 'ClaimsPage')
+const ClaimDetailPage = lazyRouteComponent(() => import('@/features/claims/ClaimDetailPage'), 'ClaimDetailPage')
 const PoFormPage = lazyRouteComponent(() => import('@/features/purchases/PoFormPage'), 'PoFormPage')
 const PoDetailPage = lazyRouteComponent(() => import('@/features/purchases/PoDetailPage'), 'PoDetailPage')
 const SupplierAccountPage = lazyRouteComponent(() => import('@/features/parties/SupplierAccountPage'), 'SupplierAccountPage')
@@ -97,6 +103,12 @@ const routeTree = rootRoute.addChildren([
     guarded('/sales/new', 'sales:write', InvoiceFormPage),
     guarded('/sales/$invoiceId', 'sales:read', InvoiceDetailPage),
     guarded('/sales/$invoiceId/edit', 'sales:write', InvoiceFormPage),
+    guarded('/sales/$invoiceId/return', 'sales:return', SalesReturnPage),
+    guarded('/returns', 'sales:read', ReturnsPage),
+    guarded('/returns/purchase/new', 'purchasing:write', PurchaseReturnPage),
+    guarded('/stock/documents', 'inventory:read', StockDocumentsPage),
+    guarded('/claims', 'claims:read', ClaimsPage),
+    guarded('/claims/$claimId', 'claims:read', ClaimDetailPage),
     guarded('/suppliers', 'suppliers:read', SuppliersPage),
     guarded('/suppliers/$supplierId', 'purchasing:pay', SupplierAccountPage),
     guarded('/stock', 'inventory:read', StockPage),

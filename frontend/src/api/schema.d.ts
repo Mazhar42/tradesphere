@@ -776,6 +776,76 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/sales-invoices/{invoice_id}/returnable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Returnable */
+        get: operations["get_returnable"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sales-returns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Sales Returns */
+        get: operations["list_sales_returns"];
+        put?: never;
+        /** Create Sales Return */
+        post: operations["create_sales_return"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sales-returns/{return_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Sales Return */
+        get: operations["get_sales_return"];
+        put?: never;
+        post?: never;
+        /** Delete Sales Return */
+        delete: operations["delete_sales_return"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sales-returns/{return_id}/post": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Post Sales Return */
+        post: operations["post_sales_return"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/customers/{customer_id}/summary": {
         parameters: {
             query?: never;
@@ -838,6 +908,287 @@ export interface paths {
         get: operations["get_sales_summary"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/purchase-returns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Purchase Returns */
+        get: operations["list_purchase_returns"];
+        put?: never;
+        /** Create Purchase Return */
+        post: operations["create_purchase_return"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/purchase-returns/{return_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Purchase Return */
+        get: operations["get_purchase_return"];
+        put?: never;
+        post?: never;
+        /** Delete Purchase Return */
+        delete: operations["delete_purchase_return"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/purchase-returns/{return_id}/post": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Post Purchase Return */
+        post: operations["post_purchase_return"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stock-adjustments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Stock Adjustments */
+        get: operations["list_stock_adjustments"];
+        put?: never;
+        /** Create Stock Adjustment */
+        post: operations["create_stock_adjustment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stock-adjustments/{adjustment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Stock Adjustment */
+        get: operations["get_stock_adjustment"];
+        put?: never;
+        post?: never;
+        /** Delete Stock Adjustment */
+        delete: operations["delete_stock_adjustment"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stock-adjustments/{adjustment_id}/post": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Post Stock Adjustment */
+        post: operations["post_stock_adjustment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stock-transfers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Stock Transfers */
+        get: operations["list_stock_transfers"];
+        put?: never;
+        /** Create Stock Transfer */
+        post: operations["create_stock_transfer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stock-transfers/{transfer_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Stock Transfer */
+        get: operations["get_stock_transfer"];
+        put?: never;
+        post?: never;
+        /** Delete Stock Transfer */
+        delete: operations["delete_stock_transfer"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stock-transfers/{transfer_id}/post": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Post Stock Transfer */
+        post: operations["post_stock_transfer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/claimable-items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Claimable Items */
+        get: operations["list_claimable_items"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/company-claims": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Company Claims */
+        get: operations["list_company_claims"];
+        put?: never;
+        /** Create Company Claim */
+        post: operations["create_company_claim"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/company-claims/{claim_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Company Claim */
+        get: operations["get_company_claim"];
+        put?: never;
+        post?: never;
+        /** Delete Company Claim */
+        delete: operations["delete_company_claim"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/company-claims/{claim_id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit Company Claim */
+        post: operations["submit_company_claim"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/company-claims/{claim_id}/settlements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Settle Company Claim */
+        post: operations["settle_company_claim"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/company-claims/{claim_id}/reject-lines": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject Company Claim Lines */
+        post: operations["reject_company_claim_lines"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commission-payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Commission Payments */
+        get: operations["list_commission_payments"];
+        put?: never;
+        /** Create Commission Payment */
+        post: operations["create_commission_payment"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1213,6 +1564,82 @@ export interface components {
             /** Is Active */
             is_active: boolean;
         };
+        /** AdjustmentCreate */
+        AdjustmentCreate: {
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "count" | "damage" | "expiry" | "found" | "other";
+            /** Business Date */
+            business_date?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** Items */
+            items: components["schemas"]["AdjustmentLineIn"][];
+        };
+        /** AdjustmentItemRead */
+        AdjustmentItemRead: {
+            /** Id */
+            id: number;
+            /** Product Id */
+            product_id: number;
+            /** Sku */
+            sku: string;
+            /** Name En */
+            name_en: string;
+            /** Name Bn */
+            name_bn: string | null;
+            /** Base Uom Code */
+            base_uom_code: string;
+            /** Batch Id */
+            batch_id: number | null;
+            /** Batch No */
+            batch_no: string | null;
+            /** Location */
+            location: string;
+            /** Qty Delta */
+            qty_delta: string;
+            /** Value */
+            value: string;
+        };
+        /** AdjustmentLineIn */
+        AdjustmentLineIn: {
+            /** Product Id */
+            product_id: number;
+            /** Batch Id */
+            batch_id?: number | null;
+            /**
+             * Location
+             * @default SELLABLE
+             * @enum {string}
+             */
+            location?: "SELLABLE" | "DAMAGED" | "EXPIRED";
+            /** Qty Delta */
+            qty_delta: number | string;
+        };
+        /** AdjustmentRead */
+        AdjustmentRead: {
+            /** Id */
+            id: number;
+            /** Doc No */
+            doc_no: string | null;
+            /**
+             * Business Date
+             * Format: date
+             */
+            business_date: string;
+            /** Reason */
+            reason: string;
+            /** Status */
+            status: string;
+            /** Notes */
+            notes: string | null;
+            /** Posted At */
+            posted_at: string | null;
+            /** Items */
+            items: components["schemas"]["AdjustmentItemRead"][];
+        };
         /** AgingReport */
         AgingReport: {
             /**
@@ -1431,6 +1858,227 @@ export interface components {
             parent_id?: number | null;
             /** Is Active */
             is_active?: boolean | null;
+        };
+        /** ClaimLineRead */
+        ClaimLineRead: {
+            /** Id */
+            id: number;
+            /** Claimable Item Id */
+            claimable_item_id: number;
+            /** Claim Type */
+            claim_type: string;
+            /** Source Doc Type */
+            source_doc_type: string;
+            /** Source Doc Id */
+            source_doc_id: number;
+            /**
+             * Business Date
+             * Format: date
+             */
+            business_date: string;
+            /** Book Amount */
+            book_amount: string;
+            /** Claimed Amount */
+            claimed_amount: string;
+            /** Settled Amount */
+            settled_amount: string;
+            /** Rejected Amount */
+            rejected_amount: string;
+            /** Outstanding Amount */
+            outstanding_amount: string;
+        };
+        /** ClaimSettlementRead */
+        ClaimSettlementRead: {
+            /** Id */
+            id: number;
+            /** Doc No */
+            doc_no: string;
+            /**
+             * Business Date
+             * Format: date
+             */
+            business_date: string;
+            /** Method */
+            method: string;
+            /** Amount */
+            amount: string;
+            /** Payment Account Name */
+            payment_account_name: string | null;
+            /** Reference */
+            reference: string | null;
+            /** Notes */
+            notes: string | null;
+        };
+        /** ClaimableRead */
+        ClaimableRead: {
+            /** Id */
+            id: number;
+            /** Supplier Id */
+            supplier_id: number;
+            /** Supplier Name */
+            supplier_name: string;
+            /** Claim Type */
+            claim_type: string;
+            /** Source Doc Type */
+            source_doc_type: string;
+            /** Source Doc Id */
+            source_doc_id: number;
+            /** Source Line Id */
+            source_line_id: number | null;
+            /**
+             * Business Date
+             * Format: date
+             */
+            business_date: string;
+            /** Book Amount */
+            book_amount: string;
+            /** Claim Amount */
+            claim_amount: string;
+            /** Status */
+            status: string;
+        };
+        /** CommissionCreate */
+        CommissionCreate: {
+            /** Customer Id */
+            customer_id: number;
+            /** Amount */
+            amount: number | string;
+            /**
+             * Method
+             * @enum {string}
+             */
+            method: "cash" | "credit_to_account";
+            /** Payment Account Id */
+            payment_account_id?: number | null;
+            /**
+             * Is Company Funded
+             * @default false
+             */
+            is_company_funded?: boolean;
+            /** Supplier Id */
+            supplier_id?: number | null;
+            /** Business Date */
+            business_date?: string | null;
+            /** Scheme Ref */
+            scheme_ref?: string | null;
+            /** Notes */
+            notes?: string | null;
+        };
+        /** CommissionRead */
+        CommissionRead: {
+            /** Id */
+            id: number;
+            /** Doc No */
+            doc_no: string;
+            /** Customer Id */
+            customer_id: number;
+            /** Customer Name */
+            customer_name: string;
+            /**
+             * Business Date
+             * Format: date
+             */
+            business_date: string;
+            /** Amount */
+            amount: string;
+            /** Method */
+            method: string;
+            /** Payment Account Name */
+            payment_account_name: string | null;
+            /** Is Company Funded */
+            is_company_funded: boolean;
+            /** Supplier Id */
+            supplier_id: number | null;
+            /** Scheme Ref */
+            scheme_ref: string | null;
+            /** Claimable Item Id */
+            claimable_item_id: number | null;
+        };
+        /** CompanyClaimCreate */
+        CompanyClaimCreate: {
+            /** Supplier Id */
+            supplier_id: number;
+            /** Claimable Item Ids */
+            claimable_item_ids: number[];
+            /** Business Date */
+            business_date?: string | null;
+            /** Period From */
+            period_from?: string | null;
+            /** Period To */
+            period_to?: string | null;
+            /** Notes */
+            notes?: string | null;
+        };
+        /** CompanyClaimListItem */
+        CompanyClaimListItem: {
+            /** Id */
+            id: number;
+            /** Doc No */
+            doc_no: string | null;
+            /** Supplier Id */
+            supplier_id: number;
+            /** Supplier Name */
+            supplier_name: string;
+            /**
+             * Business Date
+             * Format: date
+             */
+            business_date: string;
+            /** Status */
+            status: string;
+            /** Total Claimed */
+            total_claimed: string;
+            /** Total Settled */
+            total_settled: string;
+            /** Total Rejected */
+            total_rejected: string;
+            /** Outstanding */
+            outstanding: string;
+        };
+        /** CompanyClaimRead */
+        CompanyClaimRead: {
+            /** Id */
+            id: number;
+            /** Doc No */
+            doc_no: string | null;
+            /** Supplier Id */
+            supplier_id: number;
+            /** Supplier Name */
+            supplier_name: string;
+            /**
+             * Business Date
+             * Format: date
+             */
+            business_date: string;
+            /** Period From */
+            period_from: string | null;
+            /** Period To */
+            period_to: string | null;
+            /** Status */
+            status: string;
+            /** Company Ref */
+            company_ref: string | null;
+            /** Notes */
+            notes: string | null;
+            /** Total Claimed */
+            total_claimed: string;
+            /** Total Settled */
+            total_settled: string;
+            /** Total Rejected */
+            total_rejected: string;
+            /** Outstanding */
+            outstanding: string;
+            /** Submitted At */
+            submitted_at: string | null;
+            /** Lines */
+            lines: components["schemas"]["ClaimLineRead"][];
+            /** Settlements */
+            settlements: components["schemas"]["ClaimSettlementRead"][];
+        };
+        /** CompanyClaimSubmit */
+        CompanyClaimSubmit: {
+            /** Company Ref */
+            company_ref?: string | null;
         };
         /** CustomerCreate */
         CustomerCreate: {
@@ -1828,6 +2476,8 @@ export interface components {
             received_amount: string;
             /** Due Amount */
             due_amount: string;
+            /** Returned Amount */
+            returned_amount: string;
             /** Payment Status */
             payment_status: string;
             /** Posted At */
@@ -2278,6 +2928,17 @@ export interface components {
             /** Items */
             items: components["schemas"]["POLineIn"][];
         };
+        /** Page[AdjustmentRead] */
+        Page_AdjustmentRead_: {
+            /** Items */
+            items: components["schemas"]["AdjustmentRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+        };
         /** Page[AuditLogRead] */
         Page_AuditLogRead_: {
             /** Items */
@@ -2293,6 +2954,39 @@ export interface components {
         Page_BatchStockRow_: {
             /** Items */
             items: components["schemas"]["BatchStockRow"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+        };
+        /** Page[ClaimableRead] */
+        Page_ClaimableRead_: {
+            /** Items */
+            items: components["schemas"]["ClaimableRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+        };
+        /** Page[CommissionRead] */
+        Page_CommissionRead_: {
+            /** Items */
+            items: components["schemas"]["CommissionRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+        };
+        /** Page[CompanyClaimListItem] */
+        Page_CompanyClaimListItem_: {
+            /** Items */
+            items: components["schemas"]["CompanyClaimListItem"][];
             /** Total */
             total: number;
             /** Page */
@@ -2377,10 +3071,32 @@ export interface components {
             /** Page Size */
             page_size: number;
         };
+        /** Page[PurchaseReturnRead] */
+        Page_PurchaseReturnRead_: {
+            /** Items */
+            items: components["schemas"]["PurchaseReturnRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+        };
         /** Page[ReceiptListItem] */
         Page_ReceiptListItem_: {
             /** Items */
             items: components["schemas"]["ReceiptListItem"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+        };
+        /** Page[SalesReturnListItem] */
+        Page_SalesReturnListItem_: {
+            /** Items */
+            items: components["schemas"]["SalesReturnListItem"][];
             /** Total */
             total: number;
             /** Page */
@@ -2414,6 +3130,17 @@ export interface components {
         Page_SupplierRead_: {
             /** Items */
             items: components["schemas"]["SupplierRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+        };
+        /** Page[TransferRead] */
+        Page_TransferRead_: {
+            /** Items */
+            items: components["schemas"]["TransferRead"][];
             /** Total */
             total: number;
             /** Page */
@@ -2712,6 +3439,103 @@ export interface components {
             /** Uoms */
             uoms?: components["schemas"]["ProductUomIn"][] | null;
         };
+        /** PurchaseReturnCreate */
+        PurchaseReturnCreate: {
+            /** Supplier Id */
+            supplier_id: number;
+            /** Grn Id */
+            grn_id?: number | null;
+            /** Business Date */
+            business_date?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** Items */
+            items: components["schemas"]["PurchaseReturnLineIn"][];
+        };
+        /** PurchaseReturnItemRead */
+        PurchaseReturnItemRead: {
+            /** Id */
+            id: number;
+            /** Product Id */
+            product_id: number;
+            /** Sku */
+            sku: string;
+            /** Name En */
+            name_en: string;
+            /** Name Bn */
+            name_bn: string | null;
+            /** Base Uom Code */
+            base_uom_code: string;
+            /** Batch Id */
+            batch_id: number | null;
+            /** Batch No */
+            batch_no: string | null;
+            /** Location */
+            location: string;
+            /** Qty Base */
+            qty_base: string;
+            /** Unit Value */
+            unit_value: string;
+            /** Settlement */
+            settlement: string;
+            /** Value */
+            value: string;
+            /** Cost */
+            cost: string;
+        };
+        /** PurchaseReturnLineIn */
+        PurchaseReturnLineIn: {
+            /** Product Id */
+            product_id: number;
+            /** Batch Id */
+            batch_id?: number | null;
+            /**
+             * Location
+             * @default SELLABLE
+             * @enum {string}
+             */
+            location?: "SELLABLE" | "DAMAGED" | "EXPIRED";
+            /** Qty Base */
+            qty_base: number | string;
+            /** Unit Value */
+            unit_value: number | string;
+            /**
+             * Settlement
+             * @default supplier_credit
+             * @enum {string}
+             */
+            settlement?: "supplier_credit" | "claim";
+        };
+        /** PurchaseReturnRead */
+        PurchaseReturnRead: {
+            /** Id */
+            id: number;
+            /** Doc No */
+            doc_no: string | null;
+            /** Supplier Id */
+            supplier_id: number;
+            /** Supplier Name */
+            supplier_name: string;
+            /** Grn Id */
+            grn_id: number | null;
+            /**
+             * Business Date
+             * Format: date
+             */
+            business_date: string;
+            /** Status */
+            status: string;
+            /** Notes */
+            notes: string | null;
+            /** Total Value */
+            total_value: string;
+            /** Total Cost */
+            total_cost: string;
+            /** Posted At */
+            posted_at: string | null;
+            /** Items */
+            items: components["schemas"]["PurchaseReturnItemRead"][];
+        };
         /** ReceiptAllocationRead */
         ReceiptAllocationRead: {
             /** Invoice Id */
@@ -2838,6 +3662,108 @@ export interface components {
             /** Issues */
             issues: components["schemas"]["ReconcileIssue"][];
         };
+        /** RejectionCreate */
+        RejectionCreate: {
+            /** Lines */
+            lines: components["schemas"]["RejectionLineIn"][];
+            /** Business Date */
+            business_date?: string | null;
+            /** Notes */
+            notes?: string | null;
+        };
+        /** RejectionLineIn */
+        RejectionLineIn: {
+            /** Claim Line Id */
+            claim_line_id: number;
+            /** Amount */
+            amount: number | string;
+        };
+        /** ReturnItemRead */
+        ReturnItemRead: {
+            /** Id */
+            id: number;
+            /** Invoice Item Id */
+            invoice_item_id: number;
+            /** Product Id */
+            product_id: number;
+            /** Sku */
+            sku: string;
+            /** Name En */
+            name_en: string;
+            /** Name Bn */
+            name_bn: string | null;
+            /** Base Uom Code */
+            base_uom_code: string;
+            /** Batch Id */
+            batch_id: number | null;
+            /** Batch No */
+            batch_no: string | null;
+            /** Condition */
+            condition: string;
+            /** Qty Base */
+            qty_base: string;
+            /** Unit Cost */
+            unit_cost: string;
+            /** Gross Amount */
+            gross_amount: string;
+            /** Dealer Discount */
+            dealer_discount: string;
+            /** Company Discount */
+            company_discount: string;
+            /** Net Amount */
+            net_amount: string;
+            /** Cogs */
+            cogs: string;
+        };
+        /** ReturnLineIn */
+        ReturnLineIn: {
+            /** Invoice Item Id */
+            invoice_item_id: number;
+            /** Batch Id */
+            batch_id?: number | null;
+            /**
+             * Condition
+             * @default good
+             * @enum {string}
+             */
+            condition?: "good" | "damaged" | "expired";
+            /** Qty Base */
+            qty_base: number | string;
+        };
+        /**
+         * ReturnableRow
+         * @description What can still be returned from one batch of one invoice line.
+         */
+        ReturnableRow: {
+            /** Invoice Item Id */
+            invoice_item_id: number;
+            /** Product Id */
+            product_id: number;
+            /** Sku */
+            sku: string;
+            /** Name En */
+            name_en: string;
+            /** Name Bn */
+            name_bn: string | null;
+            /** Base Uom Code */
+            base_uom_code: string;
+            /** Batch Id */
+            batch_id: number | null;
+            /** Batch No */
+            batch_no: string | null;
+            /** Expiry Date */
+            expiry_date: string | null;
+            /** Sold Qty Base */
+            sold_qty_base: string;
+            /** Returned Qty Base */
+            returned_qty_base: string;
+            /** Returnable Qty Base */
+            returnable_qty_base: string;
+            /** Unit Cost */
+            unit_cost: string;
+            /** Base Price */
+            base_price: string;
+        };
         /** RoleRead */
         RoleRead: {
             /** Id */
@@ -2851,6 +3777,94 @@ export interface components {
             /** Permissions */
             permissions: string[];
         };
+        /** SalesReturnCreate */
+        SalesReturnCreate: {
+            /** Invoice Id */
+            invoice_id: number;
+            /** Business Date */
+            business_date?: string | null;
+            /**
+             * Refund Method
+             * @enum {string}
+             */
+            refund_method: "cash" | "credit";
+            /** Payment Account Id */
+            payment_account_id?: number | null;
+            /** Notes */
+            notes?: string | null;
+            /** Items */
+            items: components["schemas"]["ReturnLineIn"][];
+        };
+        /** SalesReturnListItem */
+        SalesReturnListItem: {
+            /** Id */
+            id: number;
+            /** Doc No */
+            doc_no: string | null;
+            /** Invoice Id */
+            invoice_id: number;
+            /** Invoice Doc No */
+            invoice_doc_no: string | null;
+            /** Customer Id */
+            customer_id: number;
+            /** Customer Name */
+            customer_name: string;
+            /**
+             * Business Date
+             * Format: date
+             */
+            business_date: string;
+            /** Status */
+            status: string;
+            /** Refund Method */
+            refund_method: string;
+            /** Net Amount */
+            net_amount: string;
+        };
+        /** SalesReturnRead */
+        SalesReturnRead: {
+            /** Id */
+            id: number;
+            /** Doc No */
+            doc_no: string | null;
+            /** Invoice Id */
+            invoice_id: number;
+            /** Invoice Doc No */
+            invoice_doc_no: string | null;
+            /** Customer Id */
+            customer_id: number;
+            /** Customer Name */
+            customer_name: string;
+            /**
+             * Business Date
+             * Format: date
+             */
+            business_date: string;
+            /** Status */
+            status: string;
+            /** Refund Method */
+            refund_method: string;
+            /** Payment Account Id */
+            payment_account_id: number | null;
+            /** Payment Account Name */
+            payment_account_name: string | null;
+            /** Notes */
+            notes: string | null;
+            /** Gross Amount */
+            gross_amount: string;
+            /** Dealer Discount */
+            dealer_discount: string;
+            /** Company Discount */
+            company_discount: string;
+            /** Net Amount */
+            net_amount: string;
+            /** Cogs */
+            cogs: string;
+            /** Posted At */
+            posted_at: string | null;
+            /** Items */
+            items: components["schemas"]["ReturnItemRead"][];
+        };
         /** SalesSummaryRow */
         SalesSummaryRow: {
             /** Period */
@@ -2859,6 +3873,8 @@ export interface components {
             qty_base: string;
             /** Gross Amount */
             gross_amount: string;
+            /** Returns Amount */
+            returns_amount: string;
             /** Dealer Discount */
             dealer_discount: string;
             /** Company Discount */
@@ -2875,6 +3891,24 @@ export interface components {
             business_profile: components["schemas"]["BusinessProfile"];
             preferences: components["schemas"]["Preferences"];
             period_lock: components["schemas"]["PeriodLock"];
+        };
+        /** SettlementCreate */
+        SettlementCreate: {
+            /**
+             * Method
+             * @enum {string}
+             */
+            method: "cash" | "bank" | "mfs" | "supplier_credit";
+            /** Amount */
+            amount: number | string;
+            /** Payment Account Id */
+            payment_account_id?: number | null;
+            /** Business Date */
+            business_date?: string | null;
+            /** Reference */
+            reference?: string | null;
+            /** Notes */
+            notes?: string | null;
         };
         /** StockRow */
         StockRow: {
@@ -3066,6 +4100,81 @@ export interface components {
             /** Expires In */
             expires_in: number;
             user: components["schemas"]["MeRead"];
+        };
+        /** TransferCreate */
+        TransferCreate: {
+            /**
+             * From Location
+             * @enum {string}
+             */
+            from_location: "SELLABLE" | "DAMAGED" | "EXPIRED";
+            /**
+             * To Location
+             * @enum {string}
+             */
+            to_location: "SELLABLE" | "DAMAGED" | "EXPIRED";
+            /** Business Date */
+            business_date?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** Items */
+            items: components["schemas"]["TransferLineIn"][];
+        };
+        /** TransferItemRead */
+        TransferItemRead: {
+            /** Id */
+            id: number;
+            /** Product Id */
+            product_id: number;
+            /** Sku */
+            sku: string;
+            /** Name En */
+            name_en: string;
+            /** Name Bn */
+            name_bn: string | null;
+            /** Base Uom Code */
+            base_uom_code: string;
+            /** Batch Id */
+            batch_id: number | null;
+            /** Batch No */
+            batch_no: string | null;
+            /** Qty Base */
+            qty_base: string;
+            /** Value */
+            value: string;
+        };
+        /** TransferLineIn */
+        TransferLineIn: {
+            /** Product Id */
+            product_id: number;
+            /** Batch Id */
+            batch_id?: number | null;
+            /** Qty Base */
+            qty_base: number | string;
+        };
+        /** TransferRead */
+        TransferRead: {
+            /** Id */
+            id: number;
+            /** Doc No */
+            doc_no: string | null;
+            /**
+             * Business Date
+             * Format: date
+             */
+            business_date: string;
+            /** From Location */
+            from_location: string;
+            /** To Location */
+            to_location: string;
+            /** Status */
+            status: string;
+            /** Notes */
+            notes: string | null;
+            /** Posted At */
+            posted_at: string | null;
+            /** Items */
+            items: components["schemas"]["TransferItemRead"][];
         };
         /** TrialBalanceRead */
         TrialBalanceRead: {
@@ -5328,6 +6437,198 @@ export interface operations {
             };
         };
     };
+    get_returnable: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                invoice_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReturnableRow"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_sales_returns: {
+        parameters: {
+            query?: {
+                status?: string | null;
+                invoice_id?: number | null;
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_SalesReturnListItem_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_sales_return: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesReturnCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesReturnRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_sales_return: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                return_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesReturnRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_sales_return: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                return_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_sales_return: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Unique key (e.g. a UUID) that makes retries of this request safe. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                return_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesReturnRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_customer_summary: {
         parameters: {
             query?: never;
@@ -5444,6 +6745,829 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SalesSummaryRow"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_purchase_returns: {
+        parameters: {
+            query?: {
+                supplier_id?: number | null;
+                status?: string | null;
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_PurchaseReturnRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_purchase_return: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PurchaseReturnCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PurchaseReturnRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_purchase_return: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                return_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PurchaseReturnRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_purchase_return: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                return_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_purchase_return: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Unique key (e.g. a UUID) that makes retries of this request safe. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                return_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PurchaseReturnRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_stock_adjustments: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_AdjustmentRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_stock_adjustment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdjustmentCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdjustmentRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_stock_adjustment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                adjustment_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdjustmentRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_stock_adjustment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                adjustment_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_stock_adjustment: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Unique key (e.g. a UUID) that makes retries of this request safe. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                adjustment_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdjustmentRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_stock_transfers: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_TransferRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_stock_transfer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TransferCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransferRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_stock_transfer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                transfer_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransferRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_stock_transfer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                transfer_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_stock_transfer: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Unique key (e.g. a UUID) that makes retries of this request safe. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                transfer_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransferRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_claimable_items: {
+        parameters: {
+            query?: {
+                supplier_id?: number | null;
+                status?: string | null;
+                claim_type?: string | null;
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_ClaimableRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_company_claims: {
+        parameters: {
+            query?: {
+                supplier_id?: number | null;
+                status?: string | null;
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_CompanyClaimListItem_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_company_claim: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompanyClaimCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyClaimRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_company_claim: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                claim_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyClaimRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_company_claim: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                claim_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    submit_company_claim: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Unique key (e.g. a UUID) that makes retries of this request safe. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                claim_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompanyClaimSubmit"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyClaimRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    settle_company_claim: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Unique key (e.g. a UUID) that makes retries of this request safe. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                claim_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SettlementCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyClaimRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reject_company_claim_lines: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Unique key (e.g. a UUID) that makes retries of this request safe. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                claim_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RejectionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyClaimRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_commission_payments: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_CommissionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_commission_payment: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Unique key (e.g. a UUID) that makes retries of this request safe. */
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CommissionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommissionRead"];
                 };
             };
             /** @description Validation Error */

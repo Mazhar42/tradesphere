@@ -6,10 +6,12 @@ from decimal import Decimal
 from typing import Any
 
 from fastapi.testclient import TestClient
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.modules.accounting.models import Account, JournalEntry, JournalLine
 from app.modules.catalog.models import Product, Uom
+from app.modules.inventory.models import Location, StockBalance
 from app.shared.dates import business_date
 
 D = Decimal
@@ -288,3 +290,41 @@ class Shop:
             "/api/v1/settings/period-lock", headers=self.headers, json={"lock_date": lock_date}
         )
         assert response.status_code == 200, response.text
+
+
+def account_totals(db: Session, doc_type: str, doc_id: int) -> dict[str, tuple[Decimal, Decimal]]:
+    """Σ debit and Σ credit per account code for one document's journal entries."""
+    rows = db.execute(
+        select(Account.code, func.sum(JournalLine.debit), func.sum(JournalLine.credit))
+        .select_from(JournalLine)
+        .join(Account, Account.id == JournalLine.account_id)
+        .join(JournalEntry, JournalEntry.id == JournalLine.entry_id)
+        .where(JournalEntry.source_doc_type == doc_type, JournalEntry.source_doc_id == doc_id)
+        .group_by(Account.code)
+    ).all()
+    return {code: (D(debit or 0), D(credit or 0)) for code, debit, credit in rows}
+
+
+def party_balance(db: Session, account_code: str, party_type: str, party_id: int) -> Decimal:
+    """Σ(debit - credit) of one customer or supplier on a control account."""
+    value = db.scalar(
+        select(func.coalesce(func.sum(JournalLine.debit - JournalLine.credit), 0))
+        .select_from(JournalLine)
+        .join(Account, Account.id == JournalLine.account_id)
+        .where(
+            Account.code == account_code,
+            JournalLine.party_type == party_type,
+            JournalLine.party_id == party_id,
+        )
+    )
+    return D(value or 0)
+
+
+def stock_at(db: Session, product_id: int, location_code: str) -> Decimal:
+    """Base units of a product held in one location (all batches)."""
+    value = db.scalar(
+        select(func.coalesce(func.sum(StockBalance.qty_base), 0))
+        .join(Location, Location.id == StockBalance.location_id)
+        .where(StockBalance.product_id == product_id, Location.code == location_code)
+    )
+    return D(value or 0)

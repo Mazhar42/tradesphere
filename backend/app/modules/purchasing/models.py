@@ -6,6 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.modules.accounting.models import PaymentAccount
 from app.modules.catalog.models import Product, Uom
+from app.modules.inventory.models import Batch, Location
 from app.modules.parties.models import Supplier
 from app.shared.models import Base, CreatedByMixin, IdMixin, TimestampMixin
 from app.shared.money import MONEY, QTY, UNIT_COST
@@ -212,3 +213,60 @@ class PaymentPoAllocation(IdMixin, Base):
     po: Mapped[PurchaseOrder] = relationship(lazy="joined")
 
     __table_args__ = (CheckConstraint("amount > 0", name="amount_positive"),)
+
+
+class PurchaseReturn(IdMixin, TimestampMixin, CreatedByMixin, Base):
+    """Goods sent back to the company. The agreed value is credited to the supplier account or
+    claimed from the company, per line."""
+
+    __tablename__ = "purchase_returns"
+
+    doc_no: Mapped[str | None] = mapped_column(String(30))  # assigned when posted
+    supplier_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("suppliers.id"), index=True)
+    grn_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("goods_receipts.id"))
+    business_date: Mapped[date]
+    status: Mapped[str] = mapped_column(String(10), default="draft")
+    notes: Mapped[str | None] = mapped_column(Text)
+    total_value: Mapped[Decimal] = mapped_column(MONEY, default=Decimal(0))  # agreed credit
+    total_cost: Mapped[Decimal] = mapped_column(MONEY, default=Decimal(0))  # book cost removed
+    posted_at: Mapped[datetime | None]
+
+    supplier: Mapped[Supplier] = relationship(lazy="joined")
+    items: Mapped[list["PurchaseReturnItem"]] = relationship(
+        cascade="all, delete-orphan", lazy="selectin", order_by="PurchaseReturnItem.id"
+    )
+
+    __table_args__ = (
+        Index(
+            "uq_purchase_returns_doc_no",
+            "doc_no",
+            unique=True,
+            postgresql_where=text("doc_no IS NOT NULL"),
+        ),
+        CheckConstraint("status IN ('draft','posted')", name="status_valid"),
+    )
+
+
+class PurchaseReturnItem(IdMixin, Base):
+    __tablename__ = "purchase_return_items"
+
+    return_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("purchase_returns.id", ondelete="CASCADE"), index=True
+    )
+    product_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("products.id"))
+    batch_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("batches.id"))
+    location_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("locations.id"))
+    qty_base: Mapped[Decimal] = mapped_column(QTY)
+    unit_value: Mapped[Decimal] = mapped_column(UNIT_COST)  # agreed credit per base unit
+    settlement: Mapped[str] = mapped_column(String(20))  # supplier_credit | claim
+    value: Mapped[Decimal] = mapped_column(MONEY, default=Decimal(0))
+    cost: Mapped[Decimal] = mapped_column(MONEY, default=Decimal(0))  # set when posted
+
+    product: Mapped[Product] = relationship(lazy="joined")
+    batch: Mapped[Batch | None] = relationship(lazy="joined")
+    location: Mapped[Location] = relationship(lazy="joined")
+
+    __table_args__ = (
+        CheckConstraint("qty_base > 0 AND unit_value >= 0", name="qty_value_valid"),
+        CheckConstraint("settlement IN ('supplier_credit','claim')", name="settlement_valid"),
+    )

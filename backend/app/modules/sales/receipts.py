@@ -16,6 +16,7 @@ from app.modules.accounting.models import PaymentAccount
 from app.modules.accounting.service import require_active_payment_account
 from app.modules.parties.models import Customer
 from app.modules.sales.ledger import (
+    credited_for_invoices,
     lock_customer,
     open_invoices_fifo,
     outstanding,
@@ -98,6 +99,7 @@ def _resolve_allocations(
         ).all()
     }
     received = received_for_invoices(session, ids)
+    credited = credited_for_invoices(session, ids)
     chosen = []
     for index, allocation in enumerate(data.allocations):
         invoice = invoices.get(allocation.invoice_id)
@@ -115,7 +117,7 @@ def _resolve_allocations(
                 code="invoice_not_posted",
                 errors=[field],
             )
-        owed = outstanding(invoice, received.get(invoice.id, ZERO))
+        owed = outstanding(invoice, received.get(invoice.id, ZERO), credited.get(invoice.id, ZERO))
         if allocation.amount > owed:
             raise BusinessRuleError(
                 f"{invoice.doc_no}: allocating {allocation.amount:f} exceeds "

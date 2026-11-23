@@ -212,4 +212,93 @@ class DailySalesSummary(Base):
     dealer_discount: Mapped[Decimal] = mapped_column(MONEY, default=Decimal(0))
     company_discount: Mapped[Decimal] = mapped_column(MONEY, default=Decimal(0))
     net_amount: Mapped[Decimal] = mapped_column(MONEY, default=Decimal(0))
+    returns_amount: Mapped[Decimal] = mapped_column(MONEY, default=Decimal(0))  # gross of returns
     cogs: Mapped[Decimal] = mapped_column(MONEY, default=Decimal(0))
+
+
+RETURN_STATUSES = ("draft", "posted")
+RETURN_CONDITIONS = ("good", "damaged", "expired")
+CONDITION_LOCATION = {"good": "SELLABLE", "damaged": "DAMAGED", "expired": "EXPIRED"}
+
+
+class SalesReturn(IdMixin, TimestampMixin, CreatedByMixin, Base):
+    """Goods a customer brings back against one invoice (refunded in cash or credited)."""
+
+    __tablename__ = "sales_returns"
+
+    doc_no: Mapped[str | None] = mapped_column(String(30))  # assigned when posted
+    invoice_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("sales_invoices.id"), index=True)
+    customer_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("customers.id"))
+    business_date: Mapped[date]
+    status: Mapped[str] = mapped_column(String(10), default="draft")
+    refund_method: Mapped[str] = mapped_column(String(10))  # cash | credit
+    payment_account_id: Mapped[int | None] = mapped_column(
+        BigInteger, ForeignKey("payment_accounts.id")
+    )
+    notes: Mapped[str | None] = mapped_column(Text)
+    gross_amount: Mapped[Decimal] = mapped_column(MONEY, default=Decimal(0))
+    dealer_discount: Mapped[Decimal] = mapped_column(MONEY, default=Decimal(0))
+    company_discount: Mapped[Decimal] = mapped_column(MONEY, default=Decimal(0))
+    net_amount: Mapped[Decimal] = mapped_column(MONEY, default=Decimal(0))
+    cogs: Mapped[Decimal] = mapped_column(MONEY, default=Decimal(0))
+    posted_at: Mapped[datetime | None]
+
+    invoice: Mapped[SalesInvoice] = relationship(lazy="joined")
+    payment_account: Mapped[PaymentAccount | None] = relationship(lazy="joined")
+    items: Mapped[list["SalesReturnItem"]] = relationship(
+        cascade="all, delete-orphan",
+        lazy="selectin",
+        order_by="SalesReturnItem.id",
+    )
+
+    __table_args__ = (
+        Index(
+            "uq_sales_returns_doc_no",
+            "doc_no",
+            unique=True,
+            postgresql_where=text("doc_no IS NOT NULL"),
+        ),
+        CheckConstraint("status IN ('draft','posted')", name="status_valid"),
+        CheckConstraint("refund_method IN ('cash','credit')", name="refund_method_valid"),
+        CheckConstraint(
+            "refund_method = 'credit' OR payment_account_id IS NOT NULL",
+            name="cash_refund_needs_account",
+        ),
+    )
+
+
+class SalesReturnItem(IdMixin, Base):
+    """One returned quantity: taken from a specific batch sold on a specific invoice line."""
+
+    __tablename__ = "sales_return_items"
+
+    return_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("sales_returns.id", ondelete="CASCADE"), index=True
+    )
+    invoice_item_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("sales_invoice_items.id"), index=True
+    )
+    product_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("products.id"))
+    batch_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("batches.id"))
+    condition: Mapped[str] = mapped_column(String(10))  # good | damaged | expired
+    qty_base: Mapped[Decimal] = mapped_column(QTY)
+    unit_cost: Mapped[Decimal] = mapped_column(UNIT_COST, default=Decimal(0))  # original line cost
+    gross_amount: Mapped[Decimal] = mapped_column(MONEY, default=Decimal(0))
+    dealer_discount: Mapped[Decimal] = mapped_column(MONEY, default=Decimal(0))
+    company_discount: Mapped[Decimal] = mapped_column(MONEY, default=Decimal(0))
+    net_amount: Mapped[Decimal] = mapped_column(MONEY, default=Decimal(0))
+    cogs: Mapped[Decimal] = mapped_column(MONEY, default=Decimal(0))
+
+    invoice_item: Mapped[SalesInvoiceItem] = relationship(lazy="joined")
+    product: Mapped[Product] = relationship(lazy="joined")
+    batch: Mapped[Batch | None] = relationship(lazy="joined")
+
+    __table_args__ = (
+        CheckConstraint("qty_base > 0", name="qty_positive"),
+        CheckConstraint("condition IN ('good','damaged','expired')", name="condition_valid"),
+        CheckConstraint(
+            "gross_amount >= 0 AND dealer_discount >= 0 AND company_discount >= 0 "
+            "AND net_amount >= 0 AND cogs >= 0",
+            name="amounts_non_negative",
+        ),
+    )

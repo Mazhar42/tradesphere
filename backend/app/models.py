@@ -8,13 +8,24 @@ from app.modules.accounting.models import (
     PaymentAccount,
 )
 from app.modules.catalog.models import Brand, Category, Product, ProductUom, Uom
-from app.modules.claims.models import ClaimableItem
+from app.modules.claims.models import (
+    ClaimableItem,
+    ClaimSettlement,
+    ClaimSettlementLine,
+    CommissionPayment,
+    CompanyClaim,
+    CompanyClaimLine,
+)
 from app.modules.inventory.models import (
     Batch,
     InventoryMovement,
     Location,
     ProductCost,
+    StockAdjustment,
+    StockAdjustmentItem,
     StockBalance,
+    StockTransfer,
+    StockTransferItem,
 )
 from app.modules.parties.models import Customer, Supplier
 from app.modules.purchasing.models import (
@@ -23,6 +34,8 @@ from app.modules.purchasing.models import (
     PaymentPoAllocation,
     PurchaseOrder,
     PurchaseOrderItem,
+    PurchaseReturn,
+    PurchaseReturnItem,
     SupplierPayment,
 )
 from app.modules.sales.models import (
@@ -32,6 +45,8 @@ from app.modules.sales.models import (
     SaleItemBatch,
     SalesInvoice,
     SalesInvoiceItem,
+    SalesReturn,
+    SalesReturnItem,
 )
 from app.modules.settings.models import AppSetting
 from app.modules.users.models import Permission, RefreshToken, Role, User
@@ -48,7 +63,12 @@ __all__ = [
     "Batch",
     "Brand",
     "Category",
+    "ClaimSettlement",
+    "ClaimSettlementLine",
     "ClaimableItem",
+    "CommissionPayment",
+    "CompanyClaim",
+    "CompanyClaimLine",
     "Customer",
     "CustomerReceipt",
     "DailySalesSummary",
@@ -69,13 +89,21 @@ __all__ = [
     "ProductUom",
     "PurchaseOrder",
     "PurchaseOrderItem",
+    "PurchaseReturn",
+    "PurchaseReturnItem",
     "ReceiptAllocation",
     "RefreshToken",
     "Role",
     "SaleItemBatch",
     "SalesInvoice",
     "SalesInvoiceItem",
+    "SalesReturn",
+    "SalesReturnItem",
+    "StockAdjustment",
+    "StockAdjustmentItem",
     "StockBalance",
+    "StockTransfer",
+    "StockTransferItem",
     "Supplier",
     "SupplierPayment",
     "Uom",
