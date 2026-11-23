@@ -69,6 +69,8 @@ def record_audit(
     after: dict[str, Any] | None = None,
 ) -> None:
     """Add an audit row. For updates, only the changed keys are stored."""
+    before = json_safe(before) if before is not None else None
+    after = json_safe(after) if after is not None else None
     if before is not None and after is not None:
         changed = {k for k in set(before) | set(after) if before.get(k) != after.get(k)}
         before = {k: v for k, v in before.items() if k in changed}

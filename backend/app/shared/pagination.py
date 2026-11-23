@@ -27,8 +27,19 @@ def _page_params(
 PageParamsDep = Annotated[PageParams, Depends(_page_params)]
 
 
-def paginate(session: Session, stmt: Select[Any], params: PageParams) -> tuple[Sequence[Any], int]:
+def paginate(
+    session: Session, stmt: Select[*tuple[Any, ...]], params: PageParams
+) -> tuple[Sequence[Any], int]:
     """Run `stmt` for one page and return (items, total)."""
     total = session.scalar(select(func.count()).select_from(stmt.order_by(None).subquery())) or 0
     items = session.scalars(stmt.limit(params.page_size).offset(params.offset)).all()
     return items, total
+
+
+def paginate_rows(
+    session: Session, stmt: Select[*tuple[Any, ...]], params: PageParams
+) -> tuple[Sequence[Any], int]:
+    """Like `paginate`, for statements selecting several columns (returns Row objects)."""
+    total = session.scalar(select(func.count()).select_from(stmt.order_by(None).subquery())) or 0
+    rows = session.execute(stmt.limit(params.page_size).offset(params.offset)).all()
+    return rows, total
