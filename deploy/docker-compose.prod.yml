@@ -91,7 +91,11 @@ services:
       context: ./backup
     image: tradesphere-backup:prod
     restart: unless-stopped
-    env_file: .env
+    # Optional: passes the off-site settings (RCLONE_*) when deploy/.env exists. Without the file
+    # (for example on CI) the service still validates; the variables then come from the environment.
+    env_file:
+      - path: .env
+        required: false
     environment:
       PGHOST: db
       PGUSER: tradesphere
