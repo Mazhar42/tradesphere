@@ -400,7 +400,7 @@ Each phase ends with working software and the acceptance tests listed.
 Repo, Docker Compose (Postgres), CI; backend core (config, DB session/unit of work, problem+json errors, JWT auth with refresh rotation, RBAC, audit, document sequences, BD dates/FY, money types); catalog (categories, brands, UoMs, products + unit conversions); customers, suppliers; locations; chart of accounts; settings. Frontend shell (login, layout, i18n en/bn, typed API client) and master-data screens.
 **Acceptance:** owner logs in; cashier gets 403 on users; product CRUD with carton/piece conversions and Bangla names; customer/supplier CRUD; EN↔BN switch; audit rows written; tests & lint green.
 
-### Phase 2 — Inventory core & purchasing
+### Phase 2 — Inventory core & purchasing ✅ *(this repo)*
 Inventory movement/balance/WAC engine, batches, journal posting engine (+ balance trigger), payment accounts, opening balances wizard, PO, multi-shipment GRN, short-close, supplier payments with PO allocation, supplier ledger, idempotency middleware, period lock.
 **Acceptance:** Tk 1M PO paid in full, Tk 600k + Tk 200k received → PO shows Tk 200k undelivered and supplier advance Tk 200k; second PO tracked separately; free goods lower WAC; trial balance balances.
 
