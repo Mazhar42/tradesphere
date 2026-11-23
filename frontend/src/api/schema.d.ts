@@ -616,6 +616,234 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/sales-invoices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Sales Invoices */
+        get: operations["list_sales_invoices"];
+        put?: never;
+        /** Create Sales Invoice */
+        post: operations["create_sales_invoice"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sales-invoices/{invoice_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Sales Invoice */
+        get: operations["get_sales_invoice"];
+        put?: never;
+        post?: never;
+        /** Delete Sales Invoice */
+        delete: operations["delete_sales_invoice"];
+        options?: never;
+        head?: never;
+        /** Update Sales Invoice */
+        patch: operations["update_sales_invoice"];
+        trace?: never;
+    };
+    "/api/v1/sales-invoices/{invoice_id}/post": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Post Sales Invoice */
+        post: operations["post_sales_invoice"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sales-invoices/{invoice_id}/reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reverse Sales Invoice */
+        post: operations["reverse_sales_invoice"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sales-invoices/{invoice_id}/print": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Print Sales Invoice */
+        get: operations["print_sales_invoice"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sales-payment-accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Sales Payment Accounts
+         * @description Active accounts that cash can be received into (for the sales counter).
+         */
+        get: operations["list_sales_payment_accounts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customer-receipts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Customer Receipts */
+        get: operations["list_customer_receipts"];
+        put?: never;
+        /** Create Customer Receipt */
+        post: operations["create_customer_receipt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customer-receipts/{receipt_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Customer Receipt */
+        get: operations["get_customer_receipt"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customer-receipts/{receipt_id}/reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reverse Customer Receipt */
+        post: operations["reverse_customer_receipt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/{customer_id}/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Customer Summary */
+        get: operations["get_customer_summary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/{customer_id}/ledger": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Customer Ledger */
+        get: operations["get_customer_ledger"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/customer-aging": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Customer Aging */
+        get: operations["get_customer_aging"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/sales-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Sales Summary */
+        get: operations["get_sales_summary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/locations": {
         parameters: {
             query?: never;
@@ -985,17 +1213,44 @@ export interface components {
             /** Is Active */
             is_active: boolean;
         };
+        /** AgingReport */
+        AgingReport: {
+            /**
+             * As Of
+             * Format: date
+             */
+            as_of: string;
+            /** Rows */
+            rows: components["schemas"]["AgingRow"][];
+            totals: components["schemas"]["AgingRow"];
+        };
+        /** AgingRow */
+        AgingRow: {
+            /** Customer Id */
+            customer_id: number;
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            /** Current */
+            current: string;
+            /** Days 31 60 */
+            days_31_60: string;
+            /** Days 61 90 */
+            days_61_90: string;
+            /** Days Over 90 */
+            days_over_90: string;
+            /** Invoiced Due */
+            invoiced_due: string;
+            /** On Account */
+            on_account: string;
+            /** Total */
+            total: string;
+        };
         /** AllocateRequest */
         AllocateRequest: {
             /** Allocations */
-            allocations: components["schemas"]["AllocationIn"][];
-        };
-        /** AllocationIn */
-        AllocationIn: {
-            /** Po Id */
-            po_id: number;
-            /** Amount */
-            amount: number | string;
+            allocations: components["schemas"]["app__modules__purchasing__schemas__AllocationIn"][];
         };
         /** AllocationRead */
         AllocationRead: {
@@ -1039,6 +1294,19 @@ export interface components {
             ip: string | null;
             /** Request Id */
             request_id: string | null;
+        };
+        /** BatchAllocRead */
+        BatchAllocRead: {
+            /** Batch Id */
+            batch_id: number | null;
+            /** Batch No */
+            batch_no: string | null;
+            /** Expiry Date */
+            expiry_date: string | null;
+            /** Qty Base */
+            qty_base: string;
+            /** Is Free */
+            is_free: boolean;
         };
         /** BatchRead */
         BatchRead: {
@@ -1223,6 +1491,23 @@ export interface components {
              */
             created_at: string;
         };
+        /** CustomerSummary */
+        CustomerSummary: {
+            /** Customer Id */
+            customer_id: number;
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            /** Credit Limit */
+            credit_limit: string;
+            /** Balance */
+            balance: string;
+            /** Available Credit */
+            available_credit: string;
+            /** Open Invoices */
+            open_invoices: number;
+        };
         /** CustomerUpdate */
         CustomerUpdate: {
             /** Name */
@@ -1385,6 +1670,192 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** InvoiceItemRead */
+        InvoiceItemRead: {
+            /** Id */
+            id: number;
+            /** Product Id */
+            product_id: number;
+            /** Sku */
+            sku: string;
+            /** Name En */
+            name_en: string;
+            /** Name Bn */
+            name_bn: string | null;
+            /** Base Uom Code */
+            base_uom_code: string;
+            /** Uom Id */
+            uom_id: number;
+            /** Uom Code */
+            uom_code: string;
+            /** Factor */
+            factor: string;
+            /** Qty Entry */
+            qty_entry: string;
+            /** Free Qty Entry */
+            free_qty_entry: string;
+            /** Qty Base */
+            qty_base: string;
+            /** Free Qty Base */
+            free_qty_base: string;
+            /** Free Is Company Scheme */
+            free_is_company_scheme: boolean;
+            /** Unit Price */
+            unit_price: string;
+            /** Base Price */
+            base_price: string;
+            /** Gross Amount */
+            gross_amount: string;
+            /** Dealer Discount */
+            dealer_discount: string;
+            /** Company Discount */
+            company_discount: string;
+            /** Company Supplier Id */
+            company_supplier_id: number | null;
+            /** Company Supplier Name */
+            company_supplier_name: string | null;
+            /** Line Net */
+            line_net: string;
+            /** Unit Cost */
+            unit_cost: string;
+            /** Cogs */
+            cogs: string;
+            /** Free Cost */
+            free_cost: string;
+            /** Batches */
+            batches: components["schemas"]["BatchAllocRead"][];
+        };
+        /** InvoiceLineIn */
+        InvoiceLineIn: {
+            /** Product Id */
+            product_id: number;
+            /** Uom Id */
+            uom_id?: number | null;
+            /** Qty */
+            qty: number | string;
+            /**
+             * Free Qty
+             * @default 0
+             */
+            free_qty?: number | string;
+            /** Unit Price */
+            unit_price?: number | string | null;
+            /**
+             * Dealer Discount
+             * @default 0
+             */
+            dealer_discount?: number | string;
+            /**
+             * Company Discount
+             * @default 0
+             */
+            company_discount?: number | string;
+            /** Company Supplier Id */
+            company_supplier_id?: number | null;
+            /**
+             * Free Is Company Scheme
+             * @default false
+             */
+            free_is_company_scheme?: boolean;
+        };
+        /** InvoiceListItem */
+        InvoiceListItem: {
+            /** Id */
+            id: number;
+            /** Doc No */
+            doc_no: string | null;
+            /** Customer Id */
+            customer_id: number;
+            /** Customer Code */
+            customer_code: string;
+            /** Customer Name */
+            customer_name: string;
+            /**
+             * Business Date
+             * Format: date
+             */
+            business_date: string;
+            /** Status */
+            status: string;
+            /** Net Amount */
+            net_amount: string;
+            /** Received Amount */
+            received_amount: string;
+            /** Due Amount */
+            due_amount: string;
+            /** Payment Status */
+            payment_status: string;
+        };
+        /** InvoiceRead */
+        InvoiceRead: {
+            /** Id */
+            id: number;
+            /** Doc No */
+            doc_no: string | null;
+            /** Customer Id */
+            customer_id: number;
+            /** Customer Code */
+            customer_code: string;
+            /** Customer Name */
+            customer_name: string;
+            /** Customer Shop Name */
+            customer_shop_name: string | null;
+            /**
+             * Business Date
+             * Format: date
+             */
+            business_date: string;
+            /** Status */
+            status: string;
+            /** Notes */
+            notes: string | null;
+            /** Gross Amount */
+            gross_amount: string;
+            /** Dealer Discount */
+            dealer_discount: string;
+            /** Company Discount */
+            company_discount: string;
+            /** Net Amount */
+            net_amount: string;
+            /** Paid Amount */
+            paid_amount: string;
+            /** Payment Account Id */
+            payment_account_id: number | null;
+            /** Payment Account Name */
+            payment_account_name: string | null;
+            /** Received Amount */
+            received_amount: string;
+            /** Due Amount */
+            due_amount: string;
+            /** Payment Status */
+            payment_status: string;
+            /** Posted At */
+            posted_at: string | null;
+            /** Reversed At */
+            reversed_at: string | null;
+            /** Items */
+            items: components["schemas"]["InvoiceItemRead"][];
+            /** Receipts */
+            receipts: components["schemas"]["ReceiptListItem"][];
+        };
+        /** InvoiceWrite */
+        InvoiceWrite: {
+            /** Customer Id */
+            customer_id: number;
+            /** Business Date */
+            business_date?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /**
+             * Paid Amount
+             * @default 0
+             */
+            paid_amount?: number | string;
+            /** Payment Account Id */
+            payment_account_id?: number | null;
+            /** Items */
+            items: components["schemas"]["InvoiceLineIn"][];
         };
         /** JournalEntryRead */
         JournalEntryRead: {
@@ -1851,6 +2322,17 @@ export interface components {
             /** Page Size */
             page_size: number;
         };
+        /** Page[InvoiceListItem] */
+        Page_InvoiceListItem_: {
+            /** Items */
+            items: components["schemas"]["InvoiceListItem"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+        };
         /** Page[JournalEntryRead] */
         Page_JournalEntryRead_: {
             /** Items */
@@ -1888,6 +2370,17 @@ export interface components {
         Page_ProductRead_: {
             /** Items */
             items: components["schemas"]["ProductRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+        };
+        /** Page[ReceiptListItem] */
+        Page_ReceiptListItem_: {
+            /** Items */
+            items: components["schemas"]["ReceiptListItem"][];
             /** Total */
             total: number;
             /** Page */
@@ -1991,6 +2484,18 @@ export interface components {
             account_no?: string | null;
             /** Is Active */
             is_active?: boolean | null;
+        };
+        /**
+         * PaymentOption
+         * @description An account money can be received into. No balances: cashiers do not see them.
+         */
+        PaymentOption: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Kind */
+            kind: string;
         };
         /** PaymentRef */
         PaymentRef: {
@@ -2207,6 +2712,100 @@ export interface components {
             /** Uoms */
             uoms?: components["schemas"]["ProductUomIn"][] | null;
         };
+        /** ReceiptAllocationRead */
+        ReceiptAllocationRead: {
+            /** Invoice Id */
+            invoice_id: number;
+            /** Invoice Doc No */
+            invoice_doc_no: string | null;
+            /** Amount */
+            amount: string;
+        };
+        /** ReceiptCreate */
+        ReceiptCreate: {
+            /** Customer Id */
+            customer_id: number;
+            /** Amount */
+            amount: number | string;
+            /** Payment Account Id */
+            payment_account_id: number;
+            /** Business Date */
+            business_date?: string | null;
+            /** Reference */
+            reference?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** Allocations */
+            allocations?: components["schemas"]["app__modules__sales__schemas__AllocationIn"][];
+        };
+        /** ReceiptListItem */
+        ReceiptListItem: {
+            /** Id */
+            id: number;
+            /** Doc No */
+            doc_no: string;
+            /** Customer Id */
+            customer_id: number;
+            /** Customer Name */
+            customer_name: string;
+            /**
+             * Business Date
+             * Format: date
+             */
+            business_date: string;
+            /** Amount */
+            amount: string;
+            /** Payment Account Name */
+            payment_account_name: string;
+            /** Reference */
+            reference: string | null;
+            /** Status */
+            status: string;
+            /** Sales Invoice Id */
+            sales_invoice_id: number | null;
+            /** Allocated */
+            allocated: string;
+        };
+        /** ReceiptRead */
+        ReceiptRead: {
+            /** Id */
+            id: number;
+            /** Doc No */
+            doc_no: string;
+            /** Customer Id */
+            customer_id: number;
+            /** Customer Name */
+            customer_name: string;
+            /**
+             * Business Date
+             * Format: date
+             */
+            business_date: string;
+            /** Amount */
+            amount: string;
+            /** Payment Account Id */
+            payment_account_id: number;
+            /** Payment Account Name */
+            payment_account_name: string;
+            /** Reference */
+            reference: string | null;
+            /** Notes */
+            notes: string | null;
+            /** Status */
+            status: string;
+            /** Sales Invoice Id */
+            sales_invoice_id: number | null;
+            /** Allocated */
+            allocated: string;
+            /** Unallocated */
+            unallocated: string;
+            /** Allocations */
+            allocations: components["schemas"]["ReceiptAllocationRead"][];
+            /** Posted At */
+            posted_at: string | null;
+            /** Reversed At */
+            reversed_at: string | null;
+        };
         /** ReceiptRef */
         ReceiptRef: {
             /** Id */
@@ -2251,6 +2850,25 @@ export interface components {
             description: string | null;
             /** Permissions */
             permissions: string[];
+        };
+        /** SalesSummaryRow */
+        SalesSummaryRow: {
+            /** Period */
+            period: string;
+            /** Qty Base */
+            qty_base: string;
+            /** Gross Amount */
+            gross_amount: string;
+            /** Dealer Discount */
+            dealer_discount: string;
+            /** Company Discount */
+            company_discount: string;
+            /** Net Amount */
+            net_amount: string;
+            /** Cogs */
+            cogs: string;
+            /** Gross Profit */
+            gross_profit: string;
         };
         /** SettingsRead */
         SettingsRead: {
@@ -2334,7 +2952,7 @@ export interface components {
             /** Notes */
             notes?: string | null;
             /** Allocations */
-            allocations?: components["schemas"]["AllocationIn"][];
+            allocations?: components["schemas"]["app__modules__purchasing__schemas__AllocationIn"][];
         };
         /** SupplierPaymentRead */
         SupplierPaymentRead: {
@@ -2571,6 +3189,20 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /** AllocationIn */
+        app__modules__purchasing__schemas__AllocationIn: {
+            /** Po Id */
+            po_id: number;
+            /** Amount */
+            amount: number | string;
+        };
+        /** AllocationIn */
+        app__modules__sales__schemas__AllocationIn: {
+            /** Invoice Id */
+            invoice_id: number;
+            /** Amount */
+            amount: number | string;
         };
     };
     responses: never;
@@ -4261,6 +4893,557 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Page_LedgerEntryRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_sales_invoices: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                status?: string | null;
+                customer_id?: number | null;
+                date_from?: string | null;
+                date_to?: string | null;
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_InvoiceListItem_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_sales_invoice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InvoiceWrite"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvoiceRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_sales_invoice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                invoice_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvoiceRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_sales_invoice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                invoice_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_sales_invoice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                invoice_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InvoiceWrite"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvoiceRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_sales_invoice: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Unique key (e.g. a UUID) that makes retries of this request safe. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                invoice_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvoiceRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reverse_sales_invoice: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Unique key (e.g. a UUID) that makes retries of this request safe. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                invoice_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvoiceRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    print_sales_invoice: {
+        parameters: {
+            query?: {
+                paper?: string;
+            };
+            header?: never;
+            path: {
+                invoice_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/html": string;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_sales_payment_accounts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentOption"][];
+                };
+            };
+        };
+    };
+    list_customer_receipts: {
+        parameters: {
+            query?: {
+                customer_id?: number | null;
+                date_from?: string | null;
+                date_to?: string | null;
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_ReceiptListItem_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_customer_receipt: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Unique key (e.g. a UUID) that makes retries of this request safe. */
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReceiptCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReceiptRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_customer_receipt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                receipt_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReceiptRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reverse_customer_receipt: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Unique key (e.g. a UUID) that makes retries of this request safe. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                receipt_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReceiptRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_customer_summary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customer_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_customer_ledger: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path: {
+                customer_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_LedgerEntryRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_customer_aging: {
+        parameters: {
+            query?: {
+                as_of?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgingReport"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_sales_summary: {
+        parameters: {
+            query: {
+                date_from: string;
+                date_to: string;
+                group?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesSummaryRow"][];
                 };
             };
             /** @description Validation Error */
