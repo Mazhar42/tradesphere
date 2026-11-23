@@ -1,5 +1,6 @@
 """Domain exceptions rendered as RFC 9457 problem+json responses."""
 
+import logging
 from typing import Any
 
 from fastapi import FastAPI, Request
@@ -7,6 +8,10 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError
 from starlette.exceptions import HTTPException as StarletteHTTPException
+
+from app.core.config import settings
+
+logger = logging.getLogger("app.errors")
 
 PROBLEM_JSON = "application/problem+json"
 
@@ -130,9 +135,13 @@ def register_exception_handlers(app: FastAPI) -> None:
                 "A referenced record does not exist or is in use.",
                 "reference_error",
             )
-        return problem(
-            409, "Conflict", "The data violates a database constraint.", "constraint_violation"
-        )
+        logger.warning("Integrity error (%s): %s", sqlstate, exc.orig)
+        detail = "The data violates a database constraint."
+        if not settings.is_production:
+            culprit = constraint or getattr(diag, "column_name", None)
+            if culprit:
+                detail += f" [{culprit}]"
+        return problem(409, "Conflict", detail, "constraint_violation")
 
     @app.exception_handler(StarletteHTTPException)
     async def _http(_: Request, exc: StarletteHTTPException) -> JSONResponse:
