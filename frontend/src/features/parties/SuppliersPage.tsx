@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Plus } from 'lucide-react'
+import { useNavigate } from '@tanstack/react-router'
+import { Pencil, Plus } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
@@ -159,6 +160,8 @@ export function SuppliersPage() {
   const { t } = useTranslation()
   const { can } = useAuth()
   const canWrite = can('suppliers:write')
+  const canOpenAccount = can('purchasing:pay')
+  const navigate = useNavigate()
   const [q, setQ] = useState('')
   const [page, setPage] = useState(1)
   const [editing, setEditing] = useState<Supplier | null>(null)
@@ -195,8 +198,29 @@ export function SuppliersPage() {
         cell: (row) =>
           row.is_active ? <Badge tone="success">{t('common.active')}</Badge> : <Badge>{t('common.inactive')}</Badge>,
       },
+      ...(canWrite && canOpenAccount
+        ? ([
+            {
+              header: '',
+              align: 'right',
+              cell: (row) => (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label={t('common.edit')}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    openDialog(row)
+                  }}
+                >
+                  <Pencil className="size-4" />
+                </Button>
+              ),
+            },
+          ] as Column<Supplier>[])
+        : []),
     ],
-    [t],
+    [t, canWrite, canOpenAccount],
   )
 
   return (
@@ -229,7 +253,13 @@ export function SuppliersPage() {
             columns={columns}
             data={query.data?.items}
             loading={query.isPending}
-            onRowClick={canWrite ? openDialog : undefined}
+            onRowClick={
+              canOpenAccount
+                ? (s) => void navigate({ to: '/suppliers/$supplierId', params: { supplierId: String(s.id) } })
+                : canWrite
+                  ? openDialog
+                  : undefined
+            }
           />
           <Pagination page={page} pageSize={PAGE_SIZE} total={query.data?.total ?? 0} onPageChange={setPage} />
         </Card>
