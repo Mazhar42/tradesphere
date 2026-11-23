@@ -1,0 +1,112 @@
+# Production stack: Caddy (TLS + SPA + /api proxy), API (2 workers), PostgreSQL 17, nightly backups.
+# Run from this directory with a filled-in .env (see .env.example). Only Caddy publishes ports.
+name: tradesphere-prod
+
+x-api-build: &api-build
+  context: ../backend
+  target: prod
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: tradesphere
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: tradesphere
+      APP_DB_USER: tradesphere_app
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?set APP_DB_PASSWORD in .env}
+      TZ: UTC
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    # No `ports:`: the database is reachable only from containers on this stack's network.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tradesphere -d tradesphere"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # Applies migrations as the owner role before each start of the API, then exits.
+  migrate:
+    build: *api-build
+    image: tradesphere-api:prod
+    restart: "no"
+    command: ["alembic", "upgrade", "head"]
+    environment: &api-env
+      DATABASE_URL: postgresql+psycopg://tradesphere:${POSTGRES_PASSWORD}@db:5432/tradesphere
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+      ENVIRONMENT: production
+      LOG_FORMAT: json
+      CORS_ORIGINS: '["${SITE_URL:?set SITE_URL in .env}"]'
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    build: *api-build
+    image: tradesphere-api:prod
+    restart: unless-stopped
+    environment:
+      <<: *api-env
+      # The API runs as the least-privileged role: data access only, no schema changes.
+      DATABASE_URL: postgresql+psycopg://${APP_DB_USER:-tradesphere_app}:${APP_DB_PASSWORD}@db:5432/tradesphere
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=3)"
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  web:
+    build:
+      context: ../frontend
+      target: web
+    image: tradesphere-web:prod
+    restart: unless-stopped
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:?set SITE_ADDRESS in .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      api:
+        condition: service_healthy
+
+  backup:
+    build:
+      context: ./backup
+    image: tradesphere-backup:prod
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PGHOST: db
+      PGUSER: tradesphere
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: tradesphere
+      BACKUP_DIR: /backups
+    volumes:
+      - ./backup/backup.sh:/scripts/backup.sh:ro
+      - ./backups:/backups
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["sh", "-c", "while true; do /scripts/backup.sh || echo 'BACKUP FAILED'; sleep $${BACKUP_INTERVAL_SECONDS:-86400}; done"]
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:
