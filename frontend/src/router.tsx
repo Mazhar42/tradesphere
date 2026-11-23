@@ -25,6 +25,11 @@ const SettingsPage = lazyRouteComponent(() => import('@/features/settings/Settin
 const AuditPage = lazyRouteComponent(() => import('@/features/audit/AuditPage'), 'AuditPage')
 const StockPage = lazyRouteComponent(() => import('@/features/stock/StockPage'), 'StockPage')
 const PurchasesPage = lazyRouteComponent(() => import('@/features/purchases/PurchasesPage'), 'PurchasesPage')
+const CustomerAccountPage = lazyRouteComponent(() => import('@/features/parties/CustomerAccountPage'), 'CustomerAccountPage')
+const AgingPage = lazyRouteComponent(() => import('@/features/parties/AgingPage'), 'AgingPage')
+const SalesPage = lazyRouteComponent(() => import('@/features/sales/SalesPage'), 'SalesPage')
+const InvoiceFormPage = lazyRouteComponent(() => import('@/features/sales/InvoiceFormPage'), 'InvoiceFormPage')
+const InvoiceDetailPage = lazyRouteComponent(() => import('@/features/sales/InvoiceDetailPage'), 'InvoiceDetailPage')
 const PoFormPage = lazyRouteComponent(() => import('@/features/purchases/PoFormPage'), 'PoFormPage')
 const PoDetailPage = lazyRouteComponent(() => import('@/features/purchases/PoDetailPage'), 'PoDetailPage')
 const SupplierAccountPage = lazyRouteComponent(() => import('@/features/parties/SupplierAccountPage'), 'SupplierAccountPage')
@@ -86,6 +91,12 @@ const routeTree = rootRoute.addChildren([
     guarded('/products', 'catalog:read', ProductsPage),
     guarded('/catalog', 'catalog:read', CatalogPage),
     guarded('/customers', 'customers:read', CustomersPage),
+    guarded('/customers/aging', 'reports:read', AgingPage),
+    guarded('/customers/$customerId', 'customers:read', CustomerAccountPage),
+    guarded('/sales', 'sales:read', SalesPage),
+    guarded('/sales/new', 'sales:write', InvoiceFormPage),
+    guarded('/sales/$invoiceId', 'sales:read', InvoiceDetailPage),
+    guarded('/sales/$invoiceId/edit', 'sales:write', InvoiceFormPage),
     guarded('/suppliers', 'suppliers:read', SuppliersPage),
     guarded('/suppliers/$supplierId', 'purchasing:pay', SupplierAccountPage),
     guarded('/stock', 'inventory:read', StockPage),
