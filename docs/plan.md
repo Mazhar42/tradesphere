@@ -412,7 +412,7 @@ Invoice entry with FEFO batch allocation, cash/credit/partial, company-funded di
 Sales returns (good/damaged/expired; refund or credit), purchase returns, stock transfers/adjustments/write-offs, claimable items, claims, settlements (cash / supplier credit / rejection), commission payments.
 **Acceptance:** 1000 sold, 200 returned → net 800 and COGS reversed at original cost; damaged return not sellable; Tk 10k commission, Tk 6k settled in cash and Tk 4k as supplier credit → claim settled, AP advance +4k.
 
-### Phase 5 — Finance & reporting
+### Phase 5 — Finance & reporting ✅ *(this repo)*
 Expenses, fund transfers, owner transactions, cashbook, P&L, margin reports, dashboard, stock valuation, aging, near-expiry, claims aging, trial balance, Excel export, reconcile & rebuild commands.
 **Acceptance:** monthly P&L matches hand-calculated scenario fixture; reconcile reports zero drift.
 
