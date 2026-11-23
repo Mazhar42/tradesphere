@@ -5,7 +5,7 @@ Dealership inventory, sales, purchasing, company-claims and accounts system for 
 - **Backend:** FastAPI · SQLAlchemy 2 · PostgreSQL 17 · Alembic · Pydantic v2
 - **Frontend:** React 19 · TypeScript · Vite · Tailwind CSS v4 · TanStack Router / Query / Table · i18next (English + বাংলা)
 
-The full product and technical specification is in **[docs/plan.md](docs/plan.md)**. It covers the data model, posting rules, API, screens and the phase roadmap. Phases 1 (foundation), 2 (inventory core and purchasing) and 3 (sales) are implemented.
+The full product and technical specification is in **[docs/plan.md](docs/plan.md)**. It covers the data model, posting rules, API, screens and the phase roadmap. Phases 1 (foundation), 2 (inventory core and purchasing), 3 (sales) and 4 (returns and company claims) are implemented.
 
 ## Quick start (development)
 
@@ -56,7 +56,7 @@ frontend/
   src/
     api/         generated OpenAPI types + typed client (token refresh, problem+json errors)
     components/  ui primitives, data table, layout
-    features/    auth, dashboard, products, catalog, parties, stock, purchases, sales, accounts, users, settings, audit
+    features/    auth, dashboard, products, catalog, parties, stock, purchases, sales, returns, claims, accounts, users, settings, audit
     i18n/        en.json, bn.json
     lib/         money/date formatting (lakh/crore, Bangla digits), unit conversion
 docs/plan.md     master specification
