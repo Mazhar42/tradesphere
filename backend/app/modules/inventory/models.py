@@ -7,13 +7,15 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     String,
+    Text,
     UniqueConstraint,
     func,
     text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.shared.models import Base, IdMixin, TimestampMixin
+from app.modules.catalog.models import Product
+from app.shared.models import Base, CreatedByMixin, IdMixin, TimestampMixin
 from app.shared.money import MONEY, QTY, UNIT_COST
 
 
@@ -133,3 +135,103 @@ class ProductCost(Base):
         CheckConstraint("qty_on_hand >= 0", name="qty_non_negative"),
         CheckConstraint("total_value >= 0", name="value_non_negative"),
     )
+
+
+ADJUSTMENT_REASONS = ("count", "damage", "expiry", "found", "other")
+
+
+class StockAdjustment(IdMixin, TimestampMixin, CreatedByMixin, Base):
+    """Corrects stock outside purchasing and sales. Damage and expiry reasons are write-offs."""
+
+    __tablename__ = "stock_adjustments"
+
+    doc_no: Mapped[str | None] = mapped_column(String(30))  # assigned when posted
+    business_date: Mapped[date]
+    reason: Mapped[str] = mapped_column(String(10))
+    status: Mapped[str] = mapped_column(String(10), default="draft")
+    notes: Mapped[str | None] = mapped_column(Text)
+    posted_at: Mapped[datetime | None]
+
+    items: Mapped[list["StockAdjustmentItem"]] = relationship(
+        cascade="all, delete-orphan", lazy="selectin", order_by="StockAdjustmentItem.id"
+    )
+
+    __table_args__ = (
+        Index(
+            "uq_stock_adjustments_doc_no",
+            "doc_no",
+            unique=True,
+            postgresql_where=text("doc_no IS NOT NULL"),
+        ),
+        CheckConstraint(
+            "reason IN ('count','damage','expiry','found','other')", name="reason_valid"
+        ),
+        CheckConstraint("status IN ('draft','posted')", name="status_valid"),
+    )
+
+
+class StockAdjustmentItem(IdMixin, Base):
+    __tablename__ = "stock_adjustment_items"
+
+    adjustment_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("stock_adjustments.id", ondelete="CASCADE"), index=True
+    )
+    product_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("products.id"))
+    batch_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("batches.id"))
+    location_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("locations.id"))
+    qty_delta: Mapped[Decimal] = mapped_column(QTY)  # signed base units
+    value: Mapped[Decimal] = mapped_column(MONEY, default=Decimal(0))  # signed, set when posted
+
+    product: Mapped["Product"] = relationship(lazy="joined")
+    batch: Mapped[Batch | None] = relationship(lazy="joined")
+    location: Mapped[Location] = relationship(lazy="joined")
+
+    __table_args__ = (CheckConstraint("qty_delta <> 0", name="qty_non_zero"),)
+
+
+class StockTransfer(IdMixin, TimestampMixin, CreatedByMixin, Base):
+    """Moves stock between locations (for example SELLABLE to EXPIRED). No journal entry."""
+
+    __tablename__ = "stock_transfers"
+
+    doc_no: Mapped[str | None] = mapped_column(String(30))
+    business_date: Mapped[date]
+    from_location_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("locations.id"))
+    to_location_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("locations.id"))
+    status: Mapped[str] = mapped_column(String(10), default="draft")
+    notes: Mapped[str | None] = mapped_column(Text)
+    posted_at: Mapped[datetime | None]
+
+    from_location: Mapped[Location] = relationship(foreign_keys=[from_location_id], lazy="joined")
+    to_location: Mapped[Location] = relationship(foreign_keys=[to_location_id], lazy="joined")
+    items: Mapped[list["StockTransferItem"]] = relationship(
+        cascade="all, delete-orphan", lazy="selectin", order_by="StockTransferItem.id"
+    )
+
+    __table_args__ = (
+        Index(
+            "uq_stock_transfers_doc_no",
+            "doc_no",
+            unique=True,
+            postgresql_where=text("doc_no IS NOT NULL"),
+        ),
+        CheckConstraint("from_location_id <> to_location_id", name="locations_differ"),
+        CheckConstraint("status IN ('draft','posted')", name="status_valid"),
+    )
+
+
+class StockTransferItem(IdMixin, Base):
+    __tablename__ = "stock_transfer_items"
+
+    transfer_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("stock_transfers.id", ondelete="CASCADE"), index=True
+    )
+    product_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("products.id"))
+    batch_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("batches.id"))
+    qty_base: Mapped[Decimal] = mapped_column(QTY)
+    value: Mapped[Decimal] = mapped_column(MONEY, default=Decimal(0))  # set when posted
+
+    product: Mapped["Product"] = relationship(lazy="joined")
+    batch: Mapped[Batch | None] = relationship(lazy="joined")
+
+    __table_args__ = (CheckConstraint("qty_base > 0", name="qty_positive"),)
