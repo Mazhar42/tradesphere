@@ -23,6 +23,13 @@ const SuppliersPage = lazyRouteComponent(() => import('@/features/parties/Suppli
 const UsersPage = lazyRouteComponent(() => import('@/features/users/UsersPage'), 'UsersPage')
 const SettingsPage = lazyRouteComponent(() => import('@/features/settings/SettingsPage'), 'SettingsPage')
 const AuditPage = lazyRouteComponent(() => import('@/features/audit/AuditPage'), 'AuditPage')
+const StockPage = lazyRouteComponent(() => import('@/features/stock/StockPage'), 'StockPage')
+const PurchasesPage = lazyRouteComponent(() => import('@/features/purchases/PurchasesPage'), 'PurchasesPage')
+const PoFormPage = lazyRouteComponent(() => import('@/features/purchases/PoFormPage'), 'PoFormPage')
+const PoDetailPage = lazyRouteComponent(() => import('@/features/purchases/PoDetailPage'), 'PoDetailPage')
+const SupplierAccountPage = lazyRouteComponent(() => import('@/features/parties/SupplierAccountPage'), 'SupplierAccountPage')
+const AccountsPage = lazyRouteComponent(() => import('@/features/accounts/AccountsPage'), 'AccountsPage')
+const OpeningBalancesPage = lazyRouteComponent(() => import('@/features/accounts/OpeningBalancesPage'), 'OpeningBalancesPage')
 
 export interface RouterContext {
   auth: AuthContextValue
@@ -58,7 +65,7 @@ const appRoute = createRoute({
   component: AppLayout,
 })
 
-function guarded(path: string, permission: string | null, Page: RouteComponent) {
+function guarded<const P extends string>(path: P, permission: string | null, Page: RouteComponent) {
   return createRoute({
     getParentRoute: () => appRoute,
     path,
@@ -80,6 +87,14 @@ const routeTree = rootRoute.addChildren([
     guarded('/catalog', 'catalog:read', CatalogPage),
     guarded('/customers', 'customers:read', CustomersPage),
     guarded('/suppliers', 'suppliers:read', SuppliersPage),
+    guarded('/suppliers/$supplierId', 'purchasing:pay', SupplierAccountPage),
+    guarded('/stock', 'inventory:read', StockPage),
+    guarded('/purchases', 'purchasing:read', PurchasesPage),
+    guarded('/purchases/new', 'purchasing:write', PoFormPage),
+    guarded('/purchases/$poId', 'purchasing:read', PoDetailPage),
+    guarded('/purchases/$poId/edit', 'purchasing:write', PoFormPage),
+    guarded('/accounts', 'finance:read', AccountsPage),
+    guarded('/opening-balances', 'finance:opening', OpeningBalancesPage),
     guarded('/users', 'users:read', UsersPage),
     guarded('/settings', 'settings:read', SettingsPage),
     guarded('/audit', 'audit:read', AuditPage),
