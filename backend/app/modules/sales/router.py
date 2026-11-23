@@ -13,7 +13,7 @@ from app.modules.accounting.models import PaymentAccount
 from app.modules.accounting.schemas import LedgerEntryRead
 from app.modules.accounting.service import party_ledger
 from app.modules.parties.models import Customer
-from app.modules.sales import invoices, receipts, reports
+from app.modules.sales import invoices, receipts, reports, returns
 from app.modules.sales.printing import render_invoice
 from app.modules.sales.schemas import (
     AgingReport,
@@ -25,6 +25,10 @@ from app.modules.sales.schemas import (
     ReceiptCreate,
     ReceiptListItem,
     ReceiptRead,
+    ReturnableRow,
+    SalesReturnCreate,
+    SalesReturnListItem,
+    SalesReturnRead,
     SalesSummaryRow,
 )
 from app.modules.settings.schemas import BusinessProfile
@@ -215,6 +219,69 @@ def reverse_customer_receipt(
         endpoint=f"POST /customer-receipts/{receipt_id}/reverse",
         payload={"id": receipt_id},
         handler=lambda: receipts.receipt_to_read(receipts.reverse_receipt(db, receipt_id, actor)),
+    )
+    db.commit()
+    return result
+
+
+# --- Sales returns -----------------------------------------------------------------------------
+CanReturn = Annotated[CurrentUser, Depends(require("sales:return"))]
+
+
+@router.get("/sales-invoices/{invoice_id}/returnable", response_model=list[ReturnableRow])
+def get_returnable(db: DbSession, _: CanRead, invoice_id: int) -> list[ReturnableRow]:
+    return returns.returnable_for_invoice(db, invoices.get_invoice(db, invoice_id))
+
+
+@router.get("/sales-returns", response_model=Page[SalesReturnListItem])
+def list_sales_returns(
+    db: DbSession,
+    _: CanRead,
+    page: PageParamsDep,
+    status_: Annotated[str | None, Query(alias="status", max_length=10)] = None,
+    invoice_id: int | None = None,
+) -> Page[SalesReturnListItem]:
+    rows, total = returns.list_returns(db, page, status=status_, invoice_id=invoice_id)
+    return Page(
+        items=[returns.return_list_item(r) for r in rows],
+        total=total,
+        page=page.page,
+        page_size=page.page_size,
+    )
+
+
+@router.post("/sales-returns", response_model=SalesReturnRead, status_code=status.HTTP_201_CREATED)
+def create_sales_return(
+    db: DbSession, actor: CanReturn, data: SalesReturnCreate
+) -> SalesReturnRead:
+    ret = returns.create_return(db, data, actor)
+    db.commit()
+    return returns.return_to_read(ret)
+
+
+@router.get("/sales-returns/{return_id}", response_model=SalesReturnRead)
+def get_sales_return(db: DbSession, _: CanRead, return_id: int) -> SalesReturnRead:
+    return returns.return_to_read(returns.get_return(db, return_id))
+
+
+@router.delete("/sales-returns/{return_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_sales_return(db: DbSession, actor: CanReturn, return_id: int) -> Response:
+    returns.delete_draft(db, return_id, actor)
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/sales-returns/{return_id}/post", response_model=SalesReturnRead)
+def post_sales_return(
+    db: DbSession, actor: CanReturn, return_id: int, key: IdempotencyKeyHeader
+) -> object:
+    result = run_idempotent(
+        db,
+        user_id=actor.id,
+        key=key,
+        endpoint=f"POST /sales-returns/{return_id}/post",
+        payload={"id": return_id},
+        handler=lambda: returns.return_to_read(returns.post_return(db, return_id, actor)),
     )
     db.commit()
     return result

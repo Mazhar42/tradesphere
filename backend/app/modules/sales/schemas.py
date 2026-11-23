@@ -1,6 +1,6 @@
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import Field
 
@@ -114,6 +114,7 @@ class InvoiceRead(ReadSchema):
     payment_account_name: str | None
     received_amount: Money
     due_amount: Money
+    returned_amount: Money  # net value of posted sales returns against this invoice
     payment_status: str
     posted_at: datetime | None
     reversed_at: datetime | None
@@ -225,6 +226,7 @@ class SalesSummaryRow(ReadSchema):
     period: str
     qty_base: Qty
     gross_amount: Money
+    returns_amount: Money
     dealer_discount: Money
     company_discount: Money
     net_amount: Money
@@ -233,3 +235,96 @@ class SalesSummaryRow(ReadSchema):
 
 
 InvoiceRead.model_rebuild()
+
+
+# --- Sales returns ---------------------------------------------------------------------------
+
+
+class ReturnLineIn(WriteSchema):
+    invoice_item_id: int  # the invoice line the goods were sold on
+    batch_id: int | None = None  # the batch they were sold from (required for tracked products)
+    condition: Literal["good", "damaged", "expired"] = "good"
+    qty_base: PositiveQty
+
+
+class SalesReturnCreate(WriteSchema):
+    invoice_id: int
+    business_date: date | None = None
+    refund_method: Literal["cash", "credit"]
+    payment_account_id: int | None = None  # required for a cash refund
+    notes: Notes = None
+    items: Annotated[list[ReturnLineIn], Field(min_length=1, max_length=200)]
+
+
+class ReturnableRow(ReadSchema):
+    """What can still be returned from one batch of one invoice line."""
+
+    invoice_item_id: int
+    product_id: int
+    sku: str
+    name_en: str
+    name_bn: str | None
+    base_uom_code: str
+    batch_id: int | None
+    batch_no: str | None
+    expiry_date: date | None
+    sold_qty_base: Qty
+    returned_qty_base: Qty
+    returnable_qty_base: Qty
+    unit_cost: UnitCost
+    base_price: UnitCost
+
+
+class ReturnItemRead(ReadSchema):
+    id: int
+    invoice_item_id: int
+    product_id: int
+    sku: str
+    name_en: str
+    name_bn: str | None
+    base_uom_code: str
+    batch_id: int | None
+    batch_no: str | None
+    condition: str
+    qty_base: Qty
+    unit_cost: UnitCost
+    gross_amount: Money
+    dealer_discount: Money
+    company_discount: Money
+    net_amount: Money
+    cogs: Money
+
+
+class SalesReturnListItem(ReadSchema):
+    id: int
+    doc_no: str | None
+    invoice_id: int
+    invoice_doc_no: str | None
+    customer_id: int
+    customer_name: str
+    business_date: date
+    status: str
+    refund_method: str
+    net_amount: Money
+
+
+class SalesReturnRead(ReadSchema):
+    id: int
+    doc_no: str | None
+    invoice_id: int
+    invoice_doc_no: str | None
+    customer_id: int
+    customer_name: str
+    business_date: date
+    status: str
+    refund_method: str
+    payment_account_id: int | None
+    payment_account_name: str | None
+    notes: str | None
+    gross_amount: Money
+    dealer_discount: Money
+    company_discount: Money
+    net_amount: Money
+    cogs: Money
+    posted_at: datetime | None
+    items: list[ReturnItemRead]

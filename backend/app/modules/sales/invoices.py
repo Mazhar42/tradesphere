@@ -31,10 +31,13 @@ from app.modules.inventory.allocation import allocate_fefo
 from app.modules.inventory.stock import get_location_id, lock_costs, reverse_movements, stock_out
 from app.modules.parties.models import Customer, Supplier
 from app.modules.sales.ledger import (
+    credit_notes,
+    credited_for_invoices,
     customer_balance,
     lock_customer,
     posted_receipt_allocations,
     received_for_invoices,
+    returned_net_for_invoice,
 )
 from app.modules.sales.models import (
     CustomerReceipt,
@@ -42,6 +45,7 @@ from app.modules.sales.models import (
     SaleItemBatch,
     SalesInvoice,
     SalesInvoiceItem,
+    SalesReturn,
 )
 from app.modules.sales.projections import apply_sales_summary
 from app.modules.sales.receipts import (
@@ -601,6 +605,15 @@ def reverse_invoice(session: Session, invoice_id: int, actor: CurrentUser) -> Sa
             f"{invoice.doc_no} has receipts allocated to it. Reverse those receipts first.",
             code="receipts_allocated",
         )
+    if session.scalar(
+        select(func.count())
+        .select_from(SalesReturn)
+        .where(SalesReturn.invoice_id == invoice.id, SalesReturn.status == "posted")
+    ):
+        raise ConflictError(
+            f"Goods were returned against {invoice.doc_no}, so it can no longer be reversed.",
+            code="returns_posted",
+        )
     own_cash = session.scalar(
         select(CustomerReceipt).where(
             CustomerReceipt.sales_invoice_id == invoice.id,
@@ -641,12 +654,12 @@ def reverse_invoice(session: Session, invoice_id: int, actor: CurrentUser) -> Sa
 
 
 # --- Reads --------------------------------------------------------------------------------------
-def payment_status(status: str, net: Decimal, received: Decimal) -> str:
+def payment_status(status: str, net: Decimal, received: Decimal, credited: Decimal = ZERO) -> str:
     if status == "draft":
         return "draft"
     if status == "reversed":
         return "reversed"
-    if net - received <= 0:
+    if net - received - credited <= 0:
         return "paid"
     return "partial" if received > 0 else "unpaid"
 
@@ -697,7 +710,9 @@ def invoice_to_read(session: Session, invoice: SalesInvoice) -> InvoiceRead:
         if invoice.status == "posted"
         else ZERO
     )
-    due = ZERO if invoice.status == "reversed" else invoice.net_amount - received
+    credited = credited_for_invoices(session, [invoice.id]).get(invoice.id, ZERO)
+    returned = returned_net_for_invoice(session, invoice.id)
+    due = ZERO if invoice.status == "reversed" else invoice.net_amount - received - credited
     receipts = session.scalars(
         select(CustomerReceipt)
         .join(ReceiptAllocation, ReceiptAllocation.receipt_id == CustomerReceipt.id)
@@ -722,8 +737,9 @@ def invoice_to_read(session: Session, invoice: SalesInvoice) -> InvoiceRead:
         payment_account_id=invoice.payment_account_id,
         payment_account_name=invoice.payment_account.name if invoice.payment_account else None,
         received_amount=received,
+        returned_amount=returned,
         due_amount=due,
-        payment_status=payment_status(invoice.status, invoice.net_amount, received),
+        payment_status=payment_status(invoice.status, invoice.net_amount, received, credited),
         posted_at=invoice.posted_at,
         reversed_at=invoice.reversed_at,
         items=[_item_read(i) for i in invoice.items],
@@ -742,9 +758,15 @@ def list_invoices(
     date_to: date | None,
 ) -> tuple[list[InvoiceListItem], int]:
     received = posted_receipt_allocations().subquery()
+    credited = credit_notes().subquery()
     stmt = (
-        select(SalesInvoice, func.coalesce(received.c.received, ZERO))
+        select(
+            SalesInvoice,
+            func.coalesce(received.c.received, ZERO),
+            func.coalesce(credited.c.credited, ZERO),
+        )
         .outerjoin(received, received.c.invoice_id == SalesInvoice.id)
+        .outerjoin(credited, credited.c.invoice_id == SalesInvoice.id)
         .order_by(SalesInvoice.business_date.desc(), SalesInvoice.id.desc())
     )
     if q:
@@ -767,9 +789,10 @@ def list_invoices(
 
     rows, total = paginate_rows(session, stmt, params)
     items = []
-    for invoice, received_amount in rows:
+    for invoice, received_amount, credited_amount in rows:
         rec = Decimal(received_amount)
-        due = ZERO if invoice.status == "reversed" else invoice.net_amount - rec
+        cr = Decimal(credited_amount)
+        due = ZERO if invoice.status == "reversed" else invoice.net_amount - rec - cr
         items.append(
             InvoiceListItem(
                 id=invoice.id,
@@ -782,7 +805,7 @@ def list_invoices(
                 net_amount=invoice.net_amount,
                 received_amount=rec if invoice.status == "posted" else ZERO,
                 due_amount=due if invoice.status == "posted" else ZERO,
-                payment_status=payment_status(invoice.status, invoice.net_amount, rec),
+                payment_status=payment_status(invoice.status, invoice.net_amount, rec, cr),
             )
         )
     return items, total

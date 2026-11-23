@@ -6,7 +6,8 @@ Updated inside the same transaction as the invoice: sign +1 when posted, -1 when
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
-from app.modules.sales.models import DailySalesSummary, SalesInvoice
+from app.modules.sales.models import DailySalesSummary, SalesInvoice, SalesReturn
+from app.shared.money import ZERO
 
 
 def apply_sales_summary(session: Session, invoice: SalesInvoice, sign: int) -> None:
@@ -22,6 +23,34 @@ def apply_sales_summary(session: Session, invoice: SalesInvoice, sign: int) -> N
         }
         stmt = insert(DailySalesSummary).values(
             business_date=invoice.business_date,
+            product_id=item.product_id,
+            **delta,
+        )
+        stmt = stmt.on_conflict_do_update(
+            index_elements=[DailySalesSummary.business_date, DailySalesSummary.product_id],
+            set_={
+                column: getattr(DailySalesSummary, column) + getattr(stmt.excluded, column)
+                for column in delta
+            },
+        )
+        session.execute(stmt)
+
+
+def apply_return_summary(session: Session, ret: SalesReturn) -> None:
+    """A posted return is dated on its own business date, like its journal entries: it reduces
+    that day's sold quantity, discounts, net and cost, and adds to `returns_amount`."""
+    for item in ret.items:
+        delta = {
+            "qty_base": -item.qty_base,
+            "gross_amount": ZERO,
+            "returns_amount": item.gross_amount,
+            "dealer_discount": -item.dealer_discount,
+            "company_discount": -item.company_discount,
+            "net_amount": -item.net_amount,
+            "cogs": -item.cogs,
+        }
+        stmt = insert(DailySalesSummary).values(
+            business_date=ret.business_date,
             product_id=item.product_id,
             **delta,
         )
