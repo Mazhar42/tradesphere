@@ -65,6 +65,12 @@ class ForbiddenError(AppError):
     title = "Forbidden"
 
 
+class RateLimitedError(AppError):
+    status = 429
+    code = "rate_limited"
+    title = "Too many requests"
+
+
 def problem(
     status: int,
     title: str,

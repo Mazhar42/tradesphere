@@ -10,19 +10,42 @@ import uuid
 from dataclasses import dataclass
 from datetime import timedelta
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.core.errors import UnauthorizedError
+from app.core.errors import RateLimitedError, UnauthorizedError
 from app.core.security import create_access_token, hash_token, new_refresh_token, verify_password
 from app.modules.auth.schemas import MeRead, TokenResponse
 from app.modules.users.models import RefreshToken, User
 from app.modules.users.service import get_by_username
-from app.shared.audit import record_audit
+from app.shared.audit import AuditLog, record_audit
 from app.shared.dates import now_utc
 
 INVALID_CREDENTIALS = "Invalid username or password."
+TOO_MANY_ATTEMPTS = "Too many failed sign-in attempts. Try again in a few minutes."
+
+
+def _recent_failures(session: Session, *, username: str | None, ip: str | None) -> int:
+    since = now_utc() - timedelta(minutes=settings.login_window_minutes)
+    conditions = [AuditLog.action == "login_failed", AuditLog.occurred_at >= since]
+    if username is not None:
+        conditions.append(AuditLog.after["username"].as_string() == username.lower())
+    else:
+        conditions.append(AuditLog.ip == ip)
+    return int(session.scalar(select(func.count(AuditLog.id)).where(*conditions)) or 0)
+
+
+def _sign_in_blocked(session: Session, username: str, ip: str | None) -> bool:
+    """Counts come from the audit log, so every worker and every restart sees the same limit."""
+    if (
+        _recent_failures(session, username=username, ip=None)
+        >= settings.login_max_failures_per_user
+    ):
+        return True
+    return ip is not None and (
+        _recent_failures(session, username=None, ip=ip) >= settings.login_max_failures_per_ip
+    )
 
 
 @dataclass
@@ -69,6 +92,8 @@ def _issue_refresh_token(
 def login(
     session: Session, username: str, password: str, user_agent: str | None, ip: str | None
 ) -> AuthResult:
+    if _sign_in_blocked(session, username, ip):
+        raise RateLimitedError(TOO_MANY_ATTEMPTS, code="login_rate_limited")
     user = get_by_username(session, username)
     valid = verify_password(password, user.password_hash if user else None)
     if user is None or not valid or not user.is_active:
