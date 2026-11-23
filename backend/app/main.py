@@ -17,6 +17,7 @@ from app.modules.auth.router import router as auth_router
 from app.modules.catalog.router import router as catalog_router
 from app.modules.inventory.router import router as inventory_router
 from app.modules.parties.router import router as parties_router
+from app.modules.purchasing.router import router as purchasing_router
 from app.modules.settings.router import router as settings_router
 from app.modules.users.router import router as users_router
 
@@ -70,6 +71,7 @@ def create_app() -> FastAPI:
         users_router,
         catalog_router,
         parties_router,
+        purchasing_router,
         inventory_router,
         accounting_router,
         settings_router,
