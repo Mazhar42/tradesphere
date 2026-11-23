@@ -5,7 +5,7 @@ Dealership inventory, sales, purchasing, company-claims and accounts system for 
 - **Backend:** FastAPI · SQLAlchemy 2 · PostgreSQL 17 · Alembic · Pydantic v2
 - **Frontend:** React 19 · TypeScript · Vite · Tailwind CSS v4 · TanStack Router / Query / Table · i18next (English + বাংলা)
 
-The full product and technical specification is in **[docs/plan.md](docs/plan.md)**. It covers the data model, posting rules, API, screens and the phase roadmap. Phases 1 (foundation), 2 (inventory core and purchasing), 3 (sales), 4 (returns and company claims) and 5 (finance and reporting) are implemented.
+The full product and technical specification is in **[docs/plan.md](docs/plan.md)**. It covers the data model, posting rules, API, screens and the phase roadmap. Phases 1 (foundation), 2 (inventory core and purchasing), 3 (sales), 4 (returns and company claims) and 5 (finance and reporting) are implemented. Phase 6 (production readiness) is in progress: the deployment stack, backups and restore drill are in `deploy/`, and the owner's runbook is **[docs/operations.md](docs/operations.md)**.
 
 ## Quick start (development)
 
