@@ -16,6 +16,7 @@ from app.modules.claims.models import (
     CompanyClaim,
     CompanyClaimLine,
 )
+from app.modules.finance.models import Expense, FundTransfer, OwnerTransaction
 from app.modules.inventory.models import (
     Batch,
     InventoryMovement,
@@ -73,6 +74,8 @@ __all__ = [
     "CustomerReceipt",
     "DailySalesSummary",
     "DocumentSequence",
+    "Expense",
+    "FundTransfer",
     "GoodsReceipt",
     "GoodsReceiptItem",
     "IdempotencyKey",
@@ -81,6 +84,7 @@ __all__ = [
     "JournalLine",
     "Location",
     "OpeningBalance",
+    "OwnerTransaction",
     "PaymentAccount",
     "PaymentPoAllocation",
     "Permission",
