@@ -23,6 +23,7 @@ RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev
 COPY alembic.ini ./
 COPY alembic ./alembic
 COPY app ./app
+COPY start.sh ./start.sh
 RUN useradd --system --uid 10001 app
 USER app
 EXPOSE 8000

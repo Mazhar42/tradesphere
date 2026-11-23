@@ -17,12 +17,7 @@ services:
     dockerContext: ./backend
     dockerfilePath: ./backend/Dockerfile
     healthCheckPath: /api/health
-    dockerCommand: >-
-      sh -c 'alembic upgrade head &&
-      python -m app.cli seed &&
-      python -m app.cli bootstrap-owner &&
-      exec uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 1
-      --proxy-headers --forwarded-allow-ips "*" --no-access-log'
+    dockerCommand: sh /app/start.sh
     envVars:
       - key: ENVIRONMENT
         value: production
