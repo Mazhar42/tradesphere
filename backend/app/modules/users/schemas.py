@@ -17,7 +17,29 @@ class RoleRead(ReadSchema):
     code: str
     name: str
     description: str | None
+    is_system: bool
     permissions: list[str]
+
+
+class PermissionRead(ReadSchema):
+    code: str
+    description: str
+
+
+RoleCode = Annotated[str, StringConstraints(pattern=r"^[a-z][a-z0-9_-]{1,29}$", to_lower=True)]
+
+
+class RoleCreate(WriteSchema):
+    code: RoleCode
+    name: Annotated[str, Field(min_length=1, max_length=100)]
+    description: Annotated[str | None, Field(max_length=300)] = None
+    permissions: Annotated[list[str], Field(min_length=1)]
+
+
+class RoleUpdate(WriteSchema):
+    name: Annotated[str | None, Field(min_length=1, max_length=100)] = None
+    description: Annotated[str | None, Field(max_length=300)] = None
+    permissions: Annotated[list[str] | None, Field(min_length=1)] = None
 
 
 class UserRead(ReadSchema):

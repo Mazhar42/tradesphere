@@ -102,8 +102,7 @@ def test_no_one_can_grant_what_they_do_not_have(
         headers=owner,
         json={"code": "clerk", "name": "Clerk", "permissions": ["users:write", "users:read"]},
     )
-    if response.status_code in (404, 405):
-        pytest.skip("custom roles arrive in milestone 3.4")
+    assert response.status_code == 201, response.text
     make_user("clerk1", ["clerk"])
     clerk = login(client, "clerk1")
     refused = client.post("/api/v1/invitations", headers=clerk, json={"roles": ["owner"]})

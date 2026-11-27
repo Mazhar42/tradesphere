@@ -237,6 +237,10 @@ def _build_other(client: TestClient, db: Session) -> Other:
         idem=True,
     )
     post("/api/v1/payment-accounts", {"name": f"{MARK} bank", "kind": "bank"})
+    ids["role_id"] = post(
+        "/api/v1/roles",
+        {"code": "zzb-clerk", "name": f"{MARK} clerk", "permissions": ["catalog:read"]},
+    )["id"]
     ids["invitation_id"] = post(
         "/api/v1/invitations", {"note": f"{MARK} invitee", "roles": ["cashier"]}
     )["invitation"]["id"]
@@ -295,6 +299,7 @@ def _money(ids: dict[str, int], **extra: Any) -> dict[str, Any]:
 # ids up and not from request validation.
 BODIES: dict[tuple[str, str], Body] = {
     ("PATCH", "/users/{user_id}"): lambda i: {"full_name": "x"},
+    ("PATCH", "/roles/{role_id}"): lambda i: {"name": "x"},
     ("POST", "/users/{user_id}/reset-password"): lambda i: {"new_password": "Sneaky-Passw0rd"},
     ("PATCH", "/categories/{category_id}"): lambda i: {"name_en": "x"},
     ("PATCH", "/brands/{brand_id}"): lambda i: {"name_en": "x"},

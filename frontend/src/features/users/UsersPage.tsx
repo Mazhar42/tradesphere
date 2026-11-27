@@ -22,9 +22,10 @@ import { Tabs } from '@/components/ui/tabs'
 import { useAuth } from '@/features/auth/auth-context'
 import { useLang } from '@/i18n'
 import { applyServerErrors, blankToNull } from '@/lib/forms'
-import { formatDateTime, formatNumber } from '@/lib/format'
+import { formatDateTime } from '@/lib/format'
 
 import { InvitationList, InviteDialog } from './Invitations'
+import { RolesEditor } from './Roles'
 
 type User = Schemas['UserRead']
 type Role = Schemas['RoleRead']
@@ -261,33 +262,6 @@ function ResetPasswordDialog({ user, onClose }: { user: User | null; onClose: ()
   )
 }
 
-function RolesOverview() {
-  const { t } = useTranslation()
-  const { lang } = useLang()
-  const roles = useRoles()
-  if (roles.isError) return <ErrorState error={roles.error} onRetry={() => void roles.refetch()} />
-  return (
-    <div className="grid gap-4 p-4 md:grid-cols-2">
-      {roles.data?.map((role) => (
-        <div key={role.code} className="rounded-lg border border-border p-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold">{t(`roles.${role.code}`, role.name)}</h3>
-            <Badge>{t('users.permissionsCount', { count: role.permissions.length, formatted: formatNumber(role.permissions.length, lang) })}</Badge>
-          </div>
-          <p className="mt-1 text-sm text-muted">{role.description}</p>
-          <div className="mt-3 flex flex-wrap gap-1">
-            {role.permissions.map((p) => (
-              <code key={p} className="rounded bg-surface-muted px-1.5 py-0.5 text-[11px] text-muted">
-                {p}
-              </code>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
 export function UsersPage() {
   const { t } = useTranslation()
   const { lang } = useLang()
@@ -422,7 +396,7 @@ export function UsersPage() {
         {tab === 'invitations' ? (
           <InvitationList />
         ) : tab === 'roles' ? (
-          <RolesOverview />
+          <RolesEditor />
         ) : query.isError ? (
           <div className="p-4">
             <ErrorState error={query.error} onRetry={() => void query.refetch()} />

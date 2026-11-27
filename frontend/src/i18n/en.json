@@ -161,6 +161,15 @@
     "thisDevice": "This device",
     "signOut": "Sign out"
   },
+  "roleEditor": {
+    "new": "New role",
+    "builtIn": "Built-in",
+    "code": "Short code",
+    "name": "Name",
+    "permissions": "What it can do",
+    "delete": "Delete role",
+    "editTitle": "Edit role"
+  },
   "forbidden": {
     "title": "No access",
     "body": "Your role does not allow access to this page. Ask the owner if you need it."

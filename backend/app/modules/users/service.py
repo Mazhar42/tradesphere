@@ -9,8 +9,15 @@ from app.core.security import hash_password
 from app.core.tenant_context import tenant_id_of
 from app.modules.tenancy import service as tenancy
 from app.modules.tenancy.models import TenantMembership
-from app.modules.users.models import RefreshToken, Role, User
-from app.modules.users.schemas import RoleRead, UserCreate, UserRead, UserUpdate
+from app.modules.users.models import Permission, RefreshToken, Role, User, user_roles
+from app.modules.users.schemas import (
+    RoleCreate,
+    RoleRead,
+    RoleUpdate,
+    UserCreate,
+    UserRead,
+    UserUpdate,
+)
 from app.shared.audit import record_audit, snapshot
 from app.shared.dates import now_utc
 from app.shared.pagination import PageParams, paginate
@@ -37,6 +44,7 @@ def role_to_read(role: Role) -> RoleRead:
         code=role.code,
         name=role.name,
         description=role.description,
+        is_system=role.is_system,
         permissions=[p.code for p in role.permissions],
     )
 
@@ -279,3 +287,99 @@ def revoke_all_tokens(session: Session, user_id: int) -> None:
 
 def count_active_owners(session: Session) -> int:
     return _active_owner_count(session)
+
+
+# --- Roles a dealership defines for itself ---------------------------------------------------
+
+
+def list_permissions(session: Session) -> Sequence[Permission]:
+    return session.scalars(select(Permission).order_by(Permission.code)).all()
+
+
+def _permissions_to_grant(
+    session: Session, actor: CurrentUser, codes: list[str]
+) -> list[Permission]:
+    found = session.scalars(select(Permission).where(Permission.code.in_(codes))).all()
+    if len(found) != len(set(codes)):
+        raise BusinessRuleError(
+            "Unknown permission.",
+            code="unknown_permission",
+            errors=[{"field": "permissions", "message": "Unknown"}],
+        )
+    if set(codes) - actor.permissions:
+        raise ForbiddenError("You cannot give permissions you do not have.", code="cannot_grant")
+    return list(found)
+
+
+def _editable_role(session: Session, role_id: int, actor: CurrentUser) -> Role:
+    role = session.scalar(select(Role).where(Role.id == role_id).with_for_update())
+    if role is None:
+        raise NotFoundError("Role not found.")
+    if role.is_system:
+        raise BusinessRuleError("Built-in roles cannot be changed.", code="system_role")
+    # Changing a role stronger than oneself would be a way to weaken or reshape it.
+    if {p.code for p in role.permissions} - actor.permissions:
+        raise ForbiddenError("This role holds permissions you do not have.", code="cannot_grant")
+    return role
+
+
+def create_role(session: Session, data: RoleCreate, actor: CurrentUser) -> Role:
+    if session.scalar(select(Role.id).where(Role.code == data.code)):
+        raise ConflictError(
+            "A role with this code exists.",
+            code="duplicate",
+            errors=[{"field": "code", "message": "Already exists"}],
+        )
+    role = Role(code=data.code, name=data.name, description=data.description, is_system=False)
+    role.permissions = _permissions_to_grant(session, actor, data.permissions)
+    session.add(role)
+    session.flush()
+    record_audit(
+        session,
+        actor_id=actor.id,
+        action="create",
+        entity_type="role",
+        entity_id=role.id,
+        after={"code": role.code, "permissions": sorted(data.permissions)},
+    )
+    return role
+
+
+def update_role(session: Session, role_id: int, data: RoleUpdate, actor: CurrentUser) -> Role:
+    role = _editable_role(session, role_id, actor)
+    before = {"name": role.name, "permissions": sorted(p.code for p in role.permissions)}
+    if data.name is not None:
+        role.name = data.name
+    if "description" in data.model_fields_set:
+        role.description = data.description
+    if data.permissions is not None:
+        role.permissions = _permissions_to_grant(session, actor, data.permissions)
+    session.flush()
+    record_audit(
+        session,
+        actor_id=actor.id,
+        action="update",
+        entity_type="role",
+        entity_id=role.id,
+        before=before,
+        after={"name": role.name, "permissions": sorted(p.code for p in role.permissions)},
+    )
+    return role
+
+
+def delete_role(session: Session, role_id: int, actor: CurrentUser) -> None:
+    role = _editable_role(session, role_id, actor)
+    in_use = session.scalar(
+        select(func.count()).select_from(user_roles).where(user_roles.c.role_id == role.id)
+    )
+    if in_use:
+        raise ConflictError("People still hold this role.", code="role_in_use")
+    record_audit(
+        session,
+        actor_id=actor.id,
+        action="delete",
+        entity_type="role",
+        entity_id=role.id,
+        before={"code": role.code},
+    )
+    session.delete(role)
