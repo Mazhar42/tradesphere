@@ -24,7 +24,9 @@ class Category(TenantScoped, IdMixin, TimestampMixin, Base):
     parent_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("categories.id"))
     is_active: Mapped[bool] = mapped_column(default=True)
 
-    __table_args__ = (Index("uq_categories_name_en", func.lower(name_en), unique=True),)
+    __table_args__ = (
+        Index("uq_categories_name_en", "tenant_id", func.lower(name_en), unique=True),
+    )
 
 
 class Brand(TenantScoped, IdMixin, TimestampMixin, Base):
@@ -34,7 +36,7 @@ class Brand(TenantScoped, IdMixin, TimestampMixin, Base):
     name_bn: Mapped[str | None] = mapped_column(String(100))
     is_active: Mapped[bool] = mapped_column(default=True)
 
-    __table_args__ = (Index("uq_brands_name_en", func.lower(name_en), unique=True),)
+    __table_args__ = (Index("uq_brands_name_en", "tenant_id", func.lower(name_en), unique=True),)
 
 
 class Uom(TenantScoped, IdMixin, TimestampMixin, Base):
@@ -42,16 +44,18 @@ class Uom(TenantScoped, IdMixin, TimestampMixin, Base):
 
     __tablename__ = "uoms"
 
-    code: Mapped[str] = mapped_column(String(10), unique=True)
+    code: Mapped[str] = mapped_column(String(10))
     name_en: Mapped[str] = mapped_column(String(50))
     name_bn: Mapped[str | None] = mapped_column(String(50))
     is_active: Mapped[bool] = mapped_column(default=True)
+
+    __table_args__ = (UniqueConstraint("tenant_id", "code", name="uq_uoms_code"),)
 
 
 class Product(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
     __tablename__ = "products"
 
-    sku: Mapped[str] = mapped_column(String(50), unique=True)
+    sku: Mapped[str] = mapped_column(String(50))
     barcode: Mapped[str | None] = mapped_column(String(64))
     name_en: Mapped[str] = mapped_column(String(200))
     name_bn: Mapped[str | None] = mapped_column(String(200))
@@ -78,13 +82,15 @@ class Product(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
     )
 
     __table_args__ = (
+        UniqueConstraint("tenant_id", "sku", name="uq_products_sku"),
         Index(
             "uq_products_barcode",
+            "tenant_id",
             "barcode",
             unique=True,
             postgresql_where=text("barcode IS NOT NULL"),
         ),
-        Index("ix_products_name_en", func.lower(name_en)),
+        Index("ix_products_name_en", "tenant_id", func.lower(name_en)),
         CheckConstraint("dp >= 0 AND tp >= 0 AND mrp >= 0", name="prices_non_negative"),
         CheckConstraint("mrp = 0 OR tp <= mrp", name="tp_not_above_mrp"),
         CheckConstraint("reorder_level >= 0", name="reorder_level_non_negative"),

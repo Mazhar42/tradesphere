@@ -48,7 +48,7 @@ def upgrade() -> None:
     has_rows = [
         t
         for t in TABLES
-        if bind.scalar(sa.text(f"SELECT EXISTS (SELECT 1 FROM {t})"))  # noqa: S608
+        if bind.scalar(sa.text(f"SELECT EXISTS (SELECT 1 FROM {t})"))
     ]
     if has_rows and len(tenants) != 1:
         raise RuntimeError(

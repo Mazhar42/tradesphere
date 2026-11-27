@@ -123,11 +123,14 @@ def create_user(session: Session, data: UserCreate, actor: CurrentUser | None) -
         full_name=data.full_name,
         phone=data.phone,
         password_hash=hash_password(data.password),
-        roles=_resolve_roles(session, data.roles),
     )
+    roles = _resolve_roles(session, data.roles)
     session.add(user)
     session.flush()
+    # Membership first: roles are held by a member of the dealership.
     tenancy.add_member(session, user.id, managed=True, invited_by=actor.id if actor else None)
+    user.roles = roles
+    session.flush()
     record_audit(
         session,
         actor_id=actor.id if actor else None,

@@ -18,7 +18,7 @@ SENSITIVE_FIELDS = frozenset({"password_hash", "token_hash"})
 class AuditLog(TenantScoped, IdMixin, Base):
     __tablename__ = "audit_logs"
 
-    occurred_at: Mapped[datetime] = mapped_column(server_default=func.now(), index=True)
+    occurred_at: Mapped[datetime] = mapped_column(server_default=func.now())
     actor_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("users.id"))
     action: Mapped[str] = mapped_column(String(50))
     entity_type: Mapped[str] = mapped_column(String(50))
@@ -28,7 +28,10 @@ class AuditLog(TenantScoped, IdMixin, Base):
     ip: Mapped[str | None] = mapped_column(String(64))
     request_id: Mapped[str | None] = mapped_column(String(64))
 
-    __table_args__ = (Index("ix_audit_logs_entity", "entity_type", "entity_id"),)
+    __table_args__ = (
+        Index("ix_audit_logs_occurred_at", "tenant_id", "occurred_at"),
+        Index("ix_audit_logs_entity", "tenant_id", "entity_type", "entity_id"),
+    )
 
 
 def json_safe(value: Any) -> Any:

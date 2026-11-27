@@ -1,7 +1,16 @@
 from datetime import date, datetime
 from decimal import Decimal
 
-from sqlalchemy import BigInteger, CheckConstraint, ForeignKey, Index, String, Text, text
+from sqlalchemy import (
+    BigInteger,
+    CheckConstraint,
+    ForeignKey,
+    Index,
+    String,
+    Text,
+    UniqueConstraint,
+    text,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.modules.accounting.models import PaymentAccount
@@ -39,11 +48,12 @@ class PurchaseOrder(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base)
     __table_args__ = (
         Index(
             "uq_purchase_orders_doc_no",
+            "tenant_id",
             "doc_no",
             unique=True,
             postgresql_where=text("doc_no IS NOT NULL"),
         ),
-        Index("ix_purchase_orders_supplier_id_status", "supplier_id", "status"),
+        Index("ix_purchase_orders_supplier_id_status", "tenant_id", "supplier_id", "status"),
         CheckConstraint(
             "status IN ('draft','confirmed','partially_received','received',"
             "'closed_short','cancelled')",
@@ -130,6 +140,7 @@ class GoodsReceipt(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
     __table_args__ = (
         Index(
             "uq_goods_receipts_doc_no",
+            "tenant_id",
             "doc_no",
             unique=True,
             postgresql_where=text("doc_no IS NOT NULL"),
@@ -172,7 +183,7 @@ class SupplierPayment(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Bas
 
     __tablename__ = "supplier_payments"
 
-    doc_no: Mapped[str] = mapped_column(String(30), unique=True)
+    doc_no: Mapped[str] = mapped_column(String(30))
     supplier_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("suppliers.id"))
     business_date: Mapped[date]
     amount: Mapped[Decimal] = mapped_column(MONEY)
@@ -192,9 +203,15 @@ class SupplierPayment(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Bas
     )
 
     __table_args__ = (
+        UniqueConstraint("tenant_id", "doc_no", name="uq_supplier_payments_doc_no"),
         CheckConstraint("amount > 0", name="amount_positive"),
         CheckConstraint("status IN ('posted','reversed')", name="status_valid"),
-        Index("ix_supplier_payments_supplier_id_business_date", "supplier_id", "business_date"),
+        Index(
+            "ix_supplier_payments_supplier_id_business_date",
+            "tenant_id",
+            "supplier_id",
+            "business_date",
+        ),
     )
 
 
@@ -239,6 +256,7 @@ class PurchaseReturn(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base
     __table_args__ = (
         Index(
             "uq_purchase_returns_doc_no",
+            "tenant_id",
             "doc_no",
             unique=True,
             postgresql_where=text("doc_no IS NOT NULL"),

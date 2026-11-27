@@ -1,7 +1,15 @@
 from datetime import date
 from decimal import Decimal
 
-from sqlalchemy import BigInteger, CheckConstraint, ForeignKey, Index, String, Text
+from sqlalchemy import (
+    BigInteger,
+    CheckConstraint,
+    ForeignKey,
+    Index,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.modules.accounting.models import Account, PaymentAccount
@@ -14,7 +22,7 @@ class Expense(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
 
     __tablename__ = "expenses"
 
-    doc_no: Mapped[str] = mapped_column(String(30), unique=True)
+    doc_no: Mapped[str] = mapped_column(String(30))
     business_date: Mapped[date]
     expense_account_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("accounts.id"))
     amount: Mapped[Decimal] = mapped_column(MONEY)
@@ -28,6 +36,7 @@ class Expense(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
     payment_account: Mapped[PaymentAccount] = relationship(lazy="joined")
 
     __table_args__ = (
+        UniqueConstraint("tenant_id", "doc_no", name="uq_expenses_doc_no"),
         CheckConstraint("amount > 0", name="amount_positive"),
         Index("ix_expenses_business_date", "business_date"),
     )
@@ -41,7 +50,7 @@ class FundTransfer(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
 
     __tablename__ = "fund_transfers"
 
-    doc_no: Mapped[str] = mapped_column(String(30), unique=True)
+    doc_no: Mapped[str] = mapped_column(String(30))
     business_date: Mapped[date]
     from_payment_account_id: Mapped[int] = mapped_column(
         BigInteger, ForeignKey("payment_accounts.id")
@@ -62,6 +71,7 @@ class FundTransfer(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
     )
 
     __table_args__ = (
+        UniqueConstraint("tenant_id", "doc_no", name="uq_fund_transfers_doc_no"),
         CheckConstraint("amount > 0 AND charges >= 0", name="amounts_valid"),
         CheckConstraint("from_payment_account_id <> to_payment_account_id", name="accounts_differ"),
     )
@@ -75,7 +85,7 @@ class OwnerTransaction(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Ba
 
     __tablename__ = "owner_transactions"
 
-    doc_no: Mapped[str] = mapped_column(String(30), unique=True)
+    doc_no: Mapped[str] = mapped_column(String(30))
     business_date: Mapped[date]
     kind: Mapped[str] = mapped_column(String(10))
     amount: Mapped[Decimal] = mapped_column(MONEY)
@@ -85,6 +95,7 @@ class OwnerTransaction(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Ba
     payment_account: Mapped[PaymentAccount] = relationship(lazy="joined")
 
     __table_args__ = (
+        UniqueConstraint("tenant_id", "doc_no", name="uq_owner_transactions_doc_no"),
         CheckConstraint("amount > 0", name="amount_positive"),
         CheckConstraint("kind IN ('capital','drawing')", name="kind_valid"),
     )

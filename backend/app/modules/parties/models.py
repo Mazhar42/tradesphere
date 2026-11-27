@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from sqlalchemy import CheckConstraint, Index, String, Text, func, text
+from sqlalchemy import CheckConstraint, Index, String, Text, UniqueConstraint, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.shared.models import Base, CreatedByMixin, IdMixin, TenantScoped, TimestampMixin
@@ -12,7 +12,7 @@ class Customer(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
 
     __tablename__ = "customers"
 
-    code: Mapped[str] = mapped_column(String(20), unique=True)
+    code: Mapped[str] = mapped_column(String(20))
     name: Mapped[str] = mapped_column(String(150))
     shop_name: Mapped[str | None] = mapped_column(String(150))
     phone: Mapped[str | None] = mapped_column(String(30))
@@ -25,12 +25,13 @@ class Customer(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
     notes: Mapped[str | None] = mapped_column(Text)
 
     __table_args__ = (
-        Index("ix_customers_name", func.lower(name)),
+        UniqueConstraint("tenant_id", "code", name="uq_customers_code"),
+        Index("ix_customers_name", "tenant_id", func.lower(name)),
         Index("ix_customers_phone", "phone"),
         # Exactly one system walk-in (cash) customer.
         Index(
             "uq_customers_is_walk_in",
-            "is_walk_in",
+            "tenant_id",
             unique=True,
             postgresql_where=text("is_walk_in"),
         ),
@@ -44,7 +45,7 @@ class Supplier(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
 
     __tablename__ = "suppliers"
 
-    code: Mapped[str] = mapped_column(String(20), unique=True)
+    code: Mapped[str] = mapped_column(String(20))
     name: Mapped[str] = mapped_column(String(150))
     contact_person: Mapped[str | None] = mapped_column(String(120))
     phone: Mapped[str | None] = mapped_column(String(30))
@@ -53,4 +54,7 @@ class Supplier(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
     is_active: Mapped[bool] = mapped_column(default=True)
     notes: Mapped[str | None] = mapped_column(Text)
 
-    __table_args__ = (Index("ix_suppliers_name", func.lower(name)),)
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "code", name="uq_suppliers_code"),
+        Index("ix_suppliers_name", "tenant_id", func.lower(name)),
+    )

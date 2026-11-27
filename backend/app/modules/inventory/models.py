@@ -24,12 +24,14 @@ class Location(TenantScoped, IdMixin, TimestampMixin, Base):
 
     __tablename__ = "locations"
 
-    code: Mapped[str] = mapped_column(String(20), unique=True)
+    code: Mapped[str] = mapped_column(String(20))
     name_en: Mapped[str] = mapped_column(String(100))
     name_bn: Mapped[str | None] = mapped_column(String(100))
     is_sellable: Mapped[bool] = mapped_column(default=False)
     is_system: Mapped[bool] = mapped_column(default=False)
     is_active: Mapped[bool] = mapped_column(default=True)
+
+    __table_args__ = (UniqueConstraint("tenant_id", "code", name="uq_locations_code"),)
 
 
 class Batch(TenantScoped, IdMixin, TimestampMixin, Base):
@@ -44,7 +46,7 @@ class Batch(TenantScoped, IdMixin, TimestampMixin, Base):
 
     __table_args__ = (
         UniqueConstraint("product_id", "batch_no"),
-        Index("ix_batches_expiry_date", "expiry_date"),
+        Index("ix_batches_expiry_date", "tenant_id", "expiry_date"),
     )
 
 
@@ -81,8 +83,8 @@ class InventoryMovement(TenantScoped, IdMixin, Base):
 
     __table_args__ = (
         Index("ix_inventory_movements_product_id_id", "product_id", "id"),
-        Index("ix_inventory_movements_source", "source_doc_type", "source_doc_id"),
-        Index("ix_inventory_movements_business_date", "business_date"),
+        Index("ix_inventory_movements_source", "tenant_id", "source_doc_type", "source_doc_id"),
+        Index("ix_inventory_movements_business_date", "tenant_id", "business_date"),
         Index(
             "uq_inventory_movements_reversal_of",
             "reversal_of_id",
@@ -159,6 +161,7 @@ class StockAdjustment(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Bas
     __table_args__ = (
         Index(
             "uq_stock_adjustments_doc_no",
+            "tenant_id",
             "doc_no",
             unique=True,
             postgresql_where=text("doc_no IS NOT NULL"),
@@ -211,6 +214,7 @@ class StockTransfer(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base)
     __table_args__ = (
         Index(
             "uq_stock_transfers_doc_no",
+            "tenant_id",
             "doc_no",
             unique=True,
             postgresql_where=text("doc_no IS NOT NULL"),

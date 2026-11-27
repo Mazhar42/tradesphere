@@ -2,7 +2,16 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Any
 
-from sqlalchemy import BigInteger, CheckConstraint, ForeignKey, Index, String, func, text
+from sqlalchemy import (
+    BigInteger,
+    CheckConstraint,
+    ForeignKey,
+    Index,
+    String,
+    UniqueConstraint,
+    func,
+    text,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -17,7 +26,7 @@ class Account(TenantScoped, IdMixin, TimestampMixin, Base):
 
     __tablename__ = "accounts"
 
-    code: Mapped[str] = mapped_column(String(10), unique=True)
+    code: Mapped[str] = mapped_column(String(10))
     name_en: Mapped[str] = mapped_column(String(120))
     name_bn: Mapped[str | None] = mapped_column(String(120))
     type: Mapped[str] = mapped_column(String(10))
@@ -28,6 +37,7 @@ class Account(TenantScoped, IdMixin, TimestampMixin, Base):
     is_active: Mapped[bool] = mapped_column(default=True)
 
     __table_args__ = (
+        UniqueConstraint("tenant_id", "code", name="uq_accounts_code"),
         CheckConstraint(
             "type IN ('asset','liability','equity','income','expense')", name="type_valid"
         ),
@@ -53,7 +63,7 @@ class PaymentAccount(TenantScoped, IdMixin, TimestampMixin, Base):
     account: Mapped[Account] = relationship(lazy="joined")
 
     __table_args__ = (
-        Index("uq_payment_accounts_name", func.lower(name), unique=True),
+        Index("uq_payment_accounts_name", "tenant_id", func.lower(name), unique=True),
         CheckConstraint("kind IN ('cash','bank','mfs')", name="kind_valid"),
     )
 
@@ -63,7 +73,7 @@ class JournalEntry(TenantScoped, IdMixin, Base):
 
     __tablename__ = "journal_entries"
 
-    entry_no: Mapped[str] = mapped_column(String(30), unique=True)
+    entry_no: Mapped[str] = mapped_column(String(30))
     business_date: Mapped[date]
     source_doc_type: Mapped[str] = mapped_column(String(20))
     source_doc_id: Mapped[int | None] = mapped_column(BigInteger)
@@ -78,8 +88,9 @@ class JournalEntry(TenantScoped, IdMixin, Base):
     )
 
     __table_args__ = (
-        Index("ix_journal_entries_business_date", "business_date"),
-        Index("ix_journal_entries_source", "source_doc_type", "source_doc_id"),
+        UniqueConstraint("tenant_id", "entry_no", name="uq_journal_entries_entry_no"),
+        Index("ix_journal_entries_business_date", "tenant_id", "business_date"),
+        Index("ix_journal_entries_source", "tenant_id", "source_doc_type", "source_doc_id"),
         Index(
             "uq_journal_entries_reversal_of",
             "reversal_of_id",
@@ -110,8 +121,8 @@ class JournalLine(TenantScoped, IdMixin, Base):
         CheckConstraint(
             "(debit > 0 AND credit = 0) OR (credit > 0 AND debit = 0)", name="one_side_only"
         ),
-        Index("ix_journal_lines_party", "account_id", "party_type", "party_id"),
-        Index("ix_journal_lines_payment_account_id", "payment_account_id"),
+        Index("ix_journal_lines_party", "tenant_id", "account_id", "party_type", "party_id"),
+        Index("ix_journal_lines_payment_account_id", "tenant_id", "payment_account_id"),
     )
 
 
@@ -120,7 +131,7 @@ class OpeningBalance(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base
 
     __tablename__ = "opening_balances"
 
-    doc_no: Mapped[str] = mapped_column(String(30), unique=True)
+    doc_no: Mapped[str] = mapped_column(String(30))
     business_date: Mapped[date]
     status: Mapped[str] = mapped_column(String(10), default="posted")
     summary: Mapped[dict[str, Any]] = mapped_column(JSONB)
@@ -128,11 +139,12 @@ class OpeningBalance(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base
     reversed_at: Mapped[datetime | None]
 
     __table_args__ = (
+        UniqueConstraint("tenant_id", "doc_no", name="uq_opening_balances_doc_no"),
         CheckConstraint("status IN ('posted','reversed')", name="status_valid"),
         # Only one opening-balance load may be active at a time.
         Index(
             "uq_opening_balances_active",
-            "status",
+            "tenant_id",
             unique=True,
             postgresql_where=text("status = 'posted'"),
         ),

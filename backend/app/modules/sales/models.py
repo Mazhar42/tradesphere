@@ -57,11 +57,12 @@ class SalesInvoice(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
     __table_args__ = (
         Index(
             "uq_sales_invoices_doc_no",
+            "tenant_id",
             "doc_no",
             unique=True,
             postgresql_where=text("doc_no IS NOT NULL"),
         ),
-        Index("ix_sales_invoices_business_date", "business_date"),
+        Index("ix_sales_invoices_business_date", "tenant_id", "business_date", "id"),
         CheckConstraint("status IN ('draft','posted','reversed')", name="status_valid"),
         CheckConstraint(
             "gross_amount >= 0 AND dealer_discount >= 0 AND company_discount >= 0 "
@@ -153,7 +154,7 @@ class CustomerReceipt(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Bas
 
     __tablename__ = "customer_receipts"
 
-    doc_no: Mapped[str] = mapped_column(String(30), unique=True)
+    doc_no: Mapped[str] = mapped_column(String(30))
     customer_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("customers.id"), index=True)
     business_date: Mapped[date]
     amount: Mapped[Decimal] = mapped_column(MONEY)
@@ -177,6 +178,7 @@ class CustomerReceipt(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Bas
     )
 
     __table_args__ = (
+        UniqueConstraint("tenant_id", "doc_no", name="uq_customer_receipts_doc_no"),
         CheckConstraint("amount > 0", name="amount_positive"),
         CheckConstraint("status IN ('posted','reversed')", name="status_valid"),
     )
@@ -254,6 +256,7 @@ class SalesReturn(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
     __table_args__ = (
         Index(
             "uq_sales_returns_doc_no",
+            "tenant_id",
             "doc_no",
             unique=True,
             postgresql_where=text("doc_no IS NOT NULL"),

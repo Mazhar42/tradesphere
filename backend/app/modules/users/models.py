@@ -1,6 +1,16 @@
 from datetime import datetime
 
-from sqlalchemy import BigInteger, Column, ForeignKey, Index, String, Table, func, text
+from sqlalchemy import (
+    BigInteger,
+    Column,
+    ForeignKey,
+    Index,
+    String,
+    Table,
+    UniqueConstraint,
+    func,
+    text,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.shared.models import Base, IdMixin, TenantScoped, TimestampMixin
@@ -37,7 +47,7 @@ class Permission(IdMixin, Base):
 class Role(TenantScoped, IdMixin, TimestampMixin, Base):
     __tablename__ = "roles"
 
-    code: Mapped[str] = mapped_column(String(30), unique=True)
+    code: Mapped[str] = mapped_column(String(30))
     name: Mapped[str] = mapped_column(String(100))
     description: Mapped[str | None] = mapped_column(String(300))
     # Kept up to date by the application; dealerships cannot change or delete these.
@@ -45,6 +55,8 @@ class Role(TenantScoped, IdMixin, TimestampMixin, Base):
     permissions: Mapped[list[Permission]] = relationship(
         secondary=role_permissions, lazy="selectin", order_by=Permission.code
     )
+
+    __table_args__ = (UniqueConstraint("tenant_id", "code", name="uq_roles_code"),)
 
 
 class User(IdMixin, TimestampMixin, Base):

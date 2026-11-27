@@ -1,7 +1,16 @@
 from datetime import date, datetime
 from decimal import Decimal
 
-from sqlalchemy import BigInteger, CheckConstraint, ForeignKey, Index, String, Text, text
+from sqlalchemy import (
+    BigInteger,
+    CheckConstraint,
+    ForeignKey,
+    Index,
+    String,
+    Text,
+    UniqueConstraint,
+    text,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.modules.accounting.models import PaymentAccount
@@ -88,6 +97,7 @@ class CompanyClaim(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
     __table_args__ = (
         Index(
             "uq_company_claims_doc_no",
+            "tenant_id",
             "doc_no",
             unique=True,
             postgresql_where=text("doc_no IS NOT NULL"),
@@ -142,7 +152,7 @@ class ClaimSettlement(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Bas
 
     __tablename__ = "claim_settlements"
 
-    doc_no: Mapped[str] = mapped_column(String(30), unique=True)
+    doc_no: Mapped[str] = mapped_column(String(30))
     claim_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("company_claims.id"), index=True)
     business_date: Mapped[date]
     method: Mapped[str] = mapped_column(String(20))
@@ -161,6 +171,7 @@ class ClaimSettlement(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Bas
     )
 
     __table_args__ = (
+        UniqueConstraint("tenant_id", "doc_no", name="uq_claim_settlements_doc_no"),
         CheckConstraint("amount > 0", name="amount_positive"),
         CheckConstraint(
             "method IN ('cash','bank','mfs','supplier_credit','rejection')",
@@ -204,7 +215,7 @@ class CommissionPayment(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, B
 
     __tablename__ = "commission_payments"
 
-    doc_no: Mapped[str] = mapped_column(String(30), unique=True)
+    doc_no: Mapped[str] = mapped_column(String(30))
     customer_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("customers.id"), index=True)
     business_date: Mapped[date]
     amount: Mapped[Decimal] = mapped_column(MONEY)
@@ -224,6 +235,7 @@ class CommissionPayment(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, B
     payment_account: Mapped[PaymentAccount | None] = relationship(lazy="joined")
 
     __table_args__ = (
+        UniqueConstraint("tenant_id", "doc_no", name="uq_commission_payments_doc_no"),
         CheckConstraint("amount > 0", name="amount_positive"),
         CheckConstraint("method IN ('cash','credit_to_account')", name="method_valid"),
         CheckConstraint(
