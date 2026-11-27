@@ -2421,6 +2421,279 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/imports/entities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Entities */
+        get: operations["list_entities"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/imports/templates/{entity}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Template */
+        get: operations["template"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/imports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Jobs */
+        get: operations["list_jobs"];
+        put?: never;
+        /** Upload */
+        post: operations["upload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/imports/checklist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Checklist */
+        get: operations["checklist"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/imports/cutover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Cutover */
+        get: operations["cutover"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/imports/cutover/sign-off": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sign Off */
+        post: operations["sign_off"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/imports/openings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Openings */
+        get: operations["list_openings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/imports/openings/{load_id}/reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reverse Opening */
+        post: operations["reverse_opening"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/imports/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** History */
+        get: operations["history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/imports/{job_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Job */
+        get: operations["get_job"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/imports/{job_id}/rows": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Rows */
+        get: operations["get_rows"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/imports/{job_id}/errors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Errors Csv */
+        get: operations["errors_csv"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/imports/{job_id}/mapping": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set Mapping */
+        put: operations["set_mapping"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/imports/{job_id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve */
+        post: operations["approve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/imports/{job_id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Retry */
+        post: operations["retry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/imports/{job_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel Import */
+        post: operations["cancel_import"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/settings": {
         parameters: {
             query?: never;
@@ -2710,6 +2983,11 @@ export interface components {
             /** Amount */
             amount: string;
         };
+        /** Approval */
+        Approval: {
+            /** Dry Run Digest */
+            dry_run_digest: string;
+        };
         /** AuditLogRead */
         AuditLogRead: {
             /** Id */
@@ -2825,6 +3103,40 @@ export interface components {
             payment_instructions: string;
             /** Invoices */
             invoices: components["schemas"]["InvoiceRow"][];
+        };
+        /** Body_upload */
+        Body_upload: {
+            /** File */
+            file: string;
+            /** Entity */
+            entity: string;
+            /**
+             * Source System
+             * @default file
+             */
+            source_system?: string;
+            /**
+             * Conflict Policy
+             * @default skip
+             */
+            conflict_policy?: string;
+            /**
+             * Date Format
+             * @default YYYY-MM-DD
+             */
+            date_format?: string;
+            /**
+             * Update Prices
+             * @default false
+             */
+            update_prices?: boolean;
+            /**
+             * Update Credit Limit
+             * @default false
+             */
+            update_credit_limit?: boolean;
+            /** Cutover Date */
+            cutover_date?: string | null;
         };
         /** BrandCreate */
         BrandCreate: {
@@ -2954,6 +3266,19 @@ export interface components {
             /** Is Active */
             is_active?: boolean | null;
         };
+        /** Checklist */
+        Checklist: {
+            /** Products */
+            products: number;
+            /** Suppliers */
+            suppliers: number;
+            /** Customers */
+            customers: number;
+            /** Opening Domains */
+            opening_domains: string[];
+            /** Signed Off */
+            signed_off: boolean;
+        };
         /** ClaimAgingRow */
         ClaimAgingRow: {
             /** Supplier */
@@ -3074,6 +3399,15 @@ export interface components {
         CodeOnly: {
             /** Code */
             code: string;
+        };
+        /** ColumnRead */
+        ColumnRead: {
+            /** Name */
+            name: string;
+            /** Bangla */
+            bangla: string;
+            /** Required */
+            required: boolean;
         };
         /** CommissionCreate */
         CommissionCreate: {
@@ -3317,6 +3651,21 @@ export interface components {
             /** Notes */
             notes?: string | null;
         };
+        /** CutoverRead */
+        CutoverRead: {
+            /** Cutover Date */
+            cutover_date: string | null;
+            /** Imported */
+            imported: {
+                [key: string]: string;
+            };
+            /** Reconcile Ok */
+            reconcile_ok: boolean;
+            /** Reconcile Issues */
+            reconcile_issues: string[];
+            /** Signed At */
+            signed_at: string | null;
+        };
         /** Dashboard */
         Dashboard: {
             /**
@@ -3359,6 +3708,15 @@ export interface components {
             email: string;
             /** Password */
             password: string;
+        };
+        /** EntityRead */
+        EntityRead: {
+            /** Name */
+            name: string;
+            /** Opening */
+            opening: boolean;
+            /** Columns */
+            columns: components["schemas"]["ColumnRead"][];
         };
         /** ExpenseCreate */
         ExpenseCreate: {
@@ -3614,6 +3972,26 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** HistoryRead */
+        HistoryRead: {
+            /** Id */
+            id: number;
+            /** Doc Type */
+            doc_type: string;
+            /**
+             * Doc Date
+             * Format: date
+             */
+            doc_date: string;
+            /** Number */
+            number: string | null;
+            /** Party */
+            party: string | null;
+            /** Amount */
+            amount: string;
+            /** Source System */
+            source_system: string;
         };
         /** InvitationAccept */
         InvitationAccept: {
@@ -3899,6 +4277,40 @@ export interface components {
             /** Recent Failures */
             recent_failures: string[];
         };
+        /** JobRead */
+        JobRead: {
+            /** Id */
+            id: number;
+            /** Entity */
+            entity: string;
+            /** Source System */
+            source_system: string;
+            /** Status */
+            status: string;
+            /** Headers */
+            headers: string[];
+            /** Mapping */
+            mapping: {
+                [key: string]: string;
+            };
+            /** Options */
+            options: {
+                [key: string]: unknown;
+            };
+            /** Counts */
+            counts: {
+                [key: string]: unknown;
+            };
+            /** Dry Run Digest */
+            dry_run_digest: string | null;
+            /** Message */
+            message: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
         /** JournalEntryRead */
         JournalEntryRead: {
             /** Id */
@@ -3998,6 +4410,17 @@ export interface components {
             password: string;
             /** Code */
             code?: string | null;
+        };
+        /** MappingUpdate */
+        MappingUpdate: {
+            /** Mapping */
+            mapping: {
+                [key: string]: string;
+            };
+            /** Options */
+            options?: {
+                [key: string]: unknown;
+            } | null;
         };
         /** Margin */
         Margin: {
@@ -4212,6 +4635,24 @@ export interface components {
             customer_id: number;
             /** Amount */
             amount: number | string;
+        };
+        /** OpeningLoadRead */
+        OpeningLoadRead: {
+            /** Id */
+            id: number;
+            /** Domain */
+            domain: string;
+            /** Doc No */
+            doc_no: string;
+            /**
+             * Business Date
+             * Format: date
+             */
+            business_date: string;
+            /** Total */
+            total: string;
+            /** Status */
+            status: string;
         };
         /** OpeningStockLine */
         OpeningStockLine: {
@@ -4612,10 +5053,32 @@ export interface components {
             /** Page Size */
             page_size: number;
         };
+        /** Page[HistoryRead] */
+        Page_HistoryRead_: {
+            /** Items */
+            items: components["schemas"]["HistoryRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+        };
         /** Page[InvoiceListItem] */
         Page_InvoiceListItem_: {
             /** Items */
             items: components["schemas"]["InvoiceListItem"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+        };
+        /** Page[JobRead] */
+        Page_JobRead_: {
+            /** Items */
+            items: components["schemas"]["JobRead"][];
             /** Total */
             total: number;
             /** Page */
@@ -4693,6 +5156,17 @@ export interface components {
         Page_ReceiptListItem_: {
             /** Items */
             items: components["schemas"]["ReceiptListItem"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+        };
+        /** Page[RowRead] */
+        Page_RowRead_: {
+            /** Items */
+            items: components["schemas"]["RowRead"][];
             /** Total */
             total: number;
             /** Page */
@@ -5659,6 +6133,21 @@ export interface components {
             /** Permissions */
             permissions?: string[] | null;
         };
+        /** RowRead */
+        RowRead: {
+            /** Row No */
+            row_no: number;
+            /** Status */
+            status: string;
+            /** Action */
+            action: string | null;
+            /** Errors */
+            errors: string[];
+            /** Raw */
+            raw: {
+                [key: string]: string;
+            };
+        };
         /** SalesDay */
         SalesDay: {
             /**
@@ -5822,6 +6311,17 @@ export interface components {
             reference?: string | null;
             /** Notes */
             notes?: string | null;
+        };
+        /** SignOff */
+        SignOff: {
+            /** Declared */
+            declared: {
+                [key: string]: number | string;
+            };
+            /** Reasons */
+            reasons?: {
+                [key: string]: string;
+            };
         };
         /** StockRow */
         StockRow: {
@@ -12021,6 +12521,506 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ReconcileRead"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_entities: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntityRead"][];
+                };
+            };
+        };
+    };
+    template: {
+        parameters: {
+            query?: {
+                lang?: "en" | "bn";
+            };
+            header?: never;
+            path: {
+                entity: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_jobs: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_JobRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    checklist: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Checklist"];
+                };
+            };
+        };
+    };
+    cutover: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CutoverRead"];
+                };
+            };
+        };
+    };
+    sign_off: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SignOff"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_openings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpeningLoadRead"][];
+                };
+            };
+        };
+    };
+    reverse_opening: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                load_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpeningLoadRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    history: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_HistoryRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_job: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_rows: {
+        parameters: {
+            query?: {
+                only?: string | null;
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path: {
+                job_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_RowRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    errors_csv: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_mapping: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MappingUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    approve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Approval"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    retry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel_import: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

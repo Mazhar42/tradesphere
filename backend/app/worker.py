@@ -26,6 +26,7 @@ from app.core.db import PlatformSessionLocal, SessionLocal
 from app.core.tenant_context import set_context
 from app.modules.billing import service as billing
 from app.modules.billing.models import Subscription
+from app.modules.imports import service as imports
 from app.modules.integrity.reconcile import run_and_store
 from app.modules.jobs import service as jobs
 from app.modules.jobs.models import Job, OutboxEvent
@@ -77,6 +78,12 @@ def _send_email(_: Session, payload: dict[str, Any]) -> None:
 def _purge_idempotency(session: Session, _: dict[str, Any]) -> None:
     before = now_utc() - timedelta(days=KEEP_IDEMPOTENCY_DAYS)
     session.execute(delete(IdempotencyKey).where(IdempotencyKey.created_at < before))
+    imports.purge_files(session)
+
+
+@handles("import.commit", needs_tenant=True)
+def _commit_import(session: Session, payload: dict[str, Any]) -> None:
+    imports.run(session, int(payload["job_id"]))
 
 
 @handles("reconcile", needs_tenant=True)

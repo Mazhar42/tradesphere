@@ -125,6 +125,15 @@ TENANT_TABLES = frozenset(
         "fund_transfers",
         "owner_transactions",
         "reconcile_runs",
+        "import_files",
+        "import_jobs",
+        "import_rows",
+        "import_mappings",
+        "external_refs",
+        "opening_loads",
+        "opening_lines",
+        "imported_documents",
+        "cutover_signoffs",
     }
 )
 

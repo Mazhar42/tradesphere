@@ -27,6 +27,17 @@ from app.modules.claims.models import (
     CompanyClaimLine,
 )
 from app.modules.finance.models import Expense, FundTransfer, OwnerTransaction
+from app.modules.imports.models import (
+    CutoverSignoff,
+    ExternalRef,
+    ImportedDocument,
+    ImportFile,
+    ImportJob,
+    ImportMapping,
+    ImportRow,
+    OpeningLine,
+    OpeningLoad,
+)
 from app.modules.integrity.models import ReconcileRun
 from app.modules.inventory.models import (
     Batch,
@@ -97,14 +108,21 @@ __all__ = [
     "CompanyClaimLine",
     "Customer",
     "CustomerReceipt",
+    "CutoverSignoff",
     "DailySalesSummary",
     "DocumentSequence",
     "EntitlementOverride",
     "Expense",
+    "ExternalRef",
     "FundTransfer",
     "GoodsReceipt",
     "GoodsReceiptItem",
     "IdempotencyKey",
+    "ImportFile",
+    "ImportJob",
+    "ImportMapping",
+    "ImportRow",
+    "ImportedDocument",
     "InventoryMovement",
     "Job",
     "JournalEntry",
@@ -113,6 +131,8 @@ __all__ = [
     "MfaFactor",
     "MfaRecoveryCode",
     "OpeningBalance",
+    "OpeningLine",
+    "OpeningLoad",
     "OutboxEvent",
     "OwnerTransaction",
     "PaymentAccount",

@@ -208,6 +208,12 @@ Differences from the brief's list: jobs are a phase of their own; financial corr
 - **Tests and accept:** §15; scenarios A and B rehearsed.
 - **Deployment:** object storage on VPS; database storage on demo. **Rollback:** feature flag; correct data by §7 of that document.
 
+**Status 2026-11-27:** 7.1 to 7.5 and 7.7 implemented on branch `p7/7.1-import-framework`. **7.6 not implemented**: it needs approval of `opening-items-impact.md`.
+
+- Not built: object storage (files are kept in the database on every profile), "create new" and "merge after confirmation" policies, chart-of-accounts and "other accounts" imports, history line items, a feature flag, and validation in the background (a file is parsed and checked inside the upload request).
+- Rehearsed in tests: scenario A. Scenarios B and C are covered only in parts (external ids, remembered mappings, re-import).
+- Permissions added: `imports:write`, `imports:approve`; opening loads also need `finance:opening`.
+
 ## Phase 8 — Search and discovery
 
 **Objective:** `search-and-discovery.md`. **Prerequisites:** 2 (7 for supplier files).

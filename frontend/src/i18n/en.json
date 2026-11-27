@@ -243,6 +243,78 @@
     "done": "{{doc}} reversed",
     "confirm": "Reverse {{doc}}? A correcting entry dated today is posted. This cannot be undone."
   },
+  "imports": {
+    "title": "Import data",
+    "subtitle": "Bring products, parties and opening balances from spreadsheets or another system.",
+    "what": "What",
+    "file": "File",
+    "source": "Where it comes from",
+    "existing": "If it already exists",
+    "dateFormat": "Dates are written",
+    "cutover": "Cutover date",
+    "updatePrices": "Update prices too",
+    "upload": "Upload and check",
+    "template": "Download template",
+    "columns": "Which column is which",
+    "counts": "New {{create}} · update {{update}} · unchanged {{skip}} · errors {{error}}",
+    "total": "total {{total}}",
+    "row": "Row {{row}}",
+    "errorFile": "Download rows with errors",
+    "approve": "Approve and import",
+    "signOffTitle": "Cutover {{date}}: compare with your books",
+    "signOffHelp": "Enter your own totals. Every difference needs a reason. Signing locks the period before the cutover.",
+    "loaded": "Loaded",
+    "yours": "Your figure",
+    "reason": "Reason for difference",
+    "signOff": "Sign off",
+    "signed": "Signed off",
+    "policies": {
+      "skip": "Leave it",
+      "update": "Update it",
+      "reject": "Report as error"
+    },
+    "steps": {
+      "products": "Products",
+      "suppliers": "Companies",
+      "customers": "Customers",
+      "opening": "Opening balances",
+      "signOff": "Sign-off"
+    },
+    "totals": {
+      "stock_value": "Stock value",
+      "receivables": "Customers owe",
+      "payables": "We owe companies",
+      "advances": "Advances with companies",
+      "claims": "Company claims",
+      "cash": "Cash and bank"
+    },
+    "status": {
+      "needs_mapping": "Needs columns",
+      "dry_run_ready": "Ready to approve",
+      "approved": "Waiting to run",
+      "committing": "Importing",
+      "completed": "Done",
+      "partially_completed": "Done with errors",
+      "failed": "Failed",
+      "cancelled": "Cancelled"
+    },
+    "entities": {
+      "units": "Units",
+      "categories": "Categories",
+      "brands": "Brands",
+      "suppliers": "Companies",
+      "customers": "Customers",
+      "products": "Products",
+      "product_units": "Pack sizes",
+      "opening_stock": "Opening stock",
+      "opening_receivables": "Customer dues",
+      "opening_payables": "Company balances",
+      "opening_claims": "Pending claims",
+      "opening_cash": "Cash and bank",
+      "purchase_orders": "Open purchase orders",
+      "history": "Old transactions (reference only)"
+    }
+  },
   "forbidden": {
     "title": "No access",
     "body": "Your role does not allow access to this page. Ask the owner if you need it."

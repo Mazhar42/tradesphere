@@ -82,6 +82,7 @@ const SECTIONS: NavSection[] = [
     items: [
       { to: '/users', label: 'nav.users', icon: UserCog, permission: 'users:read' },
       { to: '/opening-balances', label: 'nav.opening', icon: Flag, permission: 'finance:opening' },
+      { to: '/imports', label: 'imports.title', icon: Flag, permission: 'imports:write' },
       { to: '/settings', label: 'nav.settings', icon: Settings, permission: 'settings:read' },
       { to: '/billing', label: 'billing.title', icon: Wallet, permission: 'settings:write' },
       { to: '/audit', label: 'nav.audit', icon: ScrollText, permission: 'audit:read' },

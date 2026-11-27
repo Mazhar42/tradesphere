@@ -253,6 +253,26 @@ def _build_other(client: TestClient, db: Session) -> Other:
     # a real one is in test_billing.py.
     ids["billing_invoice_id"] = 1
     ids["settlement_id"] = 1  # the claim itself is what must not be found
+    # The one-document opening above blocks per-domain loads, so their rows are written here.
+    ids["job_id"] = client.post(
+        "/api/v1/imports",
+        headers=headers,
+        files={"file": ("z.csv", f"name\n{MARK} imported brand\n".encode(), "text/csv")},
+        data={"entity": "brands", "source_system": MARK},
+    ).json()["id"]
+    set_context(db, tenant_id=other.tenant_id)
+    ids["load_id"] = db.scalar(
+        text(
+            "INSERT INTO opening_loads (domain, doc_no, business_date, total) "
+            "VALUES ('cash', 'ZZB-OPL', current_date, 7777) RETURNING id"
+        )
+    )
+    db.execute(
+        text(
+            "INSERT INTO imported_documents (source_system, external_id, doc_type, doc_date, "
+            "party, amount) VALUES ('x', '1', 'sale', current_date, 'ZZB party', 7777)"
+        )
+    )
     ids["invitation_id"] = post(
         "/api/v1/invitations", {"note": f"{MARK} invitee", "roles": ["cashier"]}
     )["invitation"]["id"]
@@ -388,6 +408,9 @@ BODIES: dict[tuple[str, str], Body] = {
         "reference": "TRX-123",
         "amount": "1",
     },
+    ("PUT", "/imports/{job_id}/mapping"): lambda i: {"mapping": {}},
+    ("POST", "/imports/{job_id}/approve"): lambda i: {"dry_run_digest": "x"},
+    ("POST", "/imports/cutover/sign-off"): lambda i: {"declared": {}},
     ("POST", "/opening-balances"): lambda i: {
         "business_date": (business_date() - timedelta(days=1)).isoformat(),
         "cash": [{"payment_account_id": i["payment_account_id"], "amount": "1"}],
@@ -472,6 +495,8 @@ def test_no_route_accepts_another_dealerships_ids(
     checked = 0
 
     for method, path, path_ids, _, body_ids in _routes():
+        if path_ids == ["entity"]:
+            continue  # a kind of data, not a record
         if not path_ids and not (body_ids and method in ("POST", "PUT", "PATCH")):
             continue
         key = (method, path)

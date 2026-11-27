@@ -216,6 +216,7 @@ SOURCE_TABLES = {
     "expense": "expenses",
     "fund_transfer": "fund_transfers",
     "owner_transaction": "owner_transactions",
+    "opening_load": "opening_loads",
 }
 
 # 6. every ledger row's source document exists in this dealership (these references cannot be
