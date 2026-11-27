@@ -1,4 +1,5 @@
 from functools import lru_cache
+from ipaddress import ip_network
 from typing import Literal
 
 from pydantic import SecretStr, field_validator, model_validator
@@ -33,6 +34,10 @@ class Settings(BaseSettings):
 
     cors_origins: list[str] = []
 
+    # Addresses or networks of the reverse proxies in front of the API. Only from these is
+    # X-Forwarded-For believed; from anyone else the connecting address is the client.
+    trusted_proxies: list[str] = ["127.0.0.1"]
+
     log_format: Literal["text", "json"] = "text"
 
     business_timezone: str = "Asia/Dhaka"
@@ -49,6 +54,15 @@ class Settings(BaseSettings):
         for prefix in ("postgres://", "postgresql://"):
             if value.startswith(prefix):
                 return "postgresql+psycopg://" + value[len(prefix) :]
+        return value
+
+    @field_validator("trusted_proxies")
+    @classmethod
+    def _proxies_are_specific(cls, value: list[str]) -> list[str]:
+        for entry in value:
+            # Raises for "*" and typos, which uvicorn would otherwise accept silently.
+            if ip_network(entry).prefixlen == 0:
+                raise ValueError("TRUSTED_PROXIES must name your proxies, not every address.")
         return value
 
     @model_validator(mode="after")

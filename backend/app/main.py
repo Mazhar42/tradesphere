@@ -6,6 +6,7 @@ from fastapi import APIRouter, FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.routing import APIRoute
 from sqlalchemy import text
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 import app.models as _models  # noqa: F401  (register all tables)
 from app.core.config import settings
@@ -84,6 +85,13 @@ def create_app() -> FastAPI:
             client_ip_var.reset(ip_token)
         response.headers["X-Request-ID"] = request_id
         return response
+
+    # Added last, so it is the outermost: everything inside sees the real client address.
+    # Uvicorn's own handling is switched off (--no-proxy-headers) so this is the only one.
+    app.add_middleware(
+        ProxyHeadersMiddleware,
+        trusted_hosts=settings.trusted_proxies,
+    )
 
     register_exception_handlers(app)
 

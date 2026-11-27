@@ -39,6 +39,8 @@ services:
       ENVIRONMENT: production
       LOG_FORMAT: json
       CORS_ORIGINS: '["${SITE_URL:?set SITE_URL in .env}"]'
+      # Only Caddy reaches the API, over this stack's own network (see `networks` below).
+      TRUSTED_PROXIES: '["${STACK_SUBNET:-172.30.0.0/24}"]'
     depends_on:
       db:
         condition: service_healthy
@@ -109,6 +111,13 @@ services:
       db:
         condition: service_healthy
     command: ["sh", "-c", "while true; do /scripts/backup.sh || echo 'BACKUP FAILED'; sleep $${BACKUP_INTERVAL_SECONDS:-86400}; done"]
+
+# A fixed subnet, so the API can name the network its proxy is on.
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: ${STACK_SUBNET:-172.30.0.0/24}
 
 volumes:
   pgdata:
