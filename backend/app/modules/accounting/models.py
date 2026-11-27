@@ -6,13 +6,13 @@ from sqlalchemy import BigInteger, CheckConstraint, ForeignKey, Index, String, f
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.shared.models import Base, CreatedByMixin, IdMixin, TimestampMixin
+from app.shared.models import Base, CreatedByMixin, IdMixin, TenantScoped, TimestampMixin
 from app.shared.money import MONEY
 
 ACCOUNT_TYPES = ("asset", "liability", "equity", "income", "expense")
 
 
-class Account(IdMixin, TimestampMixin, Base):
+class Account(TenantScoped, IdMixin, TimestampMixin, Base):
     """Chart of accounts."""
 
     __tablename__ = "accounts"
@@ -37,7 +37,7 @@ class Account(IdMixin, TimestampMixin, Base):
     )
 
 
-class PaymentAccount(IdMixin, TimestampMixin, Base):
+class PaymentAccount(TenantScoped, IdMixin, TimestampMixin, Base):
     """A place money is kept: the cash drawer, a bank account, bKash, Nagad..."""
 
     __tablename__ = "payment_accounts"
@@ -58,7 +58,7 @@ class PaymentAccount(IdMixin, TimestampMixin, Base):
     )
 
 
-class JournalEntry(IdMixin, Base):
+class JournalEntry(TenantScoped, IdMixin, Base):
     """Append-only header of a balanced double-entry posting."""
 
     __tablename__ = "journal_entries"
@@ -89,7 +89,7 @@ class JournalEntry(IdMixin, Base):
     )
 
 
-class JournalLine(IdMixin, Base):
+class JournalLine(TenantScoped, IdMixin, Base):
     __tablename__ = "journal_lines"
 
     entry_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("journal_entries.id"), index=True)
@@ -115,7 +115,7 @@ class JournalLine(IdMixin, Base):
     )
 
 
-class OpeningBalance(IdMixin, TimestampMixin, CreatedByMixin, Base):
+class OpeningBalance(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
     """The one-time go-live data load (opening stock, dues, advances, claims, cash)."""
 
     __tablename__ = "opening_balances"

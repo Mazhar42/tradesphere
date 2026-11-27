@@ -6,7 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.modules.accounting.models import PaymentAccount
 from app.modules.parties.models import Customer, Supplier
-from app.shared.models import Base, CreatedByMixin, IdMixin, TimestampMixin
+from app.shared.models import Base, CreatedByMixin, IdMixin, TenantScoped, TimestampMixin
 from app.shared.money import MONEY
 
 CLAIM_TYPES = (
@@ -24,7 +24,7 @@ SETTLEMENT_METHODS = ("cash", "bank", "mfs", "supplier_credit", "rejection")
 PAYMENT_METHODS_WITH_ACCOUNT = ("cash", "bank", "mfs")
 
 
-class ClaimableItem(IdMixin, TimestampMixin, CreatedByMixin, Base):
+class ClaimableItem(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
     """Money the company owes the dealer for one event (created automatically by postings).
 
     Open items are gathered into a company claim. Once a claim is submitted its items are
@@ -59,7 +59,7 @@ class ClaimableItem(IdMixin, TimestampMixin, CreatedByMixin, Base):
     )
 
 
-class CompanyClaim(IdMixin, TimestampMixin, CreatedByMixin, Base):
+class CompanyClaim(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
     """A batch of claimable items sent to one company. Settled in cash, as supplier credit,
     or rejected line by line."""
 
@@ -103,7 +103,7 @@ class CompanyClaim(IdMixin, TimestampMixin, CreatedByMixin, Base):
     )
 
 
-class CompanyClaimLine(IdMixin, Base):
+class CompanyClaimLine(TenantScoped, IdMixin, Base):
     """One claimable item inside a claim, with what the company settled or rejected of it."""
 
     __tablename__ = "company_claim_lines"
@@ -137,7 +137,7 @@ class CompanyClaimLine(IdMixin, Base):
     )
 
 
-class ClaimSettlement(IdMixin, TimestampMixin, CreatedByMixin, Base):
+class ClaimSettlement(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
     """One money receipt, supplier-credit offset, or rejection against a claim."""
 
     __tablename__ = "claim_settlements"
@@ -173,7 +173,7 @@ class ClaimSettlement(IdMixin, TimestampMixin, CreatedByMixin, Base):
     )
 
 
-class ClaimSettlementLine(IdMixin, Base):
+class ClaimSettlementLine(TenantScoped, IdMixin, Base):
     """How one settlement was split across the claim's lines (the audit trail of the split)."""
 
     __tablename__ = "claim_settlement_lines"
@@ -199,7 +199,7 @@ class ClaimSettlementLine(IdMixin, Base):
     )
 
 
-class CommissionPayment(IdMixin, TimestampMixin, CreatedByMixin, Base):
+class CommissionPayment(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
     """Commission or trade promotion paid to a customer. Company-funded ones become claims."""
 
     __tablename__ = "commission_payments"

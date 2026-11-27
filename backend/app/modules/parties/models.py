@@ -3,11 +3,11 @@ from decimal import Decimal
 from sqlalchemy import CheckConstraint, Index, String, Text, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.shared.models import Base, CreatedByMixin, IdMixin, TimestampMixin
+from app.shared.models import Base, CreatedByMixin, IdMixin, TenantScoped, TimestampMixin
 from app.shared.money import MONEY
 
 
-class Customer(IdMixin, TimestampMixin, CreatedByMixin, Base):
+class Customer(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
     """A retailer / shop that buys from the dealer."""
 
     __tablename__ = "customers"
@@ -39,7 +39,7 @@ class Customer(IdMixin, TimestampMixin, CreatedByMixin, Base):
     )
 
 
-class Supplier(IdMixin, TimestampMixin, CreatedByMixin, Base):
+class Supplier(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
     """The company (manufacturer / importer) the dealer buys from."""
 
     __tablename__ = "suppliers"

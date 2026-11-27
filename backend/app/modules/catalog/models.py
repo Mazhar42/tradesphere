@@ -12,11 +12,11 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.shared.models import Base, CreatedByMixin, IdMixin, TimestampMixin
+from app.shared.models import Base, CreatedByMixin, IdMixin, TenantScoped, TimestampMixin
 from app.shared.money import MONEY, QTY
 
 
-class Category(IdMixin, TimestampMixin, Base):
+class Category(TenantScoped, IdMixin, TimestampMixin, Base):
     __tablename__ = "categories"
 
     name_en: Mapped[str] = mapped_column(String(100))
@@ -27,7 +27,7 @@ class Category(IdMixin, TimestampMixin, Base):
     __table_args__ = (Index("uq_categories_name_en", func.lower(name_en), unique=True),)
 
 
-class Brand(IdMixin, TimestampMixin, Base):
+class Brand(TenantScoped, IdMixin, TimestampMixin, Base):
     __tablename__ = "brands"
 
     name_en: Mapped[str] = mapped_column(String(100))
@@ -37,7 +37,7 @@ class Brand(IdMixin, TimestampMixin, Base):
     __table_args__ = (Index("uq_brands_name_en", func.lower(name_en), unique=True),)
 
 
-class Uom(IdMixin, TimestampMixin, Base):
+class Uom(TenantScoped, IdMixin, TimestampMixin, Base):
     """Unit of measure, e.g. PCS, CTN, BOX, KG."""
 
     __tablename__ = "uoms"
@@ -48,7 +48,7 @@ class Uom(IdMixin, TimestampMixin, Base):
     is_active: Mapped[bool] = mapped_column(default=True)
 
 
-class Product(IdMixin, TimestampMixin, CreatedByMixin, Base):
+class Product(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
     __tablename__ = "products"
 
     sku: Mapped[str] = mapped_column(String(50), unique=True)
@@ -91,7 +91,7 @@ class Product(IdMixin, TimestampMixin, CreatedByMixin, Base):
     )
 
 
-class ProductUom(IdMixin, Base):
+class ProductUom(TenantScoped, IdMixin, Base):
     """Alternative unit for a product, e.g. 1 CTN = 24 base units."""
 
     __tablename__ = "product_uoms"

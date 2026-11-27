@@ -8,7 +8,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.core.tenant_context import set_context
+from app.core.tenant_context import set_context, tenant_id_of
 from app.modules.accounting.models import Account, PaymentAccount
 from app.modules.catalog.models import Uom
 from app.modules.inventory.models import Location
@@ -176,8 +176,11 @@ def seed_settings(session: Session, business_name: str | None = None) -> None:
         "period_lock": PeriodLock(),
     }
     for key, value in defaults.items():
-        if session.get(AppSetting, key) is None:
-            session.add(AppSetting(key=key, value=value.model_dump(mode="json")))
+        tenant_id = tenant_id_of(session)
+        if session.get(AppSetting, (tenant_id, key)) is None:
+            session.add(
+                AppSetting(tenant_id=tenant_id, key=key, value=value.model_dump(mode="json"))
+            )
     session.flush()
 
 

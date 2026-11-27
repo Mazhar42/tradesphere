@@ -1,9 +1,9 @@
 from datetime import datetime
 
-from sqlalchemy import BigInteger, Column, ForeignKey, Index, String, Table, func
+from sqlalchemy import BigInteger, Column, ForeignKey, Index, String, Table, func, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.shared.models import Base, IdMixin, TimestampMixin
+from app.shared.models import Base, IdMixin, TenantScoped, TimestampMixin
 
 role_permissions = Table(
     "role_permissions",
@@ -15,6 +15,7 @@ role_permissions = Table(
         ForeignKey("permissions.id", ondelete="CASCADE"),
         primary_key=True,
     ),
+    Column("tenant_id", BigInteger, server_default=text("app_current_tenant()"), nullable=False),
 )
 
 user_roles = Table(
@@ -22,6 +23,7 @@ user_roles = Table(
     Base.metadata,
     Column("user_id", BigInteger, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True),
     Column("role_id", BigInteger, ForeignKey("roles.id", ondelete="CASCADE"), primary_key=True),
+    Column("tenant_id", BigInteger, server_default=text("app_current_tenant()"), nullable=False),
 )
 
 
@@ -32,7 +34,7 @@ class Permission(IdMixin, Base):
     description: Mapped[str] = mapped_column(String(200))
 
 
-class Role(IdMixin, TimestampMixin, Base):
+class Role(TenantScoped, IdMixin, TimestampMixin, Base):
     __tablename__ = "roles"
 
     code: Mapped[str] = mapped_column(String(30), unique=True)

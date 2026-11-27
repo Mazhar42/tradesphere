@@ -8,19 +8,22 @@ document numbers never have gaps or duplicates, even under concurrency.
 
 from datetime import date
 
-from sqlalchemy import String, select
+from sqlalchemy import BigInteger, String, select, text
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Mapped, Session, mapped_column
 
 from app.shared.dates import fiscal_year_code
-from app.shared.models import Base
+from app.shared.models import Base, TenantScoped
 
 GLOBAL_PERIOD = "0000"  # for master-data codes that don't reset each fiscal year
 
 
-class DocumentSequence(Base):
+class DocumentSequence(TenantScoped, Base):
     __tablename__ = "document_sequences"
 
+    tenant_id: Mapped[int] = mapped_column(
+        BigInteger, primary_key=True, server_default=text("app_current_tenant()")
+    )
     doc_type: Mapped[str] = mapped_column(String(20), primary_key=True)
     period: Mapped[str] = mapped_column(String(4), primary_key=True)
     last_value: Mapped[int]
@@ -31,7 +34,11 @@ def next_value(session: Session, doc_type: str, period: str) -> int:
         insert(DocumentSequence)
         .values(doc_type=doc_type, period=period, last_value=1)
         .on_conflict_do_update(
-            index_elements=[DocumentSequence.doc_type, DocumentSequence.period],
+            index_elements=[
+                DocumentSequence.tenant_id,
+                DocumentSequence.doc_type,
+                DocumentSequence.period,
+            ],
             set_={"last_value": DocumentSequence.last_value + 1},
         )
         .returning(DocumentSequence.last_value)

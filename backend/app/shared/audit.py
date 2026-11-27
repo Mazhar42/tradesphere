@@ -10,12 +10,12 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, Session, mapped_column
 
 from app.core.context import client_ip_var, request_id_var
-from app.shared.models import Base, IdMixin
+from app.shared.models import Base, IdMixin, TenantScoped
 
 SENSITIVE_FIELDS = frozenset({"password_hash", "token_hash"})
 
 
-class AuditLog(IdMixin, Base):
+class AuditLog(TenantScoped, IdMixin, Base):
     __tablename__ = "audit_logs"
 
     occurred_at: Mapped[datetime] = mapped_column(server_default=func.now(), index=True)

@@ -8,7 +8,7 @@ from app.modules.accounting.models import PaymentAccount
 from app.modules.catalog.models import Product, Uom
 from app.modules.inventory.models import Batch, Location
 from app.modules.parties.models import Supplier
-from app.shared.models import Base, CreatedByMixin, IdMixin, TimestampMixin
+from app.shared.models import Base, CreatedByMixin, IdMixin, TenantScoped, TimestampMixin
 from app.shared.money import MONEY, QTY, UNIT_COST
 
 PO_STATUSES = ("draft", "confirmed", "partially_received", "received", "closed_short", "cancelled")
@@ -16,7 +16,7 @@ OPEN_PO_STATUSES = ("confirmed", "partially_received")
 PAYABLE_PO_STATUSES = ("confirmed", "partially_received", "received", "closed_short")
 
 
-class PurchaseOrder(IdMixin, TimestampMixin, CreatedByMixin, Base):
+class PurchaseOrder(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
     __tablename__ = "purchase_orders"
 
     doc_no: Mapped[str | None] = mapped_column(String(30))  # assigned when confirmed
@@ -52,7 +52,7 @@ class PurchaseOrder(IdMixin, TimestampMixin, CreatedByMixin, Base):
     )
 
 
-class PurchaseOrderItem(IdMixin, Base):
+class PurchaseOrderItem(TenantScoped, IdMixin, Base):
     """One product line. Quantities are base units; prices keep the unit it was entered in."""
 
     __tablename__ = "purchase_order_items"
@@ -101,7 +101,7 @@ class PurchaseOrderItem(IdMixin, Base):
         return self.line_value - self.received_value - self.cancelled_value
 
 
-class GoodsReceipt(IdMixin, TimestampMixin, CreatedByMixin, Base):
+class GoodsReceipt(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
     """One shipment received against a purchase order."""
 
     __tablename__ = "goods_receipts"
@@ -138,7 +138,7 @@ class GoodsReceipt(IdMixin, TimestampMixin, CreatedByMixin, Base):
     )
 
 
-class GoodsReceiptItem(IdMixin, Base):
+class GoodsReceiptItem(TenantScoped, IdMixin, Base):
     __tablename__ = "goods_receipt_items"
 
     grn_id: Mapped[int] = mapped_column(
@@ -167,7 +167,7 @@ class GoodsReceiptItem(IdMixin, Base):
     )
 
 
-class SupplierPayment(IdMixin, TimestampMixin, CreatedByMixin, Base):
+class SupplierPayment(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
     """Money paid to the company. Goods are not implied: it sits as an advance until applied."""
 
     __tablename__ = "supplier_payments"
@@ -198,7 +198,7 @@ class SupplierPayment(IdMixin, TimestampMixin, CreatedByMixin, Base):
     )
 
 
-class PaymentPoAllocation(IdMixin, Base):
+class PaymentPoAllocation(TenantScoped, IdMixin, Base):
     """Links part of a payment to a purchase order, so each PO shows what was paid for it."""
 
     __tablename__ = "payment_po_allocations"
@@ -215,7 +215,7 @@ class PaymentPoAllocation(IdMixin, Base):
     __table_args__ = (CheckConstraint("amount > 0", name="amount_positive"),)
 
 
-class PurchaseReturn(IdMixin, TimestampMixin, CreatedByMixin, Base):
+class PurchaseReturn(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
     """Goods sent back to the company. The agreed value is credited to the supplier account or
     claimed from the company, per line."""
 
@@ -247,7 +247,7 @@ class PurchaseReturn(IdMixin, TimestampMixin, CreatedByMixin, Base):
     )
 
 
-class PurchaseReturnItem(IdMixin, Base):
+class PurchaseReturnItem(TenantScoped, IdMixin, Base):
     __tablename__ = "purchase_return_items"
 
     return_id: Mapped[int] = mapped_column(

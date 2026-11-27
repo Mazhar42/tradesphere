@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, ConflictError
 from app.core.permissions import CurrentUser
+from app.core.tenant_context import tenant_id_of
 from app.modules.settings.models import AppSetting
 from app.modules.settings.schemas import BusinessProfile, PeriodLock, Preferences, SettingsRead
 from app.shared.audit import record_audit
@@ -19,7 +20,7 @@ SETTING_MODELS: dict[str, type[BaseModel]] = {
 
 
 def get_setting[T: BaseModel](session: Session, key: str, model: type[T]) -> T:
-    row = session.get(AppSetting, key)
+    row = session.get(AppSetting, (tenant_id_of(session), key))
     return model.model_validate(row.value) if row else model()
 
 
@@ -32,11 +33,19 @@ def get_all(session: Session) -> SettingsRead:
 
 
 def put_setting(session: Session, key: str, value: BaseModel, actor: CurrentUser | None) -> None:
-    row = session.get(AppSetting, key)
+    tenant_id = tenant_id_of(session)
+    row = session.get(AppSetting, (tenant_id, key))
     new_value = value.model_dump(mode="json")
     before = row.value if row else None
     if row is None:
-        session.add(AppSetting(key=key, value=new_value, updated_by_id=actor.id if actor else None))
+        session.add(
+            AppSetting(
+                tenant_id=tenant_id,
+                key=key,
+                value=new_value,
+                updated_by_id=actor.id if actor else None,
+            )
+        )
     else:
         row.value = new_value
         row.updated_by_id = actor.id if actor else None

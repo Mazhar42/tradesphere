@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import BigInteger, DateTime, ForeignKey, Identity, MetaData, func
+from sqlalchemy import BigInteger, DateTime, ForeignKey, Identity, MetaData, func, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, declared_attr, mapped_column
 
 NAMING_CONVENTION = {
@@ -24,6 +24,15 @@ class IdMixin:
 class TimestampMixin:
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
+
+
+class TenantScoped:
+    """A row that belongs to one dealership. The database fills `tenant_id` from the session's
+    context, and the ORM adds it to every query (core/tenant_context.py)."""
+
+    @declared_attr
+    def tenant_id(cls) -> Mapped[int]:
+        return mapped_column(BigInteger, server_default=text("app_current_tenant()"))
 
 
 class CreatedByMixin:

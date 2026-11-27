@@ -5,11 +5,11 @@ from sqlalchemy import BigInteger, CheckConstraint, ForeignKey, Index, String, T
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.modules.accounting.models import Account, PaymentAccount
-from app.shared.models import Base, CreatedByMixin, IdMixin, TimestampMixin
+from app.shared.models import Base, CreatedByMixin, IdMixin, TenantScoped, TimestampMixin
 from app.shared.money import MONEY
 
 
-class Expense(IdMixin, TimestampMixin, CreatedByMixin, Base):
+class Expense(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
     """Money spent on running the business, paid from a payment account (posted at once)."""
 
     __tablename__ = "expenses"
@@ -33,7 +33,7 @@ class Expense(IdMixin, TimestampMixin, CreatedByMixin, Base):
     )
 
 
-class FundTransfer(IdMixin, TimestampMixin, CreatedByMixin, Base):
+class FundTransfer(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
     """Moves money between payment accounts (cash to bank, wallet to cash).
 
     Charges are an expense.
@@ -70,7 +70,7 @@ class FundTransfer(IdMixin, TimestampMixin, CreatedByMixin, Base):
 OWNER_KINDS = ("capital", "drawing")
 
 
-class OwnerTransaction(IdMixin, TimestampMixin, CreatedByMixin, Base):
+class OwnerTransaction(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
     """Owner puts money in (capital) or takes it out (drawing)."""
 
     __tablename__ = "owner_transactions"

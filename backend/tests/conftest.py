@@ -182,6 +182,7 @@ def client(db: Session) -> Iterator[TestClient]:
     def _override() -> Iterator[Session]:
         # Same as production get_db: a new request knows no dealership until it has resolved
         # one, and a failed request rolls back its uncommitted work.
+        db.flush()  # what the test added still belongs to the test's dealership
         clear_context(db)
         try:
             yield db

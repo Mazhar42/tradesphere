@@ -125,6 +125,7 @@ def test_the_clock_can_be_controlled(clock: Clock) -> None:
 
 def test_the_trigger_stops_even_the_owner(databases: Databases) -> None:
     with databases.owner.connect() as conn, conn.begin() as transaction:
+        conn.execute(text("SELECT set_config('app.tenant_id', '1', true)"))
         conn.execute(text("INSERT INTO audit_logs (action, entity_type) VALUES ('probe', 'test')"))
         with pytest.raises(DBAPIError, match="append-only"):
             conn.execute(text("UPDATE audit_logs SET action = 'x' WHERE action = 'probe'"))

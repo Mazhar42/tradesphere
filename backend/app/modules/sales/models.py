@@ -17,14 +17,14 @@ from app.modules.accounting.models import PaymentAccount
 from app.modules.catalog.models import Product, Uom
 from app.modules.inventory.models import Batch
 from app.modules.parties.models import Customer, Supplier
-from app.shared.models import Base, CreatedByMixin, IdMixin, TimestampMixin
+from app.shared.models import Base, CreatedByMixin, IdMixin, TenantScoped, TimestampMixin
 from app.shared.money import MONEY, QTY, UNIT_COST
 
 INVOICE_STATUSES = ("draft", "posted", "reversed")
 RECEIPT_STATUSES = ("posted", "reversed")
 
 
-class SalesInvoice(IdMixin, TimestampMixin, CreatedByMixin, Base):
+class SalesInvoice(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
     """A sale to a customer. Draft until posted; posted invoices are corrected by reversal."""
 
     __tablename__ = "sales_invoices"
@@ -75,7 +75,7 @@ class SalesInvoice(IdMixin, TimestampMixin, CreatedByMixin, Base):
     )
 
 
-class SalesInvoiceItem(IdMixin, Base):
+class SalesInvoiceItem(TenantScoped, IdMixin, Base):
     """One product line. Quantities are base units; prices keep the unit they were entered in."""
 
     __tablename__ = "sales_invoice_items"
@@ -131,7 +131,7 @@ class SalesInvoiceItem(IdMixin, Base):
     )
 
 
-class SaleItemBatch(IdMixin, Base):
+class SaleItemBatch(TenantScoped, IdMixin, Base):
     """FEFO allocation result: which batch a sold or free unit came from."""
 
     __tablename__ = "sale_item_batches"
@@ -148,7 +148,7 @@ class SaleItemBatch(IdMixin, Base):
     __table_args__ = (CheckConstraint("qty_base > 0", name="qty_positive"),)
 
 
-class CustomerReceipt(IdMixin, TimestampMixin, CreatedByMixin, Base):
+class CustomerReceipt(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
     """Money received from a customer, allocated to invoices (the rest is customer credit)."""
 
     __tablename__ = "customer_receipts"
@@ -182,7 +182,7 @@ class CustomerReceipt(IdMixin, TimestampMixin, CreatedByMixin, Base):
     )
 
 
-class ReceiptAllocation(IdMixin, Base):
+class ReceiptAllocation(TenantScoped, IdMixin, Base):
     __tablename__ = "receipt_allocations"
 
     receipt_id: Mapped[int] = mapped_column(
@@ -199,7 +199,7 @@ class ReceiptAllocation(IdMixin, Base):
     )
 
 
-class DailySalesSummary(Base):
+class DailySalesSummary(TenantScoped, Base):
     """Projection: sales per business date and product. Updated in the posting transaction."""
 
     __tablename__ = "daily_sales_summary"
@@ -221,7 +221,7 @@ RETURN_CONDITIONS = ("good", "damaged", "expired")
 CONDITION_LOCATION = {"good": "SELLABLE", "damaged": "DAMAGED", "expired": "EXPIRED"}
 
 
-class SalesReturn(IdMixin, TimestampMixin, CreatedByMixin, Base):
+class SalesReturn(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
     """Goods a customer brings back against one invoice (refunded in cash or credited)."""
 
     __tablename__ = "sales_returns"
@@ -267,7 +267,7 @@ class SalesReturn(IdMixin, TimestampMixin, CreatedByMixin, Base):
     )
 
 
-class SalesReturnItem(IdMixin, Base):
+class SalesReturnItem(TenantScoped, IdMixin, Base):
     """One returned quantity: taken from a specific batch sold on a specific invoice line."""
 
     __tablename__ = "sales_return_items"

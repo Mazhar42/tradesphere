@@ -27,7 +27,7 @@ from sqlalchemy.dialects.postgresql import JSONB, insert
 from sqlalchemy.orm import Mapped, Session, mapped_column
 
 from app.core.errors import ConflictError
-from app.shared.models import Base, IdMixin
+from app.shared.models import Base, IdMixin, TenantScoped
 
 IdempotencyKeyHeader = Annotated[
     str,
@@ -40,7 +40,7 @@ IdempotencyKeyHeader = Annotated[
 ]
 
 
-class IdempotencyKey(IdMixin, Base):
+class IdempotencyKey(TenantScoped, IdMixin, Base):
     __tablename__ = "idempotency_keys"
 
     user_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("users.id"))
@@ -51,7 +51,7 @@ class IdempotencyKey(IdMixin, Base):
     response_body: Mapped[Any] = mapped_column(JSONB, nullable=True)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
-    __table_args__ = (UniqueConstraint("user_id", "key"),)
+    __table_args__ = (UniqueConstraint("tenant_id", "user_id", "key"),)
 
 
 def _hash(endpoint: str, payload: Any) -> str:
@@ -73,7 +73,7 @@ def run_idempotent(
     inserted_id = session.execute(
         insert(IdempotencyKey)
         .values(user_id=user_id, key=key, endpoint=endpoint, request_hash=request_hash)
-        .on_conflict_do_nothing(index_elements=["user_id", "key"])
+        .on_conflict_do_nothing(index_elements=["tenant_id", "user_id", "key"])
         .returning(IdempotencyKey.id)
     ).scalar_one_or_none()
 

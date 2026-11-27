@@ -15,11 +15,11 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.modules.catalog.models import Product
-from app.shared.models import Base, CreatedByMixin, IdMixin, TimestampMixin
+from app.shared.models import Base, CreatedByMixin, IdMixin, TenantScoped, TimestampMixin
 from app.shared.money import MONEY, QTY, UNIT_COST
 
 
-class Location(IdMixin, TimestampMixin, Base):
+class Location(TenantScoped, IdMixin, TimestampMixin, Base):
     """Logical stock bucket: SELLABLE, DAMAGED, EXPIRED (extensible to warehouses)."""
 
     __tablename__ = "locations"
@@ -32,7 +32,7 @@ class Location(IdMixin, TimestampMixin, Base):
     is_active: Mapped[bool] = mapped_column(default=True)
 
 
-class Batch(IdMixin, TimestampMixin, Base):
+class Batch(TenantScoped, IdMixin, TimestampMixin, Base):
     """Manufacturer lot of a product, with optional manufacturing and expiry dates."""
 
     __tablename__ = "batches"
@@ -48,7 +48,7 @@ class Batch(IdMixin, TimestampMixin, Base):
     )
 
 
-class InventoryMovement(IdMixin, Base):
+class InventoryMovement(TenantScoped, IdMixin, Base):
     """Append-only stock ledger. Every stock change is one signed row here.
 
     `qty_base` is in base units (positive = in, negative = out); `value` carries the
@@ -95,7 +95,7 @@ class InventoryMovement(IdMixin, Base):
     )
 
 
-class StockBalance(IdMixin, Base):
+class StockBalance(TenantScoped, IdMixin, Base):
     """Current quantity per product / batch / location (projection of the movements)."""
 
     __tablename__ = "stock_balances"
@@ -121,7 +121,7 @@ class StockBalance(IdMixin, Base):
     )
 
 
-class ProductCost(Base):
+class ProductCost(TenantScoped, Base):
     """Moving weighted-average cost per product (across all locations)."""
 
     __tablename__ = "product_costs"
@@ -140,7 +140,7 @@ class ProductCost(Base):
 ADJUSTMENT_REASONS = ("count", "damage", "expiry", "found", "other")
 
 
-class StockAdjustment(IdMixin, TimestampMixin, CreatedByMixin, Base):
+class StockAdjustment(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
     """Corrects stock outside purchasing and sales. Damage and expiry reasons are write-offs."""
 
     __tablename__ = "stock_adjustments"
@@ -170,7 +170,7 @@ class StockAdjustment(IdMixin, TimestampMixin, CreatedByMixin, Base):
     )
 
 
-class StockAdjustmentItem(IdMixin, Base):
+class StockAdjustmentItem(TenantScoped, IdMixin, Base):
     __tablename__ = "stock_adjustment_items"
 
     adjustment_id: Mapped[int] = mapped_column(
@@ -189,7 +189,7 @@ class StockAdjustmentItem(IdMixin, Base):
     __table_args__ = (CheckConstraint("qty_delta <> 0", name="qty_non_zero"),)
 
 
-class StockTransfer(IdMixin, TimestampMixin, CreatedByMixin, Base):
+class StockTransfer(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
     """Moves stock between locations (for example SELLABLE to EXPIRED). No journal entry."""
 
     __tablename__ = "stock_transfers"
@@ -220,7 +220,7 @@ class StockTransfer(IdMixin, TimestampMixin, CreatedByMixin, Base):
     )
 
 
-class StockTransferItem(IdMixin, Base):
+class StockTransferItem(TenantScoped, IdMixin, Base):
     __tablename__ = "stock_transfer_items"
 
     transfer_id: Mapped[int] = mapped_column(
