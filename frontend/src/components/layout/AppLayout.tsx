@@ -83,6 +83,7 @@ const SECTIONS: NavSection[] = [
       { to: '/users', label: 'nav.users', icon: UserCog, permission: 'users:read' },
       { to: '/opening-balances', label: 'nav.opening', icon: Flag, permission: 'finance:opening' },
       { to: '/settings', label: 'nav.settings', icon: Settings, permission: 'settings:read' },
+      { to: '/billing', label: 'billing.title', icon: Wallet, permission: 'settings:write' },
       { to: '/audit', label: 'nav.audit', icon: ScrollText, permission: 'audit:read' },
     ],
   },
@@ -322,6 +323,11 @@ export function AppLayout() {
           <UserMenu />
         </header>
         <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8">
+          {user?.subscription_status && ['past_due', 'read_only', 'suspended'].includes(user.subscription_status) && (
+            <p role="status" className="mb-4 rounded-lg bg-warning-soft px-3 py-2 text-sm text-warning">
+              {t(`billing.banner.${user.subscription_status}`)}
+            </p>
+          )}
           <Outlet />
         </main>
       </div>

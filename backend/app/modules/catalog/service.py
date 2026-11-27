@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, ConflictError, NotFoundError
 from app.core.permissions import CurrentUser
+from app.modules.billing import entitlements
 from app.modules.catalog.models import Brand, Category, Product, ProductUom, Uom
 from app.modules.catalog.schemas import (
     ProductCreate,
@@ -226,7 +227,14 @@ def _ensure_unique_sku(session: Session, sku: str, exclude_id: int | None = None
         )
 
 
+def ensure_product_capacity(session: Session, adding: int = 1) -> None:
+    entitlements.lock(session, "max_products")
+    used = session.scalar(select(func.count()).select_from(Product)) or 0
+    entitlements.require_capacity(session, "max_products", used, adding)
+
+
 def create_product(session: Session, data: ProductCreate, actor: CurrentUser) -> Product:
+    ensure_product_capacity(session)
     _ensure_unique_sku(session, data.sku)
     _validate_refs(
         session,

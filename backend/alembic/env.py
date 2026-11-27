@@ -5,7 +5,7 @@ from sqlalchemy import engine_from_config, pool
 from alembic import context
 from app.core.config import settings
 from app.core.provision import apply_grants
-from app.core.tables import TENANT_TABLES
+from app.core.tables import PLATFORM_TABLES, TENANT_TABLES
 from app.models import Base
 
 config = context.config
@@ -26,6 +26,8 @@ def include_object(obj: object, name: str | None, type_: str, reflected: bool, _
     """
     table = getattr(getattr(obj, "table", None), "name", None)
     composite = TENANT_TABLES | {"support_access_grants"}
+    if type_ == "foreign_key_constraint" and table in PLATFORM_TABLES:
+        return False  # declared inline in the migrations, with PostgreSQL's default names
     if type_ == "foreign_key_constraint" and table in composite:
         return False
     if name and name.startswith("uq_tid_"):

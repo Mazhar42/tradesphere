@@ -15,6 +15,7 @@ from app.core.db import DbSession
 from app.core.errors import ForbiddenError, UnauthorizedError
 from app.core.security import AccessClaims, decode_access_token
 from app.core.tenant_context import read_only, set_context
+from app.modules.billing.entitlements import check_access
 from app.modules.platform.models import SupportGrant
 from app.modules.tenancy.models import Tenant
 from app.modules.tenancy.service import business_config, enter
@@ -137,9 +138,13 @@ def _enrolled(db: Session, user_id: int) -> bool:
 IdentityDep = Annotated[CurrentUser, Depends(get_identity)]
 
 
-def get_current_user(user: IdentityDep) -> CurrentUser:
+def get_current_user(user: IdentityDep, db: DbSession, request: Request) -> CurrentUser:
+    """Identity and membership (above), then enrolment and the subscription's state. Permissions
+    are checked by `require`, plan features and limits where they apply."""
     if user.must_enrol_mfa:
         raise ForbiddenError("Set up two-step sign-in to continue.", code="mfa_enrolment_required")
+    if SUPPORT_ROLE not in user.roles:
+        check_access(db, request.method, request.url.path)
     return user
 
 

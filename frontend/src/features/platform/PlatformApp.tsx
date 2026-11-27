@@ -16,6 +16,8 @@ import { Input } from '@/components/ui/input'
 import { useLang } from '@/i18n'
 import { formatDateTime } from '@/lib/format'
 
+import { PlatformBilling } from './PlatformBilling'
+
 type Tenant = Schemas['TenantRow']
 type Audit = Schemas['PlatformAuditRow']
 type Jobs = Schemas['JobHealth']
@@ -51,6 +53,11 @@ export function PlatformApp() {
       setError(e instanceof Error ? e.message : String(e))
     }
   }, [])
+
+  const platformCall = useCallback(
+    <T,>(path: string, init?: RequestInit) => call<T>(path, token, init),
+    [token],
+  )
 
   const load = async (using: string) => {
     setTenants(await call<Tenant[]>('/tenants', using))
@@ -159,6 +166,7 @@ export function PlatformApp() {
               </ul>
             </Card>
           )}
+          <PlatformBilling call={platformCall} tenantIds={tenants.map((tenant) => tenant.id)} />
           <Card className="p-4">
             <h2 className="mb-2 font-semibold">{t('platform.audit')}</h2>
             <ul className="space-y-1 text-sm">

@@ -22,11 +22,32 @@ PLATFORM_TABLES = frozenset(
         "support_access_grants",
         "jobs",
         "outbox_events",
+        "plans",
+        "plan_entitlements",
+        "subscriptions",
+        "subscription_events",
+        "tenant_entitlement_overrides",
+        "billing_invoices",
+        "billing_payments",
+        "billing_payment_claims",
+    }
+)
+
+# Platform tables the application may only read: it never writes its own subscription.
+APP_READ_ONLY_TABLES = frozenset(
+    {
+        "plans",
+        "plan_entitlements",
+        "subscriptions",
+        "subscription_events",
+        "tenant_entitlement_overrides",
+        "billing_invoices",
+        "billing_payments",
     }
 )
 
 # The application adds work and may look at its own; only the worker's role changes it.
-APP_ADD_ONLY_TABLES = frozenset({"jobs", "outbox_events"})
+APP_ADD_ONLY_TABLES = frozenset({"jobs", "outbox_events", "billing_payment_claims"})
 
 # Closed to the application role altogether: a flaw in the dealership application must not be
 # able to make or unmake an operator.
@@ -114,6 +135,8 @@ APPEND_ONLY_TABLES = frozenset(
         "audit_logs",
         "auth_events",
         "platform_audit_logs",
+        "subscription_events",
+        "billing_payments",
     }
 )
 

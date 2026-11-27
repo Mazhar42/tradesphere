@@ -17,9 +17,14 @@ class PlatformOperator(Base):
         BigInteger, ForeignKey("users.id"), primary_key=True, autoincrement=False
     )
     status: Mapped[str] = mapped_column(String(10), server_default="active")
+    # admin and billing may change money matters; support may not.
+    role: Mapped[str] = mapped_column(String(20), server_default="admin")
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
-    __table_args__ = (CheckConstraint("status IN ('active','inactive')", name="status_valid"),)
+    __table_args__ = (
+        CheckConstraint("status IN ('active','inactive')", name="status_valid"),
+        CheckConstraint("role IN ('admin','billing','support')", name="role_valid"),
+    )
 
 
 class PlatformAuditLog(IdMixin, Base):

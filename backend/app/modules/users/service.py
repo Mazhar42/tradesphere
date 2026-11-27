@@ -7,6 +7,7 @@ from app.core.errors import BusinessRuleError, ConflictError, ForbiddenError, No
 from app.core.permissions import CurrentUser
 from app.core.security import hash_password
 from app.core.tenant_context import tenant_id_of
+from app.modules.billing import entitlements
 from app.modules.tenancy import service as tenancy
 from app.modules.tenancy.models import TenantMembership
 from app.modules.users.models import Permission, RefreshToken, Role, User, user_roles
@@ -160,6 +161,19 @@ def ensure_may_grant(session: Session, actor: CurrentUser, role_codes: list[str]
         raise ForbiddenError("You cannot give permissions you do not have.", code="cannot_grant")
 
 
+def ensure_user_capacity(session: Session) -> None:
+    entitlements.lock(session, "max_users")
+    used = session.scalar(
+        select(func.count())
+        .select_from(TenantMembership)
+        .where(
+            TenantMembership.tenant_id == tenant_id_of(session),
+            TenantMembership.status == "active",
+        )
+    )
+    entitlements.require_capacity(session, "max_users", used or 0)
+
+
 def assign_roles(session: Session, user: User, role_codes: list[str]) -> None:
     """Set a member's roles in the current dealership."""
     session.expire(user, ["roles"])
@@ -181,6 +195,7 @@ def create_user(session: Session, data: UserCreate, actor: CurrentUser | None) -
         password_hash=hash_password(data.password),
     )
     check_password(data.password, privileged="owner" in data.roles)
+    ensure_user_capacity(session)
     if actor is not None:
         ensure_may_grant(session, actor, data.roles)
     roles = _resolve_roles(session, data.roles)
@@ -228,6 +243,8 @@ def update_user(session: Session, user_id: int, data: UserUpdate, actor: Current
             )
         setattr(user, field, value)
     if is_active is not None:
+        if is_active and member.status != "active":
+            ensure_user_capacity(session)
         member.status = "active" if is_active else "inactive"
     session.flush()
     if is_active is False and tenancy.active_membership_count(session, user.id) == 0:

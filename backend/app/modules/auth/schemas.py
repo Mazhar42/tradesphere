@@ -37,6 +37,7 @@ class MeRead(ReadSchema):
     tenants: list[TenantSummary]
     mfa_enrolled: bool
     mfa_enrolment_required: bool
+    subscription_status: str | None  # for banners; None when nothing is limited
 
 
 class TokenResponse(ReadSchema):

@@ -131,6 +131,14 @@ An installation holds one dealership unless `ALLOW_MULTIPLE_TENANTS=true`. Set i
 isolation suite is green and migrations of phase 2 steps 2.5 and 2.7 have had a second review.
 `reconcile` and `rebuild-projections` take `--tenant <slug>` or `--all-tenants`.
 
+## Subscriptions
+
+Nothing is limited until `BILLING_ENFORCEMENT=true`. Before turning it on: publish plans, give
+each dealership a subscription (platform screen or API), and check the dates. A dealership with no
+subscription is unrestricted. Payments are recorded by hand against an invoice after checking the
+bank or mobile-money statement; mistakes are reversed, never edited. The worker applies trial end,
+grace (7 days), read-only (90 days) and suspension twice a day.
+
 ## Database roles
 
 | Role | Used by | Can |

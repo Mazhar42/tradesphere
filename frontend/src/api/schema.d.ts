@@ -588,6 +588,234 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/platform/plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Plans */
+        get: operations["list_plans"];
+        put?: never;
+        /** Publish Plan */
+        post: operations["publish_plan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/subscriptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Subscriptions */
+        get: operations["list_subscriptions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/tenants/{tenant_id}/subscription": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Set Plan
+         * @description Start a trial, or change the plan of an existing subscription.
+         */
+        post: operations["set_plan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/tenants/{tenant_id}/invoices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Issue Invoice */
+        post: operations["issue_invoice"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/tenants/{tenant_id}/overrides": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set Override */
+        put: operations["set_override"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/invoices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Invoices */
+        get: operations["list_invoices"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/invoices/{invoice_id}/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record Payment */
+        post: operations["record_payment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/payments/{payment_id}/reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reverse Payment */
+        post: operations["reverse_payment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/invoices/{invoice_id}/void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Void Invoice */
+        post: operations["void_invoice"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Billing */
+        get: operations["get_billing"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/invoices/{billing_invoice_id}/payment-claims": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit Payment Claim */
+        post: operations["submit_payment_claim"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancel
+         * @description At the end of the paid period; can be withdrawn until then.
+         */
+        post: operations["cancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resume */
+        post: operations["resume"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/categories": {
         parameters: {
             query?: never;
@@ -2447,6 +2675,35 @@ export interface components {
             /** Qty Base */
             qty_base: string;
         };
+        /** BillingRead */
+        BillingRead: {
+            /** Enforced */
+            enforced: boolean;
+            /** Status */
+            status: string | null;
+            /** Plan Name */
+            plan_name: string | null;
+            /** Price */
+            price: string | null;
+            /** Currency */
+            currency: string | null;
+            /** Trial Ends On */
+            trial_ends_on: string | null;
+            /** Period End */
+            period_end: string | null;
+            /** Cancel At Period End */
+            cancel_at_period_end: boolean;
+            /** Active Users */
+            active_users: number;
+            /** Max Users */
+            max_users: number | null;
+            /** Max Products */
+            max_products: number | null;
+            /** Payment Instructions */
+            payment_instructions: string;
+            /** Invoices */
+            invoices: components["schemas"]["InvoiceRow"][];
+        };
         /** BrandCreate */
         BrandCreate: {
             /** Name En */
@@ -2617,6 +2874,15 @@ export interface components {
             rejected_amount: string;
             /** Outstanding Amount */
             outstanding_amount: string;
+        };
+        /** ClaimRead */
+        ClaimRead: {
+            /** Method */
+            method: string;
+            /** Reference */
+            reference: string;
+            /** Amount */
+            amount: string;
         };
         /** ClaimSettlementRead */
         ClaimSettlementRead: {
@@ -3051,6 +3317,18 @@ export interface components {
             /** Notes */
             notes: string | null;
         };
+        /** GrantIn */
+        GrantIn: {
+            /**
+             * Key
+             * @enum {string}
+             */
+            key: "max_users" | "max_products" | "max_invoices_per_month" | "max_import_rows" | "max_locations" | "advanced_reports" | "data_export" | "api_access" | "advanced_inventory";
+            /** Limit */
+            limit?: number | null;
+            /** Enabled */
+            enabled?: boolean | null;
+        };
         /** GrantRow */
         GrantRow: {
             /** Id */
@@ -3430,6 +3708,36 @@ export interface components {
             /** Receipts */
             receipts: components["schemas"]["ReceiptListItem"][];
         };
+        /** InvoiceRow */
+        InvoiceRow: {
+            /** Id */
+            id: number;
+            /** Number */
+            number: string;
+            /**
+             * Period Start
+             * Format: date
+             */
+            period_start: string;
+            /**
+             * Period End
+             * Format: date
+             */
+            period_end: string;
+            /** Amount */
+            amount: string;
+            /** Paid */
+            paid: string;
+            /** Currency */
+            currency: string;
+            /** Status */
+            status: string;
+            /**
+             * Due On
+             * Format: date
+             */
+            due_on: string;
+        };
         /** InvoiceWrite */
         InvoiceWrite: {
             /** Customer Id */
@@ -3618,6 +3926,8 @@ export interface components {
             mfa_enrolled: boolean;
             /** Mfa Enrolment Required */
             mfa_enrolment_required: boolean;
+            /** Subscription Status */
+            subscription_status: string | null;
         };
         /** MfaDisable */
         MfaDisable: {
@@ -3805,6 +4115,22 @@ export interface components {
             direction: "advance" | "payable";
             /** Amount */
             amount: number | string;
+        };
+        /** OverrideIn */
+        OverrideIn: {
+            /**
+             * Key
+             * @enum {string}
+             */
+            key: "max_users" | "max_products" | "max_invoices_per_month" | "max_import_rows" | "max_locations" | "advanced_reports" | "data_export" | "api_access" | "advanced_inventory";
+            /** Limit */
+            limit?: number | null;
+            /** Enabled */
+            enabled?: boolean | null;
+            /** Reason */
+            reason: string;
+            /** Expires On */
+            expires_on?: string | null;
         };
         /** OwnerTransactionCreate */
         OwnerTransactionCreate: {
@@ -4368,6 +4694,18 @@ export interface components {
             /** Is Active */
             is_active?: boolean | null;
         };
+        /** PaymentClaimCreate */
+        PaymentClaimCreate: {
+            /**
+             * Method
+             * @enum {string}
+             */
+            method: "bank" | "bkash" | "nagad" | "other";
+            /** Reference */
+            reference: string;
+            /** Amount */
+            amount: number | string;
+        };
         /**
          * PaymentOption
          * @description An account money can be received into. No balances: cashiers do not see them.
@@ -4379,6 +4717,23 @@ export interface components {
             name: string;
             /** Kind */
             kind: string;
+        };
+        /** PaymentRecord */
+        PaymentRecord: {
+            /** Amount */
+            amount: number | string;
+            /**
+             * Method
+             * @enum {string}
+             */
+            method: "bank" | "bkash" | "nagad" | "other";
+            /** Reference */
+            reference: string;
+            /**
+             * Received On
+             * Format: date
+             */
+            received_on: string;
         };
         /** PaymentRef */
         PaymentRef: {
@@ -4408,6 +4763,63 @@ export interface components {
             /** Description */
             description: string;
         };
+        /** PlanChoice */
+        PlanChoice: {
+            /** Plan Id */
+            plan_id: number;
+        };
+        /** PlanCreate */
+        PlanCreate: {
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            /**
+             * Interval
+             * @enum {string}
+             */
+            interval: "month" | "year";
+            /** Price */
+            price: number | string;
+            /**
+             * Currency
+             * @default BDT
+             */
+            currency?: string;
+            /**
+             * Trial Days
+             * @default 14
+             */
+            trial_days?: number;
+            /**
+             * Is Public
+             * @default false
+             */
+            is_public?: boolean;
+            /** Grants */
+            grants?: components["schemas"]["GrantIn"][];
+        };
+        /** PlanRead */
+        PlanRead: {
+            /** Id */
+            id: number;
+            /** Code */
+            code: string;
+            /** Version */
+            version: number;
+            /** Name */
+            name: string;
+            /** Interval */
+            interval: string;
+            /** Price */
+            price: string;
+            /** Currency */
+            currency: string;
+            /** Trial Days */
+            trial_days: number;
+            /** Is Public */
+            is_public: boolean;
+        };
         /** PlatformAuditRow */
         PlatformAuditRow: {
             /** Id */
@@ -4430,6 +4842,35 @@ export interface components {
                 [key: string]: unknown;
             } | null;
         };
+        /** PlatformInvoiceRead */
+        PlatformInvoiceRead: {
+            /** Id */
+            id: number;
+            /** Tenant Id */
+            tenant_id: number;
+            /** Number */
+            number: string;
+            /**
+             * Period Start
+             * Format: date
+             */
+            period_start: string;
+            /**
+             * Period End
+             * Format: date
+             */
+            period_end: string;
+            /** Amount */
+            amount: string;
+            /** Paid */
+            paid: string;
+            /** Status */
+            status: string;
+            /** Claims */
+            claims: components["schemas"]["ClaimRead"][];
+            /** Payments */
+            payments: components["schemas"]["PlatformPaymentRead"][];
+        };
         /** PlatformLogin */
         PlatformLogin: {
             /** Username */
@@ -4438,6 +4879,24 @@ export interface components {
             password: string;
             /** Code */
             code: string;
+        };
+        /** PlatformPaymentRead */
+        PlatformPaymentRead: {
+            /** Id */
+            id: number;
+            /** Amount */
+            amount: string;
+            /** Method */
+            method: string;
+            /** Provider Ref */
+            provider_ref: string;
+            /**
+             * Received On
+             * Format: date
+             */
+            received_on: string;
+            /** Reverses Id */
+            reverses_id: number | null;
         };
         /** PlatformToken */
         PlatformToken: {
@@ -5026,6 +5485,11 @@ export interface components {
             /** Base Price */
             base_price: string;
         };
+        /** Reversal */
+        Reversal: {
+            /** Reason */
+            reason: string;
+        };
         /** RoleCreate */
         RoleCreate: {
             /** Code */
@@ -5275,6 +5739,23 @@ export interface components {
             rows: components["schemas"]["ValuationRow"][];
             /** Total Value */
             total_value: string;
+        };
+        /** SubscriptionRead */
+        SubscriptionRead: {
+            /** Tenant Id */
+            tenant_id: number;
+            /** Plan Id */
+            plan_id: number;
+            /** Status */
+            status: string;
+            /** Trial Ends On */
+            trial_ends_on: string | null;
+            /** Period End */
+            period_end: string | null;
+            /** Cancel At Period End */
+            cancel_at_period_end: boolean;
+            /** Pending Plan Id */
+            pending_plan_id: number | null;
         };
         /** SupplierCreate */
         SupplierCreate: {
@@ -6903,6 +7384,384 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
                 };
+            };
+        };
+    };
+    list_plans: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanRead"][];
+                };
+            };
+        };
+    };
+    publish_plan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_subscriptions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubscriptionRead"][];
+                };
+            };
+        };
+    };
+    set_plan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tenant_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanChoice"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    issue_invoice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tenant_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_override: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tenant_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OverrideIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_invoices: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformInvoiceRead"][];
+                };
+            };
+        };
+    };
+    record_payment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                invoice_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaymentRecord"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reverse_payment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                payment_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Reversal"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    void_invoice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                invoice_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_billing: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingRead"];
+                };
+            };
+        };
+    };
+    submit_payment_claim: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                billing_invoice_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaymentClaimCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    resume: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

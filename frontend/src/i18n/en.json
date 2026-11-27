@@ -186,6 +186,11 @@
     "suspend": "Suspend",
     "activate": "Reactivate",
     "audit": "Recent platform activity",
+    "noPlans": "No plan is published yet.",
+    "assign": "Assign to #{{id}}",
+    "invoice": "Invoice #{{id}}",
+    "claim": "Says paid by {{method}}: {{reference}} ({{amount}})",
+    "recordPayment": "Record {{amount}} received",
     "jobs": "Background jobs",
     "jobCounts": "{{queued}} waiting, {{failed}} failed, oldest waiting {{minutes}} min",
     "reason": "Reason for changing {{name}}",
@@ -194,6 +199,42 @@
       "suspended": "Suspended",
       "pending": "Pending",
       "deleted": "Deleted"
+    }
+  },
+  "billing": {
+    "title": "Subscription",
+    "none": "No subscription is set up: nothing is limited.",
+    "trialEnds": "Trial ends {{date}}",
+    "paidUntil": "Paid until {{date}}",
+    "users": "People: {{used}} of {{max}}",
+    "cancel": "Cancel at period end",
+    "keep": "Keep the subscription",
+    "method": "Paid by",
+    "reference": "Transaction reference",
+    "iPaid": "I have paid",
+    "claimSent": "Recorded. We will check and confirm.",
+    "methods": {
+      "bank": "Bank",
+      "bkash": "bKash",
+      "nagad": "Nagad",
+      "other": "Other"
+    },
+    "status": {
+      "trialing": "Trial",
+      "active": "Active",
+      "past_due": "Payment due",
+      "read_only": "Read only",
+      "suspended": "Suspended"
+    },
+    "invoiceStatus": {
+      "open": "Unpaid",
+      "paid": "Paid",
+      "void": "Cancelled"
+    },
+    "banner": {
+      "past_due": "Your payment is due. Pay to avoid becoming read-only.",
+      "read_only": "The subscription has lapsed: you can view and export, but not change records.",
+      "suspended": "The account is suspended for non-payment."
     }
   },
   "forbidden": {

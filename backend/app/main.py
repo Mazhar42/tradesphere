@@ -21,6 +21,7 @@ from app.modules.accounting.router import router as accounting_router
 from app.modules.audit.router import router as audit_router
 from app.modules.auth.invitation_router import router as invitations_router
 from app.modules.auth.router import router as auth_router
+from app.modules.billing.router import router as billing_router
 from app.modules.catalog.router import router as catalog_router
 from app.modules.claims.router import router as claims_router
 from app.modules.finance.router import router as finance_router
@@ -29,6 +30,7 @@ from app.modules.inventory.doc_router import router as inventory_docs_router
 from app.modules.inventory.router import router as inventory_router
 from app.modules.opening.router import router as opening_router
 from app.modules.parties.router import router as parties_router
+from app.modules.platform.billing_router import router as platform_billing_router
 from app.modules.platform.router import router as platform_router
 from app.modules.platform.support_router import router as support_router
 from app.modules.purchasing.return_router import router as purchase_returns_router
@@ -133,6 +135,8 @@ def create_app() -> FastAPI:
         invitations_router,
         support_router,
         platform_router,
+        platform_billing_router,
+        billing_router,
         catalog_router,
         parties_router,
         purchasing_router,

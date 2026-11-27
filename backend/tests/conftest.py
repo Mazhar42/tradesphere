@@ -33,6 +33,7 @@ os.environ["PLATFORM_DATABASE_URL"] = _as(
     make_url(TEST_DATABASE_URL), provision.PLATFORM
 ).render_as_string(False)
 os.environ["ENVIRONMENT"] = "test"
+os.environ["EMAIL_BACKEND"] = ""  # a developer's container may have one set
 os.environ["ALLOW_MULTIPLE_TENANTS"] = "true"
 
 import uuid  # noqa: E402

@@ -1,15 +1,13 @@
 """The platform administration API. Separate tokens, separate database connection."""
 
-from collections.abc import Iterator
 from datetime import datetime
 from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import Field
-from sqlalchemy.orm import Session
 
-from app.core.db import PlatformSessionLocal
+from app.core.db import PlatformDb
 from app.core.errors import UnauthorizedError
 from app.core.security import decode_platform_token
 from app.modules.auth.schemas import Code
@@ -19,20 +17,6 @@ from app.shared.schemas import ReadSchema, WriteSchema
 
 router = APIRouter(prefix="/platform", tags=["platform"])
 _bearer = HTTPBearer(auto_error=False)
-
-
-def get_platform_db() -> Iterator[Session]:
-    session = PlatformSessionLocal()
-    try:
-        yield session
-    except Exception:
-        session.rollback()
-        raise
-    finally:
-        session.close()
-
-
-PlatformDb = Annotated[Session, Depends(get_platform_db)]
 
 
 def get_operator(

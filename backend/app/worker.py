@@ -24,6 +24,8 @@ from sqlalchemy.orm import Session
 
 from app.core.db import PlatformSessionLocal, SessionLocal
 from app.core.tenant_context import set_context
+from app.modules.billing import service as billing
+from app.modules.billing.models import Subscription
 from app.modules.jobs import service as jobs
 from app.modules.jobs.models import Job, OutboxEvent
 from app.modules.tenancy.models import Tenant
@@ -93,6 +95,11 @@ def _purge_platform(session: Session, _: dict[str, Any]) -> None:
     session.execute(delete(OutboxEvent).where(OutboxEvent.dispatched_at < done_cutoff))
 
 
+@handles("billing.advance", platform=True)
+def _advance_subscription(session: Session, payload: dict[str, Any]) -> None:
+    billing.advance(session, int(payload["tenant_id"]))
+
+
 class Worker:
     def __init__(
         self,
@@ -127,6 +134,15 @@ class Worker:
         today = now_utc().date().isoformat()
         with self.platform() as session:
             jobs.enqueue(session, "purge.platform", dedupe_key=f"purge.platform:{today}")
+            # Twice a day, so that a change of date in any timezone is noticed the same day.
+            half = f"{today}:{now_utc().hour // 12}"
+            for tenant_id in session.scalars(select(Subscription.tenant_id)):
+                jobs.enqueue(
+                    session,
+                    "billing.advance",
+                    {"tenant_id": tenant_id},
+                    dedupe_key=f"billing.advance:{tenant_id}:{half}",
+                )
             for tenant_id in session.scalars(select(Tenant.id).where(Tenant.status == "active")):
                 jobs.enqueue(
                     session,

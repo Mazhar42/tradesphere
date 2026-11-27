@@ -162,6 +162,10 @@ Differences from the brief's list: jobs are a phase of their own; financial corr
 - **Accept:** full cycle demonstrated; route enumeration shows no write possible in read-only.
 - **Deployment:** daily schedule. **Rollback:** an enforcement flag that turns all limits off.
 
+**Status 2026-11-27:** 5.1 to 5.5 implemented on branch `p5/5.1-billing-core`; `BILLING_ENFORCEMENT` is off. **No plan exists**: names, limits and prices are still needed.
+
+- Not built: 5.6 gateway and its webhook handling (needs separate approval), prorated upgrades inside a paid period (plan changes apply from the next period), reminder emails, receipts, usage warnings for monthly invoice counts, `tenant_usage`, feature flags on routes other than the ones in phase 9, tenant deletion (needs legal advice).
+
 ## Phase 6 — Corrections and integrity
 
 **Objective:** close TS-03, TS-14, TS-19, TS-24. **Prerequisites:** 4. Each reversal is a separate milestone with a written business-impact note (ADR-012).

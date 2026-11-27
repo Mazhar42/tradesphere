@@ -12,9 +12,8 @@ from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import Session
 
 from app.core import mfa_codes
-from app.core.db import get_db
+from app.core.db import get_db, get_platform_db
 from app.main import app
-from app.modules.platform.router import get_platform_db
 from app.modules.platform.service import add_operator
 from app.modules.users.schemas import UserCreate
 from app.modules.users.service import create_user

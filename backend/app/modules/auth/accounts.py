@@ -21,6 +21,7 @@ from app.core.permissions import CurrentUser
 from app.core.security import hash_password, hash_token, new_refresh_token, verify_password
 from app.core.tenant_context import set_context, tenant_id_of
 from app.modules.auth.service import record_event
+from app.modules.billing import entitlements
 from app.modules.jobs.service import queue_email
 from app.modules.tenancy import service as tenancy
 from app.modules.tenancy.models import AuthEvent, Tenant, TenantInvitation, TenantMembership
@@ -157,6 +158,8 @@ def accept_invitation(
     """With a new username: create the account. With an existing one: its password must be
     given, and the account joins without this dealership gaining control over it."""
     invitation, _ = open_invitation(session, token)
+    entitlements.ensure_writable(session)
+    users.ensure_user_capacity(session)
     existing = users.get_by_username(session, username)
     if existing is not None:
         if not existing.is_active or not verify_password(password, existing.password_hash):

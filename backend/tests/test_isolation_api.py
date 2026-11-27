@@ -249,6 +249,9 @@ def _build_other(client: TestClient, db: Session) -> Other:
         {"u": owner.id},
     )
     ids["grant_id"] = db.scalar(text("SELECT max(id) FROM support_access_grants"))
+    # Only the platform can write invoices, outside this test's transaction; the case that uses
+    # a real one is in test_billing.py.
+    ids["billing_invoice_id"] = 1
     ids["invitation_id"] = post(
         "/api/v1/invitations", {"note": f"{MARK} invitee", "roles": ["cashier"]}
     )["invitation"]["id"]
@@ -379,6 +382,11 @@ BODIES: dict[tuple[str, str], Body] = {
         "amount": "1",
     },
     ("POST", "/owner-transactions"): lambda i: _money(i, kind="capital"),
+    ("POST", "/billing/invoices/{billing_invoice_id}/payment-claims"): lambda i: {
+        "method": "bank",
+        "reference": "TRX-123",
+        "amount": "1",
+    },
     ("POST", "/opening-balances"): lambda i: {
         "business_date": (business_date() - timedelta(days=1)).isoformat(),
         "cash": [{"payment_account_id": i["payment_account_id"], "amount": "1"}],

@@ -56,6 +56,10 @@ class Settings(BaseSettings):
     # Run the job worker on a thread of the web process: only for a host with one process.
     run_worker_in_process: bool = False
 
+    # Off: no plan limit or lapsed subscription restricts anyone.
+    billing_enforcement: bool = False
+    billing_instructions: str = "Pay by bank, bKash or Nagad and enter the transaction reference."
+
     # A second dealership shares the database only once isolation has been reviewed
     # (docs/operations.md, "Dealerships").
     allow_multiple_tenants: bool = False

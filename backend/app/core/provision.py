@@ -18,6 +18,7 @@ from sqlalchemy import Connection, Engine, text
 from app.core.tables import (
     APP_ADD_ONLY_TABLES,
     APP_INSERT_ONLY_TABLES,
+    APP_READ_ONLY_TABLES,
     APPEND_ONLY_TABLES,
     GLOBAL_TABLES,
     NO_DELETE_TABLES,
@@ -102,6 +103,8 @@ def transfer_ownership(conn: Connection, role: str) -> None:
 
 
 def _app_verbs(table: str) -> str:
+    if table in APP_READ_ONLY_TABLES:
+        return "SELECT"
     return "SELECT, INSERT" if table in APP_ADD_ONLY_TABLES else _verbs(table)
 
 

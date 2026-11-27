@@ -25,6 +25,7 @@ from app.core.errors import (
 from app.core.security import create_access_token, hash_token, new_refresh_token, verify_password
 from app.modules.auth import mfa
 from app.modules.auth.schemas import MeRead, SessionRead, TenantSummary, TokenResponse
+from app.modules.billing import entitlements
 from app.modules.tenancy import service as tenancy
 from app.modules.tenancy.models import AuthEvent
 from app.modules.users.models import RefreshToken, User
@@ -95,6 +96,9 @@ def me_from_user(session: Session, user: User, tenant_id: int) -> MeRead:
         tenants=tenants,
         mfa_enrolled=enrolled,
         mfa_enrolment_required=settings.owner_mfa_required and "owner" in roles and not enrolled,
+        subscription_status=current.status
+        if settings.billing_enforcement and (current := entitlements.subscription(session))
+        else None,
     )
 
 

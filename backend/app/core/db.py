@@ -45,6 +45,20 @@ platform_engine = create_engine(settings.platform_url, pool_pre_ping=True, pool_
 PlatformSessionLocal = sessionmaker(bind=platform_engine, autoflush=False, expire_on_commit=False)
 
 
+def get_platform_db() -> Iterator[Session]:
+    session = PlatformSessionLocal()
+    try:
+        yield session
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
+
+
+PlatformDb = Annotated[Session, Depends(get_platform_db)]
+
+
 # 40001 serialization_failure, 40P01 deadlock_detected: PostgreSQL rolled the transaction back,
 # and running it again can succeed.
 TRANSIENT_SQLSTATES = frozenset({"40001", "40P01"})
