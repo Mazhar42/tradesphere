@@ -11,21 +11,38 @@ import os
 TEST_DATABASE_URL = os.environ.get("TEST_DATABASE_URL")
 if not TEST_DATABASE_URL:
     raise RuntimeError("TEST_DATABASE_URL must be set to run the tests.")
-os.environ["DATABASE_URL"] = TEST_DATABASE_URL
+
+from sqlalchemy.engine import URL, make_url  # noqa: E402
+
+from app.core import provision  # noqa: E402  (imports no settings)
+
+# Only for the local and CI test databases.
+ROLE_PASSWORDS = {role: f"{role}-pw" for role in provision.ROLES}
+
+
+def _as(url: URL, role: str) -> URL:
+    return url.set(username=role, password=ROLE_PASSWORDS[role])
+
+
+# The application under test connects as the restricted role, as in production.
+os.environ["DATABASE_URL"] = _as(make_url(TEST_DATABASE_URL), provision.APP).render_as_string(False)
+os.environ["MIGRATION_DATABASE_URL"] = _as(
+    make_url(TEST_DATABASE_URL), provision.OWNER
+).render_as_string(False)
 os.environ["ENVIRONMENT"] = "test"
 
 import uuid  # noqa: E402
 from collections.abc import Callable, Iterator  # noqa: E402
 from dataclasses import dataclass  # noqa: E402
+from datetime import datetime, timedelta  # noqa: E402
 
 import pytest  # noqa: E402
 from alembic.config import Config  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
-from sqlalchemy import URL, Engine, create_engine, make_url, text  # noqa: E402
+from sqlalchemy import Engine, create_engine, text  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
 
 from alembic import command  # noqa: E402
-from app.core import provision  # noqa: E402
 from app.core.db import engine as app_engine  # noqa: E402
 from app.core.db import get_db  # noqa: E402
 from app.main import app  # noqa: E402
@@ -33,12 +50,9 @@ from app.modules.users.models import User  # noqa: E402
 from app.modules.users.schemas import UserCreate  # noqa: E402
 from app.modules.users.service import create_user  # noqa: E402
 from app.seed import run_seed  # noqa: E402
+from app.shared import dates  # noqa: E402
 
 DEFAULT_PASSWORD = "Str0ng-Passw0rd"
-
-
-# Only for the local and CI test databases.
-ROLE_PASSWORDS = {role: f"{role}-pw" for role in provision.ROLES}
 
 
 @dataclass(frozen=True)
@@ -49,10 +63,6 @@ class Databases:
     owner: Engine  # migrations and seed
     app: Engine  # what the application connects as
     passwords: dict[str, str]
-
-
-def _as(url: URL, role: str) -> URL:
-    return url.set(username=role, password=ROLE_PASSWORDS[role])
 
 
 def _build(url: URL) -> Databases:
@@ -113,6 +123,27 @@ def scratch_engine(databases: Databases) -> Iterator[Engine]:
     finally:
         with admin.connect() as conn:
             conn.execute(text(f'DROP DATABASE "{name}" WITH (FORCE)'))
+
+
+class Clock:
+    """Controls `shared.dates.now_utc` (and everything dated from it) for one test.
+
+    Database defaults (`now()`) and token expiry checks inside PyJWT keep real time.
+    """
+
+    def set(self, at: datetime) -> None:
+        dates.set_clock(lambda: at)
+
+    def advance(self, **delta: float) -> None:
+        self.set(dates.now_utc() + timedelta(**delta))
+
+
+@pytest.fixture
+def clock() -> Iterator[Clock]:
+    try:
+        yield Clock()
+    finally:
+        dates.set_clock(None)
 
 
 @pytest.fixture

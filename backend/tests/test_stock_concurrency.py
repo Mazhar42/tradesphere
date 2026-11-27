@@ -15,7 +15,8 @@ from tests.helpers import today
 D = Decimal
 
 
-def test_two_sales_of_the_last_units_cannot_both_succeed(engine: Engine) -> None:
+def test_two_sales_of_the_last_units_cannot_both_succeed(scratch_engine: Engine) -> None:
+    engine = scratch_engine
     """100 units on hand; two users each take 60 at the same moment: exactly one wins."""
     with Session(engine) as session:
         pcs = session.query(Uom).filter(Uom.code == "PCS").one()
@@ -76,22 +77,10 @@ def test_two_sales_of_the_last_units_cannot_both_succeed(engine: Engine) -> None
     for t in threads:
         t.join(timeout=30)
 
-    try:
-        assert sorted(outcomes) == ["insufficient", "ok"]
-        with Session(engine) as session:
-            qty, value = session.execute(
-                text("SELECT qty_on_hand, total_value FROM product_costs WHERE product_id = :p"),
-                {"p": product_id},
-            ).one()
-            assert (qty, value) == (D(40), D(400))  # one sale of 60 at cost 10, never negative
-    finally:
-        # Ledgers are append-only, so clean up with triggers disabled for this session only.
-        with Session(engine) as session:
-            session.execute(text("SET session_replication_role = replica"))
-            for table in ("inventory_movements", "stock_balances", "product_costs"):
-                session.execute(
-                    text(f"DELETE FROM {table} WHERE product_id = :p"),  # noqa: S608
-                    {"p": product_id},
-                )
-            session.execute(text("DELETE FROM products WHERE id = :p"), {"p": product_id})
-            session.commit()
+    assert sorted(outcomes) == ["insufficient", "ok"]
+    with Session(engine) as session:
+        qty, value = session.execute(
+            text("SELECT qty_on_hand, total_value FROM product_costs WHERE product_id = :p"),
+            {"p": product_id},
+        ).one()
+        assert (qty, value) == (D(40), D(400))  # one sale of 60 at cost 10, never negative

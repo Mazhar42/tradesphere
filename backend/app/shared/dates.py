@@ -1,5 +1,6 @@
 """Business dates live in Asia/Dhaka; timestamps are stored in UTC."""
 
+from collections.abc import Callable
 from datetime import UTC, date, datetime
 from zoneinfo import ZoneInfo
 
@@ -8,8 +9,21 @@ from app.core.config import settings
 BUSINESS_TZ = ZoneInfo(settings.business_timezone)
 
 
-def now_utc() -> datetime:
+def _system_clock() -> datetime:
     return datetime.now(UTC)
+
+
+_clock: Callable[[], datetime] = _system_clock
+
+
+def set_clock(clock: Callable[[], datetime] | None) -> None:
+    """For tests: replace the source of "now" (None restores the system clock)."""
+    global _clock  # noqa: PLW0603
+    _clock = clock or _system_clock
+
+
+def now_utc() -> datetime:
+    return _clock()
 
 
 def business_date(at: datetime | None = None) -> date:

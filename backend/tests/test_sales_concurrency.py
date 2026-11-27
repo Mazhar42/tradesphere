@@ -26,7 +26,8 @@ from app.shared.dates import business_date
 D = Decimal
 
 
-def test_two_sales_of_the_last_units_cannot_both_succeed(engine: Engine) -> None:
+def test_two_sales_of_the_last_units_cannot_both_succeed(scratch_engine: Engine) -> None:
+    engine = scratch_engine
     suffix = uuid.uuid4().hex[:8]
     with Session(engine) as setup:
         user = create_user(
@@ -85,9 +86,7 @@ def test_two_sales_of_the_last_units_cannot_both_succeed(engine: Engine) -> None
                 actor,
             )
             invoice_ids.append(draft.id)
-        user_id = user.id
         product_id = product.id
-        customer_id = customer.id
         setup.commit()
 
     outcomes: list[str] = []
@@ -113,87 +112,16 @@ def test_two_sales_of_the_last_units_cannot_both_succeed(engine: Engine) -> None
     for thread in threads:
         thread.join(timeout=30)
 
-    try:
-        assert sorted(outcomes) == ["insufficient_stock", "ok"]
-        with Session(engine) as session:
-            qty = session.scalar(
-                text("SELECT qty_on_hand FROM product_costs WHERE product_id = :p"),
-                {"p": product_id},
-            )
-            posted = session.scalar(
-                text(
-                    "SELECT count(*) FROM sales_invoices WHERE id = ANY(:ids) AND status = 'posted'"
-                ).bindparams(ids=invoice_ids)
-            )
-            assert qty == D(0)
-            assert posted == 1
-    finally:
-        _cleanup(engine, invoice_ids, product_id, customer_id, user_id)
-
-
-def _cleanup(
-    engine: Engine, invoice_ids: list[int], product_id: int, customer_id: int, user_id: int
-) -> None:
-    """Ledgers are append-only: remove this test's rows with triggers off, in this session only."""
+    assert sorted(outcomes) == ["insufficient_stock", "ok"]
     with Session(engine) as session:
-        session.execute(text("SET session_replication_role = replica"))
-        params = {"ids": invoice_ids}
-        session.execute(
+        qty = session.scalar(
+            text("SELECT qty_on_hand FROM product_costs WHERE product_id = :p"),
+            {"p": product_id},
+        )
+        posted = session.scalar(
             text(
-                "DELETE FROM journal_lines WHERE entry_id IN (SELECT id FROM journal_entries "
-                "WHERE (source_doc_type = 'sales_invoice' AND source_doc_id = ANY(:ids)) "
-                "OR (source_doc_type = 'customer_receipt' AND source_doc_id IN "
-                "(SELECT id FROM customer_receipts WHERE sales_invoice_id = ANY(:ids))))"
-            ),
-            params,
+                "SELECT count(*) FROM sales_invoices WHERE id = ANY(:ids) AND status = 'posted'"
+            ).bindparams(ids=invoice_ids)
         )
-        session.execute(
-            text(
-                "DELETE FROM journal_entries WHERE (source_doc_type = 'sales_invoice' "
-                "AND source_doc_id = ANY(:ids)) OR (source_doc_type = 'customer_receipt' "
-                "AND source_doc_id IN "
-                "(SELECT id FROM customer_receipts WHERE sales_invoice_id = ANY(:ids)))"
-            ),
-            params,
-        )
-        session.execute(
-            text(
-                "DELETE FROM receipt_allocations WHERE receipt_id IN "
-                "(SELECT id FROM customer_receipts WHERE sales_invoice_id = ANY(:ids))"
-            ),
-            params,
-        )
-        session.execute(
-            text("DELETE FROM customer_receipts WHERE sales_invoice_id = ANY(:ids)"), params
-        )
-        session.execute(
-            text(
-                "DELETE FROM sale_item_batches WHERE invoice_item_id IN "
-                "(SELECT id FROM sales_invoice_items WHERE invoice_id = ANY(:ids))"
-            ),
-            params,
-        )
-        session.execute(
-            text("DELETE FROM sales_invoice_items WHERE invoice_id = ANY(:ids)"), params
-        )
-        session.execute(text("DELETE FROM sales_invoices WHERE id = ANY(:ids)"), params)
-        session.execute(
-            text("DELETE FROM daily_sales_summary WHERE product_id = :p"), {"p": product_id}
-        )
-        session.execute(
-            text("DELETE FROM inventory_movements WHERE product_id = :p"), {"p": product_id}
-        )
-        session.execute(text("DELETE FROM stock_balances WHERE product_id = :p"), {"p": product_id})
-        session.execute(text("DELETE FROM product_costs WHERE product_id = :p"), {"p": product_id})
-        session.execute(
-            text(
-                "DELETE FROM audit_logs WHERE actor_id = :u OR (entity_type = 'sales_invoice' "
-                "AND entity_id = ANY(:sids))"
-            ),
-            {"u": user_id, "sids": [str(i) for i in invoice_ids]},  # audit ids are text
-        )
-        session.execute(text("DELETE FROM products WHERE id = :p"), {"p": product_id})
-        session.execute(text("DELETE FROM customers WHERE id = :c"), {"c": customer_id})
-        session.execute(text("DELETE FROM user_roles WHERE user_id = :u"), {"u": user_id})
-        session.execute(text("DELETE FROM users WHERE id = :u"), {"u": user_id})
-        session.commit()
+        assert qty == D(0)
+        assert posted == 1

@@ -14,6 +14,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
 
+from app.core import health
 from app.core.observability import init_error_tracking
 from app.main import create_app
 
@@ -23,8 +24,18 @@ def test_live_and_ready(client: TestClient) -> None:
     assert client.get("/api/ready").json() == {"status": "ready"}
 
 
-def test_not_ready_while_migrations_are_pending(client: TestClient, db: Session) -> None:
-    db.execute(text("UPDATE alembic_version SET version_num = '66d49a0f9842'"))  # the first one
+def _code_ships(monkeypatch: pytest.MonkeyPatch, db: Session, *, newer: bool) -> None:
+    """Pretend the code is one migration ahead of the database, or knows nothing of it."""
+    current = str(db.scalar(text("SELECT version_num FROM alembic_version")))
+    known = {current, "next"} if newer else {"previous"}
+    head = "next" if newer else "previous"
+    monkeypatch.setattr(health, "_revisions", lambda: (head, frozenset(known)))
+
+
+def test_not_ready_while_migrations_are_pending(
+    client: TestClient, db: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _code_ships(monkeypatch, db, newer=True)
 
     response = client.get("/api/ready")
 
@@ -34,9 +45,9 @@ def test_not_ready_while_migrations_are_pending(client: TestClient, db: Session)
 
 
 def test_still_ready_when_the_schema_is_newer_than_the_code(
-    client: TestClient, db: Session
+    client: TestClient, db: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    db.execute(text("UPDATE alembic_version SET version_num = 'ffffffffffff'"))
+    _code_ships(monkeypatch, db, newer=False)
 
     assert client.get("/api/ready").status_code == 200
 

@@ -119,9 +119,9 @@ def test_locations_seeded(client: TestClient, owner) -> None:
 def test_audit_log_is_append_only(db: Session) -> None:
     db.add(AuditLog(action="test", entity_type="test"))
     db.flush()
-    with pytest.raises(DBAPIError, match="append-only"), db.begin_nested():
+    with pytest.raises(DBAPIError, match=r"append-only|permission denied"), db.begin_nested():
         db.execute(text("UPDATE audit_logs SET action = 'tampered'"))
-    with pytest.raises(DBAPIError, match="append-only"), db.begin_nested():
+    with pytest.raises(DBAPIError, match=r"append-only|permission denied"), db.begin_nested():
         db.execute(text("DELETE FROM audit_logs"))
 
 

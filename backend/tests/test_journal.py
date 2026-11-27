@@ -137,7 +137,7 @@ def test_journal_and_stock_ledgers_are_append_only(db: Session) -> None:
         "UPDATE journal_entries SET memo = 'x'",
         "DELETE FROM journal_entries",
     ):
-        with pytest.raises(DBAPIError, match="append-only"), db.begin_nested():
+        with pytest.raises(DBAPIError, match=r"append-only|permission denied"), db.begin_nested():
             db.execute(text(statement))
 
 

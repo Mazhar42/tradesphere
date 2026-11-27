@@ -1,7 +1,9 @@
 """The four database roles can do what they are for and nothing more (ADR-003, TS-05)."""
 
+from datetime import UTC, datetime
+
 import pytest
-from sqlalchemy import text
+from sqlalchemy import Engine, text
 from sqlalchemy.exc import DBAPIError
 
 from app.core import provision
@@ -14,7 +16,8 @@ from app.core.tables import (
     SYSTEM_TABLES,
     TENANT_TABLES,
 )
-from tests.conftest import Databases
+from app.shared.dates import business_date
+from tests.conftest import Clock, Databases
 
 
 def test_every_table_is_classified_exactly_once(databases: Databases) -> None:
@@ -103,4 +106,26 @@ def test_provisioning_again_changes_nothing_and_can_be_reversed(databases: Datab
             conn.scalars(text("SELECT tableowner FROM pg_tables WHERE schemaname = 'public'"))
         )
         assert owners == {superuser}
+        transaction.rollback()
+
+
+def test_the_application_under_test_is_the_restricted_role(engine: Engine) -> None:
+    """Otherwise every isolation test would pass while proving nothing."""
+    with engine.connect() as conn:
+        assert conn.scalar(text("SELECT current_user")) == provision.APP
+        assert provision.privileged_reason(conn) is None
+
+
+def test_the_clock_can_be_controlled(clock: Clock) -> None:
+    clock.set(datetime(2026, 6, 30, 20, 0, tzinfo=UTC))  # already 1 July in Dhaka
+    assert business_date().isoformat() == "2026-07-01"
+    clock.advance(days=1)
+    assert business_date().isoformat() == "2026-07-02"
+
+
+def test_the_trigger_stops_even_the_owner(databases: Databases) -> None:
+    with databases.owner.connect() as conn, conn.begin() as transaction:
+        conn.execute(text("INSERT INTO audit_logs (action, entity_type) VALUES ('probe', 'test')"))
+        with pytest.raises(DBAPIError, match="append-only"):
+            conn.execute(text("UPDATE audit_logs SET action = 'x' WHERE action = 'probe'"))
         transaction.rollback()
