@@ -18,7 +18,7 @@ from app.modules.platform.service import add_operator
 from app.modules.users.schemas import UserCreate
 from app.modules.users.service import create_user
 from app.shared.dates import now_utc
-from tests.conftest import DEFAULT_PASSWORD, TEST_TENANT, Databases, login
+from tests.conftest import DEFAULT_PASSWORD, TEST_TENANT, Clock, Databases, login
 
 
 class World:
@@ -41,7 +41,10 @@ class World:
 
 
 @pytest.fixture
-def world(scratch: Databases) -> Iterator[World]:
+def world(scratch: Databases, clock: Clock) -> Iterator[World]:
+    # Held still: operator_token uses codes at the edge of the accepted window.
+    clock.set(now_utc())
+
     def session_for(engine):  # type: ignore[no-untyped-def]
         def provide() -> Iterator[Session]:
             with Session(engine, autoflush=False, expire_on_commit=False) as session:
