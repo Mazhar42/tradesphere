@@ -2,6 +2,7 @@ from typing import Annotated, Literal
 
 from pydantic import Field
 
+from app.modules.users.schemas import Email, Password, Username
 from app.shared.schemas import ReadSchema, WriteSchema
 
 
@@ -37,3 +38,41 @@ class TokenResponse(ReadSchema):
     token_type: Literal["bearer"] = "bearer"  # noqa: S105
     expires_in: int
     user: MeRead
+
+
+Secret = Annotated[str, Field(min_length=10, max_length=200)]
+
+
+class TokenOnly(WriteSchema):
+    token: Secret
+
+
+class InvitationPreview(ReadSchema):
+    dealership: str
+    email: str | None
+
+
+class InvitationAccept(WriteSchema):
+    token: Secret
+    username: Username
+    full_name: Annotated[str | None, Field(max_length=120)] = None
+    password: Password
+
+
+class ResetRequest(WriteSchema):
+    identifier: Annotated[str, Field(min_length=1, max_length=150)]  # username or email
+
+
+class ResetConfirm(WriteSchema):
+    token: Secret
+    new_password: Password
+
+
+class EmailChange(WriteSchema):
+    email: Email
+    password: Annotated[str, Field(min_length=1, max_length=128)]
+
+
+class PasswordChange(WriteSchema):
+    current_password: Annotated[str, Field(min_length=1, max_length=128)]
+    new_password: Password

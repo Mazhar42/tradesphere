@@ -38,6 +38,15 @@ class Settings(BaseSettings):
 
     cors_origins: list[str] = []
 
+    # The address people open in a browser; links in emails and invitations start with it.
+    public_url: str = "http://localhost:5173"
+    email_backend: Literal["log", "smtp"] | None = None
+    email_from: str = "TradeSphere <no-reply@localhost>"
+    smtp_host: str | None = None
+    smtp_port: int = 587
+    smtp_username: str | None = None
+    smtp_password: SecretStr | None = None
+
     # A second dealership shares the database only once isolation has been reviewed
     # (docs/operations.md, "Dealerships").
     allow_multiple_tenants: bool = False
@@ -86,6 +95,11 @@ class Settings(BaseSettings):
                 raise ValueError("TRUSTED_PROXIES must name your proxies, not every address.")
         return value
 
+    @field_validator("email_backend", mode="before")
+    @classmethod
+    def _empty_is_unset(cls, value: str | None) -> str | None:
+        return value or None
+
     @model_validator(mode="after")
     def _production_must_be_safe(self) -> "Settings":
         if not self.is_production:
@@ -93,6 +107,10 @@ class Settings(BaseSettings):
         secret = self.jwt_secret.get_secret_value()
         if secret == DEV_JWT_SECRET or len(secret) < 32:
             raise ValueError("JWT_SECRET must be a unique secret of at least 32 characters.")
+        if self.email_backend == "log":
+            raise ValueError(
+                "EMAIL_BACKEND=log writes one-time links to the log: development only."
+            )
         if "*" in self.cors_origins:
             raise ValueError("CORS_ORIGINS must list the app origin, not '*'.")
         return self

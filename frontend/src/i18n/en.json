@@ -94,6 +94,46 @@
   "tenant": {
     "switch": "Switch dealership"
   },
+  "account": {
+    "backToLogin": "Back to sign in",
+    "forgot": "Forgot password?",
+    "forgotTitle": "Reset your password",
+    "forgotHelp": "Enter your username or email. If a confirmed email address is on the account, we send it a link. Staff without email: ask your owner.",
+    "forgotSent": "If that account has a confirmed email address, a link is on its way. It works for 30 minutes.",
+    "usernameOrEmail": "Username or email",
+    "sendLink": "Send link",
+    "resetTitle": "Choose a new password",
+    "resetDone": "Your password is changed. Sign in with it.",
+    "setPassword": "Set password",
+    "verifyTitle": "Confirm your email",
+    "verifyDone": "Your email address is confirmed.",
+    "confirmEmail": "Confirm address",
+    "inviteTitle": "Join a dealership",
+    "inviteFrom": "You are invited to {{dealership}}.",
+    "inviteExisting": "Already have an account? Enter its username and password. Otherwise choose new ones.",
+    "inviteDone": "You have joined. Sign in to continue.",
+    "join": "Join"
+  },
+  "invite": {
+    "button": "Invite",
+    "title": "Invite someone",
+    "create": "Create invitation",
+    "note": "Who is it for?",
+    "emailHint": "Leave empty to get a link you can share yourself.",
+    "share": "Send this link to the person. It works once, for 72 hours, and is shown only now.",
+    "link": "Invitation link",
+    "copy": "Copy link",
+    "emailed": "Invitation sent by email",
+    "none": "No invitations yet",
+    "revoke": "Withdraw",
+    "tab": "Invitations",
+    "state": {
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "revoked": "Withdrawn",
+      "expired": "Expired"
+    }
+  },
   "forbidden": {
     "title": "No access",
     "body": "Your role does not allow access to this page. Ask the owner if you need it."

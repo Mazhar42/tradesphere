@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
@@ -92,6 +93,9 @@ export function LoginPage() {
             <Button type="submit" className="w-full justify-center" loading={isSubmitting}>
               {isSubmitting ? t('auth.signingIn') : t('auth.signIn')}
             </Button>
+            <Link to="/forgot-password" className="inline-block text-sm text-primary underline">
+              {t('account.forgot')}
+            </Link>
           </form>
         </div>
       </div>

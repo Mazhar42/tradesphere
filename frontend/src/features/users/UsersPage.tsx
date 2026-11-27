@@ -24,6 +24,8 @@ import { useLang } from '@/i18n'
 import { applyServerErrors, blankToNull } from '@/lib/forms'
 import { formatDateTime, formatNumber } from '@/lib/format'
 
+import { InvitationList, InviteDialog } from './Invitations'
+
 type User = Schemas['UserRead']
 type Role = Schemas['RoleRead']
 const PAGE_SIZE = 25
@@ -291,7 +293,9 @@ export function UsersPage() {
   const { lang } = useLang()
   const { can, user: me } = useAuth()
   const canWrite = can('users:write')
-  const [tab, setTab] = useState<'users' | 'roles'>('users')
+  const [tab, setTab] = useState<'users' | 'roles' | 'invitations'>('users')
+  const [inviting, setInviting] = useState(false)
+  const roles = useRoles()
   const [q, setQ] = useState('')
   const [page, setPage] = useState(1)
   const [editing, setEditing] = useState<User | null>(null)
@@ -377,14 +381,19 @@ export function UsersPage() {
         description={t('users.subtitle')}
         actions={
           canWrite && (
-            <Button
-              onClick={() => {
-                setEditing(null)
-                setOpen(true)
-              }}
-            >
-              <Plus className="size-4" /> {t('users.new')}
-            </Button>
+            <>
+              <Button variant="outline" onClick={() => setInviting(true)}>
+                {t('invite.button')}
+              </Button>
+              <Button
+                onClick={() => {
+                  setEditing(null)
+                  setOpen(true)
+                }}
+              >
+                <Plus className="size-4" /> {t('users.new')}
+              </Button>
+            </>
           )
         }
       />
@@ -396,6 +405,7 @@ export function UsersPage() {
             items={[
               { value: 'users', label: t('users.usersTab') },
               { value: 'roles', label: t('users.rolesTab') },
+              { value: 'invitations', label: t('invite.tab') },
             ]}
           />
           <div className="flex-1" />
@@ -409,7 +419,9 @@ export function UsersPage() {
             />
           )}
         </Toolbar>
-        {tab === 'roles' ? (
+        {tab === 'invitations' ? (
+          <InvitationList />
+        ) : tab === 'roles' ? (
           <RolesOverview />
         ) : query.isError ? (
           <div className="p-4">
@@ -423,6 +435,7 @@ export function UsersPage() {
         )}
       </Card>
       <UserDialog user={editing} open={open} onOpenChange={setOpen} />
+      <InviteDialog open={inviting} onOpenChange={setInviting} roles={roles.data ?? []} />
       {/* key remounts the dialog so each user starts with an empty form */}
       <ResetPasswordDialog key={resetting?.id ?? 'none'} user={resetting} onClose={() => setResetting(null)} />
     </>

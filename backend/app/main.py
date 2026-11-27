@@ -18,6 +18,7 @@ from app.core.health import router as health_router
 from app.core.observability import access_log, configure_logging, init_error_tracking
 from app.modules.accounting.router import router as accounting_router
 from app.modules.audit.router import router as audit_router
+from app.modules.auth.invitation_router import router as invitations_router
 from app.modules.auth.router import router as auth_router
 from app.modules.catalog.router import router as catalog_router
 from app.modules.claims.router import router as claims_router
@@ -115,6 +116,7 @@ def create_app() -> FastAPI:
     for router in (
         auth_router,
         users_router,
+        invitations_router,
         catalog_router,
         parties_router,
         purchasing_router,

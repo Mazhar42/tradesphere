@@ -7,11 +7,13 @@ from sqlalchemy import (
     Identity,
     Index,
     String,
+    UniqueConstraint,
     func,
 )
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.shared.models import Base, IdMixin
+from app.shared.models import Base, IdMixin, TenantScoped
 
 
 class Tenant(Base):
@@ -73,4 +75,23 @@ class AuthEvent(IdMixin, Base):
     __table_args__ = (
         Index("ix_auth_events_identifier_occurred", "identifier", "occurred_at"),
         Index("ix_auth_events_ip_occurred", "ip", "occurred_at"),
+    )
+
+
+class TenantInvitation(TenantScoped, IdMixin, Base):
+    __tablename__ = "tenant_invitations"
+
+    email: Mapped[str | None] = mapped_column(String(150))
+    note: Mapped[str | None] = mapped_column(String(120))
+    roles: Mapped[list[str]] = mapped_column(JSONB)
+    token_hash: Mapped[str] = mapped_column(String(64))
+    expires_at: Mapped[datetime]
+    accepted_at: Mapped[datetime | None]
+    accepted_by_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("users.id"))
+    revoked_at: Mapped[datetime | None]
+    created_by_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("users.id"))
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "token_hash", name="uq_tenant_invitations_token_hash"),
     )

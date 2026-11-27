@@ -114,6 +114,11 @@ def add_member(
     return row
 
 
+def membership_count(session: Session, user_id: int) -> int:
+    """Every membership, active or not, across all dealerships."""
+    return int(session.scalar(text("SELECT app_membership_count(:u)"), {"u": user_id}) or 0)
+
+
 def active_membership_count(session: Session, user_id: int) -> int:
     """Across all dealerships, without revealing which (a database function does the counting)."""
     return int(session.scalar(text("SELECT app_active_membership_count(:u)"), {"u": user_id}) or 0)

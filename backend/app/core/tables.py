@@ -8,7 +8,7 @@ and a test fails if a table is missing from it.
 """
 
 PLATFORM_TABLES = frozenset(
-    {"users", "refresh_tokens", "tenants", "tenant_memberships", "auth_events"}
+    {"users", "refresh_tokens", "user_tokens", "tenants", "tenant_memberships", "auth_events"}
 )
 
 # Rows that are deactivated, never removed: documents and history point at them.
@@ -20,6 +20,7 @@ TENANT_TABLES = frozenset(
     {
         # identity and control
         "roles",
+        "tenant_invitations",
         "role_permissions",
         "user_roles",
         "app_settings",

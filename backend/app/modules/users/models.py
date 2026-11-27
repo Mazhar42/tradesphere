@@ -2,6 +2,7 @@ from datetime import datetime
 
 from sqlalchemy import (
     BigInteger,
+    CheckConstraint,
     Column,
     ForeignKey,
     Index,
@@ -65,13 +66,18 @@ class User(IdMixin, TimestampMixin, Base):
     username: Mapped[str] = mapped_column(String(50))
     full_name: Mapped[str] = mapped_column(String(120))
     phone: Mapped[str | None] = mapped_column(String(30))
+    email: Mapped[str | None] = mapped_column(String(150))
+    email_verified_at: Mapped[datetime | None]
     password_hash: Mapped[str] = mapped_column(String(255))
     is_active: Mapped[bool] = mapped_column(default=True)
     last_login_at: Mapped[datetime | None]
     # Loaded on use, never with the user: which roles appear depends on the dealership context.
     roles: Mapped[list[Role]] = relationship(secondary=user_roles, order_by=Role.code)
 
-    __table_args__ = (Index("uq_users_username", func.lower(username), unique=True),)
+    __table_args__ = (
+        Index("uq_users_username", func.lower(username), unique=True),
+        Index("uq_users_email", func.lower(email), unique=True),
+    )
 
     @property
     def role_codes(self) -> list[str]:
@@ -96,3 +102,23 @@ class RefreshToken(IdMixin, Base):
     replaced_by_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("refresh_tokens.id"))
     user_agent: Mapped[str | None] = mapped_column(String(300))
     ip: Mapped[str | None] = mapped_column(String(64))
+
+
+class UserToken(IdMixin, Base):
+    """A single-use link for one person (verify an address, reset a password)."""
+
+    __tablename__ = "user_tokens"
+
+    user_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    purpose: Mapped[str] = mapped_column(String(20))
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    email: Mapped[str | None] = mapped_column(String(150))
+    expires_at: Mapped[datetime]
+    used_at: Mapped[datetime | None]
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+    __table_args__ = (
+        CheckConstraint("purpose IN ('verify_email','reset_password')", name="purpose_valid"),
+    )

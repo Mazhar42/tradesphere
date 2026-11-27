@@ -53,6 +53,17 @@ const rootRoute = createRootRouteWithContext<RouterContext>()({
   component: Outlet,
 })
 
+const publicPage = (name: string) =>
+  lazyRouteComponent(() => import('@/features/auth/PublicPages'), name as 'ForgotPasswordPage')
+const publicRoutes = (
+  [
+    ['/forgot-password', 'ForgotPasswordPage'],
+    ['/reset-password', 'ResetPasswordPage'],
+    ['/verify-email', 'VerifyEmailPage'],
+    ['/accept-invitation', 'AcceptInvitationPage'],
+  ] as const
+).map(([path, name]) => createRoute({ getParentRoute: () => rootRoute, path, component: publicPage(name) }))
+
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/login',
@@ -95,6 +106,7 @@ function guarded<const P extends string>(path: P, permission: string | null, Pag
 
 const routeTree = rootRoute.addChildren([
   loginRoute,
+  ...publicRoutes,
   appRoute.addChildren([
     guarded('/', null, DashboardPage),
     guarded('/products', 'catalog:read', ProductsPage),

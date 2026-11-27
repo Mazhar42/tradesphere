@@ -5,8 +5,20 @@ from fastapi import APIRouter, Cookie, Request, Response, status
 from app.core.config import settings
 from app.core.db import DbSession
 from app.core.permissions import CurrentUserDep
-from app.modules.auth import service
-from app.modules.auth.schemas import LoginRequest, MeRead, RefreshRequest, TokenResponse
+from app.modules.auth import accounts, service
+from app.modules.auth.schemas import (
+    EmailChange,
+    InvitationAccept,
+    InvitationPreview,
+    LoginRequest,
+    MeRead,
+    PasswordChange,
+    RefreshRequest,
+    ResetConfirm,
+    ResetRequest,
+    TokenOnly,
+    TokenResponse,
+)
 from app.modules.users.service import get_user
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -70,3 +82,54 @@ def logout(
 def me(db: DbSession, user: CurrentUserDep) -> MeRead:
     assert user.tenant_id is not None
     return service.me_from_user(db, get_user(db, user.id), user.tenant_id)
+
+
+# --- Invitations, recovery and verification -------------------------------------------------
+
+
+@router.post("/invitations/inspect", response_model=InvitationPreview)
+def inspect_invitation(db: DbSession, data: TokenOnly) -> InvitationPreview:
+    invitation, tenant = accounts.open_invitation(db, data.token)
+    return InvitationPreview(dealership=tenant.legal_name, email=invitation.email)
+
+
+@router.post("/invitations/accept", status_code=status.HTTP_204_NO_CONTENT)
+def accept_invitation(db: DbSession, data: InvitationAccept) -> None:
+    accounts.accept_invitation(
+        db,
+        token=data.token,
+        username=data.username,
+        full_name=data.full_name,
+        password=data.password,
+    )
+    db.commit()
+
+
+@router.post("/password-reset", status_code=status.HTTP_202_ACCEPTED)
+def request_password_reset(db: DbSession, data: ResetRequest, request: Request) -> None:
+    accounts.request_password_reset(db, data.identifier, _client(request)[1])
+    db.commit()
+
+
+@router.post("/password-reset/confirm", status_code=status.HTTP_204_NO_CONTENT)
+def confirm_password_reset(db: DbSession, data: ResetConfirm) -> None:
+    accounts.reset_password_with_token(db, data.token, data.new_password)
+    db.commit()
+
+
+@router.post("/verify-email", status_code=status.HTTP_204_NO_CONTENT)
+def verify_email(db: DbSession, data: TokenOnly) -> None:
+    accounts.verify_email(db, data.token)
+    db.commit()
+
+
+@router.post("/me/email", status_code=status.HTTP_202_ACCEPTED)
+def set_email(db: DbSession, user: CurrentUserDep, data: EmailChange) -> None:
+    accounts.set_own_email(db, user.id, data.email, data.password)
+    db.commit()
+
+
+@router.post("/me/password", status_code=status.HTTP_204_NO_CONTENT)
+def change_password(db: DbSession, user: CurrentUserDep, data: PasswordChange) -> None:
+    accounts.change_own_password(db, user.id, data.current_password, data.new_password)
+    db.commit()

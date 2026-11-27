@@ -111,6 +111,54 @@ def _active_owner_count(session: Session, excluding_user_id: int | None = None) 
     return session.scalar(stmt) or 0
 
 
+# The passwords tried first by anyone guessing. Short list on purpose: length does the rest.
+COMMON_PASSWORDS = frozenset(
+    {
+        "password", "password1", "password123", "passw0rd", "12345678", "123456789",
+        "1234567890", "qwerty123", "qwertyuiop", "11111111", "admin123", "welcome1",
+        "iloveyou", "abc12345", "bangladesh", "bismillah", "letmein123", "tradesphere",
+    }
+)  # fmt: skip
+PRIVILEGED_MINIMUM = 10
+
+
+def check_password(password: str, *, privileged: bool) -> None:
+    problem = None
+    if password.lower() in COMMON_PASSWORDS:
+        problem = "This password is too common."
+    elif privileged and len(password) < PRIVILEGED_MINIMUM:
+        problem = f"Owners need at least {PRIVILEGED_MINIMUM} characters."
+    if problem:
+        raise BusinessRuleError(
+            problem, code="weak_password", errors=[{"field": "password", "message": problem}]
+        )
+
+
+def set_password(session: Session, user: User, new_password: str) -> None:
+    """Change a password and end every session of that person."""
+    check_password(new_password, privileged=False)
+    user.password_hash = hash_password(new_password)
+    revoke_all_tokens(session, user.id)
+
+
+def get_by_email(session: Session, address: str) -> User | None:
+    return session.scalar(select(User).where(func.lower(User.email) == address.lower()))
+
+
+def ensure_may_grant(session: Session, actor: CurrentUser, role_codes: list[str]) -> None:
+    """Nobody hands out a permission they do not hold themselves."""
+    granted = {p.code for role in _resolve_roles(session, role_codes) for p in role.permissions}
+    if granted - actor.permissions:
+        raise ForbiddenError("You cannot give permissions you do not have.", code="cannot_grant")
+
+
+def assign_roles(session: Session, user: User, role_codes: list[str]) -> None:
+    """Set a member's roles in the current dealership."""
+    session.expire(user, ["roles"])
+    user.roles = _resolve_roles(session, role_codes)
+    session.flush()
+
+
 def create_user(session: Session, data: UserCreate, actor: CurrentUser | None) -> User:
     if get_by_username(session, data.username):
         raise ConflictError(
@@ -124,6 +172,9 @@ def create_user(session: Session, data: UserCreate, actor: CurrentUser | None) -
         phone=data.phone,
         password_hash=hash_password(data.password),
     )
+    check_password(data.password, privileged="owner" in data.roles)
+    if actor is not None:
+        ensure_may_grant(session, actor, data.roles)
     roles = _resolve_roles(session, data.roles)
     session.add(user)
     session.flush()
@@ -158,6 +209,7 @@ def update_user(session: Session, user_id: int, data: UserUpdate, actor: Current
         raise BusinessRuleError("You cannot deactivate your own account.", code="self_deactivate")
 
     if "roles" in changes and changes["roles"] is not None:
+        ensure_may_grant(session, actor, changes["roles"])
         user.roles = _resolve_roles(session, changes.pop("roles"))
     changes.pop("roles", None)
     is_active = changes.pop("is_active", None)
@@ -185,9 +237,16 @@ def update_user(session: Session, user_id: int, data: UserUpdate, actor: Current
 
 
 def reset_password(session: Session, user_id: int, new_password: str, actor: CurrentUser) -> None:
+    """Only for accounts this dealership created and that belong to no other (TS-09): a shared
+    account's password would open the other dealership too."""
     user = get_user(session, user_id)
-    user.password_hash = hash_password(new_password)
-    revoke_all_tokens(session, user.id)
+    member = tenancy.membership(session, user_id)
+    if not member.managed_by_tenant or tenancy.membership_count(session, user_id) != 1:
+        raise ForbiddenError(
+            "This person manages their own password. They can use 'Forgot password'.",
+            code="reset_not_allowed",
+        )
+    set_password(session, user, new_password)
     record_audit(
         session, actor_id=actor.id, action="reset_password", entity_type="user", entity_id=user.id
     )

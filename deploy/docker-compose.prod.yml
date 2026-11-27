@@ -54,6 +54,13 @@ services:
       ENVIRONMENT: production
       LOG_FORMAT: json
       SENTRY_DSN: ${SENTRY_DSN:-}
+      PUBLIC_URL: ${SITE_URL}
+      EMAIL_BACKEND: ${EMAIL_BACKEND:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      EMAIL_FROM: ${EMAIL_FROM:-TradeSphere <no-reply@localhost>}
       CORS_ORIGINS: '["${SITE_URL:?set SITE_URL in .env}"]'
       # Only Caddy reaches the API, over this stack's own network (see `networks` below).
       TRUSTED_PROXIES: '["${STACK_SUBNET:-172.30.0.0/24}"]'

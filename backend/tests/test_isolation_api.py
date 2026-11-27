@@ -237,6 +237,9 @@ def _build_other(client: TestClient, db: Session) -> Other:
         idem=True,
     )
     post("/api/v1/payment-accounts", {"name": f"{MARK} bank", "kind": "bank"})
+    ids["invitation_id"] = post(
+        "/api/v1/invitations", {"note": f"{MARK} invitee", "roles": ["cashier"]}
+    )["invitation"]["id"]
     clear_context(db)
     set_context(db, tenant_id=TEST_TENANT)
     return other
