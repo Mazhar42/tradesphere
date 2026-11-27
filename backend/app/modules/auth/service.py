@@ -59,7 +59,7 @@ def _recent_failures(session: Session, *, username: str | None, ip: str | None) 
     return int(session.scalar(select(func.count(AuthEvent.id)).where(*conditions)) or 0)
 
 
-def _sign_in_blocked(session: Session, username: str, ip: str | None) -> bool:
+def sign_in_blocked(session: Session, username: str, ip: str | None) -> bool:
     """Counts come from the database, so every worker and every restart sees the same limit."""
     if (
         _recent_failures(session, username=username, ip=None)
@@ -154,7 +154,7 @@ def login(
     ip: str | None,
     code: str | None = None,
 ) -> AuthResult:
-    if _sign_in_blocked(session, username, ip):
+    if sign_in_blocked(session, username, ip):
         raise RateLimitedError(TOO_MANY_ATTEMPTS, code="login_rate_limited")
     user = get_by_username(session, username)
     valid = verify_password(password, user.password_hash if user else None)
@@ -184,7 +184,7 @@ def step_up(session: Session, user_id: int, tenant_id: int, code: str) -> TokenR
     """A new access token that records a fresh second factor."""
     user = session.get(User, user_id)
     assert user is not None
-    if _sign_in_blocked(session, user.username, None):
+    if sign_in_blocked(session, user.username, None):
         raise RateLimitedError(TOO_MANY_ATTEMPTS, code="login_rate_limited")
     if not mfa.verify(session, user.id, code):
         _failed(session, user, user.username)

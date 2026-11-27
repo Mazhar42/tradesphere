@@ -17,6 +17,7 @@ from app.core.config import settings
 from app.core.db import SessionLocal
 from app.core.tenant_context import set_context
 from app.modules.integrity.reconcile import reconcile as run_reconcile
+from app.modules.platform.service import add_operator
 from app.modules.sales.rebuild import rebuild_sales_summary
 from app.modules.tenancy.models import Tenant
 from app.modules.tenancy.service import all_tenants as all_dealerships
@@ -168,6 +169,20 @@ def provision_tenant_command(
         )
         session.commit()
     typer.echo(f"Dealership '{slug}' created.")
+
+
+@cli.command("platform-operator")
+def platform_operator(
+    username: Annotated[str, typer.Option(help="An existing account")],
+) -> None:
+    """Make a person a platform operator. Shell access is the only way in."""
+    with _platform_session() as session:
+        uri, codes = add_operator(session, username)
+        session.commit()
+    typer.echo(f"'{username}' is a platform operator.")
+    if uri:
+        typer.echo(f"Add to an authenticator app (shown once):\n{uri}")
+        typer.echo("Recovery codes (shown once):\n" + "\n".join(codes))
 
 
 @cli.command("provision-db")

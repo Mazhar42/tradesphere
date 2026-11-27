@@ -16,9 +16,11 @@ from psycopg import sql
 from sqlalchemy import Connection, Engine, text
 
 from app.core.tables import (
+    APP_INSERT_ONLY_TABLES,
     APPEND_ONLY_TABLES,
     GLOBAL_TABLES,
     NO_DELETE_TABLES,
+    OPERATOR_TABLES,
     PLATFORM_TABLES,
     SYSTEM_TABLES,
 )
@@ -115,6 +117,10 @@ def apply_grants(conn: Connection) -> None:
             _run(conn, "REVOKE ALL ON {} FROM {}", table, APP)
             if table in GLOBAL_TABLES | SYSTEM_TABLES:
                 _run(conn, "GRANT SELECT ON {} TO {}", table, APP)
+            elif table in OPERATOR_TABLES:
+                continue
+            elif table in APP_INSERT_ONLY_TABLES:
+                _run(conn, "GRANT INSERT ON {} TO {}", table, APP)
             else:
                 _run(conn, "GRANT " + _verbs(table) + " ON {} TO {}", table, APP)
         _run(conn, "GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO {}", APP)

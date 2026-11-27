@@ -170,6 +170,30 @@
     "delete": "Delete role",
     "editTitle": "Edit role"
   },
+  "support": {
+    "title": "Support access",
+    "help": "Let a support operator read (never change) your records for 24 hours. Every look is written to your audit log.",
+    "operator": "Operator username",
+    "reason": "Why",
+    "allow": "Allow",
+    "end": "End now",
+    "until": "Until {{when}}"
+  },
+  "platform": {
+    "title": "Platform administration",
+    "dealerships": "Dealerships",
+    "members": "{{count}} people",
+    "suspend": "Suspend",
+    "activate": "Reactivate",
+    "audit": "Recent platform activity",
+    "reason": "Reason for changing {{name}}",
+    "status": {
+      "active": "Active",
+      "suspended": "Suspended",
+      "pending": "Pending",
+      "deleted": "Deleted"
+    }
+  },
   "forbidden": {
     "title": "No access",
     "body": "Your role does not allow access to this page. Ask the owner if you need it."

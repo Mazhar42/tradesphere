@@ -28,6 +28,8 @@ from app.modules.inventory.doc_router import router as inventory_docs_router
 from app.modules.inventory.router import router as inventory_router
 from app.modules.opening.router import router as opening_router
 from app.modules.parties.router import router as parties_router
+from app.modules.platform.router import router as platform_router
+from app.modules.platform.support_router import router as support_router
 from app.modules.purchasing.return_router import router as purchase_returns_router
 from app.modules.purchasing.router import router as purchasing_router
 from app.modules.sales.router import router as sales_router
@@ -117,6 +119,8 @@ def create_app() -> FastAPI:
         auth_router,
         users_router,
         invitations_router,
+        support_router,
+        platform_router,
         catalog_router,
         parties_router,
         purchasing_router,

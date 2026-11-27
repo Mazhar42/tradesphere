@@ -40,6 +40,10 @@ engine = create_engine(
 
 SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
 
+# Platform administration only: this role sees no dealership's business records.
+platform_engine = create_engine(settings.platform_url, pool_pre_ping=True, pool_size=2)
+PlatformSessionLocal = sessionmaker(bind=platform_engine, autoflush=False, expire_on_commit=False)
+
 
 # 40001 serialization_failure, 40P01 deadlock_detected: PostgreSQL rolled the transaction back,
 # and running it again can succeed.

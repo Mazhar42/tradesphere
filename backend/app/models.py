@@ -29,6 +29,7 @@ from app.modules.inventory.models import (
     StockTransferItem,
 )
 from app.modules.parties.models import Customer, Supplier
+from app.modules.platform.models import PlatformAuditLog, PlatformOperator, SupportGrant
 from app.modules.purchasing.models import (
     GoodsReceipt,
     GoodsReceiptItem,
@@ -100,6 +101,8 @@ __all__ = [
     "PaymentAccount",
     "PaymentPoAllocation",
     "Permission",
+    "PlatformAuditLog",
+    "PlatformOperator",
     "Product",
     "ProductCost",
     "ProductUom",
@@ -122,6 +125,7 @@ __all__ = [
     "StockTransferItem",
     "Supplier",
     "SupplierPayment",
+    "SupportGrant",
     "Tenant",
     "TenantInvitation",
     "TenantMembership",

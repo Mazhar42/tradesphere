@@ -28,8 +28,17 @@ def _write(connection: Connection, key: str, value: int | None) -> None:
     )
 
 
+def read_only(session: Session) -> None:
+    """Every transaction of this session from now on refuses to write."""
+    session.info["read_only"] = True
+    if session.in_transaction():
+        session.execute(text("SET TRANSACTION READ ONLY"))
+
+
 @event.listens_for(Session, "after_begin")
 def _apply_context(session: Session, _: Any, connection: Connection) -> None:
+    if session.info.get("read_only"):
+        connection.execute(text("SET TRANSACTION READ ONLY"))
     for key in _SETTINGS:
         if session.info.get(key) is not None:
             _write(connection, key, session.info[key])

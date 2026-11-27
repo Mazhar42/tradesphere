@@ -25,7 +25,8 @@ def include_object(obj: object, name: str | None, type_: str, reflected: bool, _
     relationships stay simple), their `(tenant_id, id)` uniques, and the generated party columns.
     """
     table = getattr(getattr(obj, "table", None), "name", None)
-    if type_ == "foreign_key_constraint" and table in TENANT_TABLES:
+    composite = TENANT_TABLES | {"support_access_grants"}
+    if type_ == "foreign_key_constraint" and table in composite:
         return False
     if name and name.startswith("uq_tid_"):
         return False

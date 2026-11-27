@@ -17,8 +17,17 @@ PLATFORM_TABLES = frozenset(
         "tenants",
         "tenant_memberships",
         "auth_events",
+        "platform_operators",
+        "platform_audit_logs",
+        "support_access_grants",
     }
 )
+
+# Closed to the application role altogether: a flaw in the dealership application must not be
+# able to make or unmake an operator.
+OPERATOR_TABLES = frozenset({"platform_operators"})
+# The application may add to these but never read or change them.
+APP_INSERT_ONLY_TABLES = frozenset({"platform_audit_logs"})
 
 # Rows that are deactivated, never removed: documents and history point at them.
 NO_DELETE_TABLES = frozenset({"tenants", "tenant_memberships"})
@@ -93,7 +102,14 @@ TENANT_TABLES = frozenset(
 )
 
 APPEND_ONLY_TABLES = frozenset(
-    {"inventory_movements", "journal_entries", "journal_lines", "audit_logs", "auth_events"}
+    {
+        "inventory_movements",
+        "journal_entries",
+        "journal_lines",
+        "audit_logs",
+        "auth_events",
+        "platform_audit_logs",
+    }
 )
 
 # Not application data.

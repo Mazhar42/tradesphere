@@ -65,6 +65,12 @@ const publicRoutes = (
   ] as const
 ).map(([path, name]) => createRoute({ getParentRoute: () => rootRoute, path, component: publicPage(name) }))
 
+const platformRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/platform',
+  component: lazyRouteComponent(() => import('@/features/platform/PlatformApp'), 'PlatformApp'),
+})
+
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/login',
@@ -108,6 +114,7 @@ function guarded<const P extends string>(path: P, permission: string | null, Pag
 const routeTree = rootRoute.addChildren([
   loginRoute,
   ...publicRoutes,
+  platformRoute,
   appRoute.addChildren([
     guarded('/', null, DashboardPage),
     guarded('/account', null, AccountPage),

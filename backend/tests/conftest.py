@@ -71,6 +71,7 @@ class Databases:
     admin: Engine  # superuser: provisioning, catalog checks, test cleanup
     owner: Engine  # migrations and seed
     app: Engine  # what the application connects as
+    platform: Engine  # what platform administration connects as
     passwords: dict[str, str]
 
 
@@ -93,11 +94,12 @@ def _build(url: URL) -> Databases:
         tenant = provision_tenant(session, slug="test", legal_name="Test Dealership")
         assert tenant.id == TEST_TENANT
         session.commit()
-    return Databases(admin, owner, app_role, dict(ROLE_PASSWORDS))
+    platform = create_engine(_as(url, provision.PLATFORM))
+    return Databases(admin, owner, app_role, platform, dict(ROLE_PASSWORDS))
 
 
 def _dispose(databases: Databases) -> None:
-    for each in (databases.app, databases.owner, databases.admin):
+    for each in (databases.app, databases.platform, databases.owner, databases.admin):
         each.dispose()
 
 
@@ -118,20 +120,26 @@ def engine(databases: Databases) -> Engine:
 
 
 @pytest.fixture
-def scratch_engine(databases: Databases) -> Iterator[Engine]:
+def scratch_engine(scratch: Databases) -> Engine:
+    """The application's connection to the throwaway database."""
+    return scratch.app
+
+
+@pytest.fixture
+def scratch(databases: Databases) -> Iterator[Databases]:
     """A separate, freshly migrated and seeded database for tests that must really commit
-    (threads and row locks). It is dropped afterwards, so nothing has to be cleaned up."""
+    (threads, row locks, several connections). It is dropped afterwards."""
     assert TEST_DATABASE_URL
     name = f"tradesphere_scratch_{uuid.uuid4().hex[:10]}"
     admin = databases.admin.execution_options(isolation_level="AUTOCOMMIT")
     with admin.connect() as conn:
         conn.execute(text(f'CREATE DATABASE "{name}"'))
     try:
-        scratch = _build(make_url(TEST_DATABASE_URL).set(database=name))
+        built = _build(make_url(TEST_DATABASE_URL).set(database=name))
         try:
-            yield scratch.app
+            yield built
         finally:
-            _dispose(scratch)
+            _dispose(built)
     finally:
         with admin.connect() as conn:
             conn.execute(text(f'DROP DATABASE "{name}" WITH (FORCE)'))

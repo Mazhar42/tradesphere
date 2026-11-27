@@ -18,6 +18,8 @@ import { useLang } from '@/i18n'
 import { applyServerErrors, blankToNull } from '@/lib/forms'
 import { formatDate } from '@/lib/format'
 
+import { SupportAccess } from './SupportAccess'
+
 const KEY = ['settings'] as const
 
 const profileSchema = z.object({
@@ -278,6 +280,7 @@ export function SettingsPage() {
             <PreferencesCard data={query.data.preferences} canWrite={canWrite} />
             <PeriodLockCard data={query.data.period_lock} canWrite={canWrite} />
           </div>
+          {canWrite && <SupportAccess />}
         </div>
       ) : (
         <div className="h-64 animate-pulse rounded-xl bg-surface-muted" />

@@ -130,3 +130,14 @@ def test_the_trigger_stops_even_the_owner(databases: Databases) -> None:
         with pytest.raises(DBAPIError, match="append-only"):
             conn.execute(text("UPDATE audit_logs SET action = 'x' WHERE action = 'probe'"))
         transaction.rollback()
+
+
+def test_the_application_cannot_make_or_see_operators(databases: Databases) -> None:
+    for statement in (
+        "SELECT count(*) FROM platform_operators",
+        "INSERT INTO platform_operators (user_id) VALUES (1)",
+        "SELECT count(*) FROM platform_audit_logs",
+    ):
+        with databases.app.connect() as conn, pytest.raises(DBAPIError) as refused:
+            conn.execute(text(statement))
+        assert getattr(refused.value.orig, "sqlstate", None) == "42501", statement

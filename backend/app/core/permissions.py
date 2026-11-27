@@ -1,20 +1,27 @@
 """Authentication & authorization dependencies."""
 
+import json
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Annotated
 
-from fastapi import Depends
+from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.db import DbSession
 from app.core.errors import ForbiddenError, UnauthorizedError
-from app.core.security import decode_access_token
-from app.core.tenant_context import set_context
-from app.modules.tenancy.service import enter
+from app.core.security import AccessClaims, decode_access_token
+from app.core.tenant_context import read_only, set_context
+from app.modules.platform.models import SupportGrant
+from app.modules.tenancy.models import Tenant
+from app.modules.tenancy.service import business_config, enter
 from app.modules.users.models import MfaFactor, User
+from app.modules.users.permissions_catalog import PERMISSIONS
+from app.shared.audit import record_audit
+from app.shared.business import use_business
 from app.shared.dates import now_utc
 
 _bearer = HTTPBearer(auto_error=False)
@@ -39,8 +46,61 @@ class CurrentUser:
         return permission in self.permissions
 
 
+SUPPORT_ROLE = "support"
+READ_ONLY_METHODS = ("GET", "HEAD", "OPTIONS")
+
+
+def _support_identity(db: Session, claims: AccessClaims, request: Request) -> CurrentUser:
+    """An operator reading a dealership under its owner's grant: logged, and unable to write."""
+    if request.method not in READ_ONLY_METHODS:
+        raise ForbiddenError("Support access is read-only.", code="support_read_only")
+    set_context(db, tenant_id=claims.tenant_id, user_id=claims.user_id)
+    grant = db.get(SupportGrant, claims.support_grant, populate_existing=True)
+    if (
+        grant is None
+        or grant.tenant_id != claims.tenant_id
+        or grant.operator_id != claims.user_id
+        or grant.revoked_at is not None
+        or grant.expires_at <= now_utc()
+        or not db.scalar(text("SELECT app_is_operator(:u)"), {"u": claims.user_id})
+    ):
+        raise ForbiddenError("This support access has ended.", code="support_ended")
+    tenant = db.get(Tenant, claims.tenant_id, populate_existing=True)
+    user = db.get(User, claims.user_id)
+    assert tenant is not None and user is not None
+    use_business(business_config(tenant))
+    details = {"grant_id": grant.id, "method": request.method, "path": request.url.path}
+    # Both the dealership and the platform see every request.
+    record_audit(
+        db,
+        actor_id=None,
+        action="support_access",
+        entity_type="support_grant",
+        entity_id=grant.id,
+        after={**details, "operator": user.username},
+    )
+    db.execute(
+        text(
+            "INSERT INTO platform_audit_logs (operator_id, action, tenant_id, details) "
+            "VALUES (:o, 'support_request', :t, cast(:d AS jsonb))"
+        ),
+        {"o": user.id, "t": claims.tenant_id, "d": json.dumps(details)},
+    )
+    db.commit()
+    read_only(db)
+    return CurrentUser(
+        id=user.id,
+        username=user.username,
+        full_name=user.full_name,
+        roles=(SUPPORT_ROLE,),
+        permissions=frozenset(p for p in PERMISSIONS if p.endswith(":read")),
+        tenant_id=claims.tenant_id,
+    )
+
+
 def get_identity(
     db: DbSession,
+    request: Request,
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer)],
 ) -> CurrentUser:
     """Order matters: identity, then membership and dealership status, then permissions.
@@ -48,6 +108,8 @@ def get_identity(
     if credentials is None:
         raise UnauthorizedError("Authentication required.", code="not_authenticated")
     claims = decode_access_token(credentials.credentials)
+    if claims.support_grant is not None:
+        return _support_identity(db, claims, request)
     set_context(db, user_id=claims.user_id)
     user = db.get(User, claims.user_id, populate_existing=True)
     if user is None or not user.is_active:

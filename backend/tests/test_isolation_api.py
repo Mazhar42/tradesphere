@@ -241,6 +241,14 @@ def _build_other(client: TestClient, db: Session) -> Other:
         "/api/v1/roles",
         {"code": "zzb-clerk", "name": f"{MARK} clerk", "permissions": ["catalog:read"]},
     )["id"]
+    db.execute(
+        text(
+            "INSERT INTO support_access_grants (operator_id, approved_by_id, reason, expires_at) "
+            "VALUES (:u, :u, 'ZZB help', now() + interval '1 day')"
+        ),
+        {"u": owner.id},
+    )
+    ids["grant_id"] = db.scalar(text("SELECT max(id) FROM support_access_grants"))
     ids["invitation_id"] = post(
         "/api/v1/invitations", {"note": f"{MARK} invitee", "roles": ["cashier"]}
     )["invitation"]["id"]
@@ -403,7 +411,10 @@ def _routes() -> list[tuple[str, str, list[str], list[str], bool]]:
 
     found = []
     for path, operations in schema["paths"].items():
-        if not path.startswith("/api/v1/") or path.startswith("/api/v1/auth/"):
+        # Sign-in routes take no dealership ids; platform routes have their own tests.
+        if not path.startswith("/api/v1/") or path.startswith(
+            ("/api/v1/auth/", "/api/v1/platform/")
+        ):
             continue
         for method, operation in operations.items():
             parameters = operation.get("parameters", [])
