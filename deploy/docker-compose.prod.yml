@@ -14,18 +14,33 @@ services:
       POSTGRES_USER: tradesphere
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
       POSTGRES_DB: tradesphere
-      APP_DB_USER: tradesphere_app
-      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?set APP_DB_PASSWORD in .env}
       TZ: UTC
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./db/init:/docker-entrypoint-initdb.d:ro
     # No `ports:`: the database is reachable only from containers on this stack's network.
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U tradesphere -d tradesphere"]
       interval: 5s
       timeout: 3s
       retries: 20
+
+  # Creates or repairs the database roles. The only service that uses the superuser.
+  provision:
+    build: *api-build
+    image: tradesphere-api:prod
+    restart: "no"
+    command: ["python", "-m", "app.cli", "provision-db"]
+    environment:
+      ADMIN_DATABASE_URL: postgresql+psycopg://tradesphere:${POSTGRES_PASSWORD}@db:5432/tradesphere
+      OWNER_DB_PASSWORD: ${OWNER_DB_PASSWORD:?set OWNER_DB_PASSWORD in .env}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?set APP_DB_PASSWORD in .env}
+      PLATFORM_DB_PASSWORD: ${PLATFORM_DB_PASSWORD:?set PLATFORM_DB_PASSWORD in .env}
+      BACKUP_DB_PASSWORD: ${BACKUP_DB_PASSWORD:?set BACKUP_DB_PASSWORD in .env}
+      DATABASE_URL: postgresql+psycopg://unused:unused@db:5432/tradesphere
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+    depends_on:
+      db:
+        condition: service_healthy
 
   # Applies migrations as the owner role before each start of the API, then exits.
   migrate:
@@ -34,7 +49,7 @@ services:
     restart: "no"
     command: ["alembic", "upgrade", "head"]
     environment: &api-env
-      DATABASE_URL: postgresql+psycopg://tradesphere:${POSTGRES_PASSWORD}@db:5432/tradesphere
+      DATABASE_URL: postgresql+psycopg://tradesphere_owner:${OWNER_DB_PASSWORD}@db:5432/tradesphere
       JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
       ENVIRONMENT: production
       LOG_FORMAT: json
@@ -43,8 +58,8 @@ services:
       # Only Caddy reaches the API, over this stack's own network (see `networks` below).
       TRUSTED_PROXIES: '["${STACK_SUBNET:-172.30.0.0/24}"]'
     depends_on:
-      db:
-        condition: service_healthy
+      provision:
+        condition: service_completed_successfully
 
   api:
     build: *api-build
@@ -53,7 +68,7 @@ services:
     environment:
       <<: *api-env
       # The API runs as the least-privileged role: data access only, no schema changes.
-      DATABASE_URL: postgresql+psycopg://${APP_DB_USER:-tradesphere_app}:${APP_DB_PASSWORD}@db:5432/tradesphere
+      DATABASE_URL: postgresql+psycopg://tradesphere_app:${APP_DB_PASSWORD}@db:5432/tradesphere
     depends_on:
       db:
         condition: service_healthy
@@ -101,8 +116,8 @@ services:
         required: false
     environment:
       PGHOST: db
-      PGUSER: tradesphere
-      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGUSER: tradesphere_backup
+      PGPASSWORD: ${BACKUP_DB_PASSWORD}
       PGDATABASE: tradesphere
       BACKUP_DIR: /backups
     volumes:

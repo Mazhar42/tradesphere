@@ -16,6 +16,8 @@ class Settings(BaseSettings):
 
     environment: Literal["development", "test", "production"] = "development"
     database_url: str
+    # Migrations and `seed` connect as the schema owner. Unset: same as database_url.
+    migration_database_url: str | None = None
     test_database_url: str | None = None
     db_pool_size: int = 10
     db_max_overflow: int = 10
@@ -50,10 +52,16 @@ class Settings(BaseSettings):
     def is_production(self) -> bool:
         return self.environment == "production"
 
-    @field_validator("database_url")
+    @property
+    def owner_database_url(self) -> str:
+        return self.migration_database_url or self.database_url
+
+    @field_validator("database_url", "migration_database_url")
     @classmethod
-    def _use_psycopg_driver(cls, value: str) -> str:
+    def _use_psycopg_driver(cls, value: str | None) -> str | None:
         """Hosts such as Render give plain `postgresql://` URLs; the app uses psycopg 3."""
+        if value is None:
+            return None
         for prefix in ("postgres://", "postgresql://"):
             if value.startswith(prefix):
                 return "postgresql+psycopg://" + value[len(prefix) :]

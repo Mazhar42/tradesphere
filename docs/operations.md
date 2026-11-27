@@ -8,7 +8,8 @@ Production runs on one Ubuntu VPS with Docker Compose. The stack is defined in
 | `web`    | Caddy: HTTPS, the built SPA, `/api` proxied to the API | 80, 443 |
 | `api`    | FastAPI under uvicorn, 2 workers, runs as the least-privileged DB role | nothing |
 | `migrate`| `alembic upgrade head`, runs before every API start, then exits | nothing |
-| `db`     | PostgreSQL 17; owner role `tradesphere`, runtime role `tradesphere_app` | nothing |
+| `provision` | Creates or repairs the database roles (the only use of the superuser), then exits | nothing |
+| `db`     | PostgreSQL 17 | nothing |
 | `backup` | nightly `pg_dump -Fc`, verification, retention, off-site copy | nothing |
 
 ## 1. First deploy
@@ -88,6 +89,28 @@ result in the operations log. A drill that has not been run for 35 days is overd
 
 For a real disaster recovery, restore into an empty database the same way (`pg_restore --no-owner`),
 then start the stack against it.
+
+## Database roles
+
+| Role | Used by | Can |
+|------|---------|-----|
+| `tradesphere` (superuser) | `provision` only | Everything; never serves requests |
+| `tradesphere_owner` | `migrate`, `seed` | Own and change the schema |
+| `tradesphere_app` | `api` | Read and write data; no schema changes; cannot update or delete ledgers and audit rows |
+| `tradesphere_platform` | platform administration, job claiming | Platform tables only |
+| `tradesphere_backup` | `backup` | Read everything, including rows hidden by row-level security |
+
+In production the API refuses to start if its role is a superuser or can bypass row-level security.
+
+**An existing installation** (created before these roles): set `OWNER_DB_PASSWORD`,
+`PLATFORM_DB_PASSWORD` and `BACKUP_DB_PASSWORD` in `.env`, take a backup, then `up -d`. `provision`
+moves ownership of the tables to `tradesphere_owner`; it changes no data and is safe to repeat.
+To go back to the previous release, first return ownership as the superuser:
+`REASSIGN OWNED BY tradesphere_owner TO tradesphere;`
+
+A host with a single database user (the Render demo) has none of these roles. That user must not be
+a superuser; check with
+`SELECT rolsuper, rolbypassrls FROM pg_roles WHERE rolname = current_user;` before deploying.
 
 ## 5. Monitoring
 

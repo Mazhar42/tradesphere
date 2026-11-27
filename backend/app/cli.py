@@ -5,9 +5,13 @@ from datetime import datetime
 from typing import Annotated
 
 import typer
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
 
 import app.models as _models  # noqa: F401  (register all tables)
 from app.bootstrap import ensure_owner
+from app.core import provision
+from app.core.config import settings
 from app.core.db import SessionLocal
 from app.modules.inventory.reconcile import reconcile as run_reconcile
 from app.modules.sales.rebuild import rebuild_sales_summary
@@ -21,7 +25,8 @@ cli = typer.Typer(no_args_is_help=True, add_completion=False)
 @cli.command()
 def seed() -> None:
     """Create or update reference data (permissions, roles, units, accounts...)."""
-    with SessionLocal() as session:
+    owner = create_engine(settings.owner_database_url)
+    with Session(owner, autoflush=False, expire_on_commit=False) as session:
         run_seed(session)
         session.commit()
     typer.echo("Seed complete.")
@@ -86,6 +91,27 @@ def bootstrap_owner() -> None:
         created = ensure_owner(session, username=username, full_name=full_name, password=password)
         session.commit()
     typer.echo("Owner created." if created else "Owner already exists; nothing to do.")
+
+
+@cli.command("provision-db")
+def provision_db() -> None:
+    """Create the database roles and hand them the schema (needs a superuser; safe to repeat).
+
+    Reads ADMIN_DATABASE_URL and OWNER_DB_PASSWORD, APP_DB_PASSWORD, PLATFORM_DB_PASSWORD,
+    BACKUP_DB_PASSWORD.
+    """
+    url = os.environ.get("ADMIN_DATABASE_URL")
+    if not url:
+        typer.echo("Set ADMIN_DATABASE_URL to a superuser connection.", err=True)
+        raise typer.Exit(2)
+    passwords = {
+        provision.OWNER: os.environ.get("OWNER_DB_PASSWORD", ""),
+        provision.APP: os.environ.get("APP_DB_PASSWORD", ""),
+        provision.PLATFORM: os.environ.get("PLATFORM_DB_PASSWORD", ""),
+        provision.BACKUP: os.environ.get("BACKUP_DB_PASSWORD", ""),
+    }
+    provision.provision(create_engine(url), passwords)
+    typer.echo("Database roles are provisioned.")
 
 
 if __name__ == "__main__":

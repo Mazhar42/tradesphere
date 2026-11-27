@@ -36,12 +36,37 @@ services:
       timeout: 3s
       retries: 20
 
+  # Creates the database roles and applies migrations before the API starts. Development only:
+  # the passwords below protect nothing but a local database.
+  setup:
+    build:
+      context: ./backend
+      target: dev
+    image: tradesphere-api
+    command: ["sh", "-c", "python -m app.cli provision-db && alembic upgrade head && python -m app.cli seed"]
+    environment:
+      ADMIN_DATABASE_URL: postgresql+psycopg://tradesphere:tradesphere@db:5432/tradesphere
+      MIGRATION_DATABASE_URL: postgresql+psycopg://tradesphere_owner:dev-owner@db:5432/tradesphere
+      DATABASE_URL: postgresql+psycopg://tradesphere_app:dev-app@db:5432/tradesphere
+      OWNER_DB_PASSWORD: dev-owner
+      APP_DB_PASSWORD: dev-app
+      PLATFORM_DB_PASSWORD: dev-platform
+      BACKUP_DB_PASSWORD: dev-backup
+      JWT_SECRET: dev-only-secret-change-me-in-production-0123456789
+    volumes:
+      - ./backend:/app
+    depends_on:
+      db:
+        condition: service_healthy
+
   api:
     build:
       context: ./backend
       target: dev
+    image: tradesphere-api
     environment:
-      DATABASE_URL: postgresql+psycopg://tradesphere:tradesphere@db:5432/tradesphere
+      DATABASE_URL: postgresql+psycopg://tradesphere_app:dev-app@db:5432/tradesphere
+      MIGRATION_DATABASE_URL: postgresql+psycopg://tradesphere_owner:dev-owner@db:5432/tradesphere
       TEST_DATABASE_URL: postgresql+psycopg://tradesphere:tradesphere@db-test:5432/tradesphere_test
       JWT_SECRET: dev-only-secret-change-me-in-production-0123456789
       CORS_ORIGINS: '["http://localhost:5173"]'
@@ -52,8 +77,8 @@ services:
     volumes:
       - ./backend:/app
     depends_on:
-      db:
-        condition: service_healthy
+      setup:
+        condition: service_completed_successfully
       db-test:
         condition: service_healthy
 

@@ -16,14 +16,16 @@ os.environ["ENVIRONMENT"] = "test"
 
 import uuid  # noqa: E402
 from collections.abc import Callable, Iterator  # noqa: E402
+from dataclasses import dataclass  # noqa: E402
 
 import pytest  # noqa: E402
 from alembic.config import Config  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
-from sqlalchemy import Engine, create_engine, make_url, text  # noqa: E402
+from sqlalchemy import URL, Engine, create_engine, make_url, text  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
 
 from alembic import command  # noqa: E402
+from app.core import provision  # noqa: E402
 from app.core.db import engine as app_engine  # noqa: E402
 from app.core.db import get_db  # noqa: E402
 from app.main import app  # noqa: E402
@@ -35,43 +37,80 @@ from app.seed import run_seed  # noqa: E402
 DEFAULT_PASSWORD = "Str0ng-Passw0rd"
 
 
-@pytest.fixture(scope="session")
-def engine() -> Iterator[Engine]:
-    with app_engine.begin() as conn:
+# Only for the local and CI test databases.
+ROLE_PASSWORDS = {role: f"{role}-pw" for role in provision.ROLES}
+
+
+@dataclass(frozen=True)
+class Databases:
+    """One migrated and seeded database, seen by the roles that matter."""
+
+    admin: Engine  # superuser: provisioning, catalog checks, test cleanup
+    owner: Engine  # migrations and seed
+    app: Engine  # what the application connects as
+    passwords: dict[str, str]
+
+
+def _as(url: URL, role: str) -> URL:
+    return url.set(username=role, password=ROLE_PASSWORDS[role])
+
+
+def _build(url: URL) -> Databases:
+    """Provision the roles, then migrate and seed as the owner, in an empty schema."""
+    admin = create_engine(url)
+    with admin.begin() as conn:
         conn.execute(text("DROP SCHEMA public CASCADE"))
         conn.execute(text("CREATE SCHEMA public"))
+    provision.provision(admin, ROLE_PASSWORDS)
     cfg = Config("alembic.ini")
-    cfg.attributes["database_url"] = TEST_DATABASE_URL
+    cfg.attributes["database_url"] = _as(url, provision.OWNER).render_as_string(False)
     cfg.attributes["configure_logger"] = False
     command.upgrade(cfg, "head")
-    with Session(app_engine) as session:
+    owner = create_engine(_as(url, provision.OWNER))
+    with Session(owner, autoflush=False, expire_on_commit=False) as session:
         run_seed(session)
         session.commit()
-    yield app_engine
+    app_role = create_engine(_as(url, provision.APP), pool_size=10)
+    return Databases(admin, owner, app_role, dict(ROLE_PASSWORDS))
+
+
+def _dispose(databases: Databases) -> None:
+    for each in (databases.app, databases.owner, databases.admin):
+        each.dispose()
+
+
+@pytest.fixture(scope="session")
+def databases() -> Iterator[Databases]:
+    assert TEST_DATABASE_URL
+    app_engine.dispose()
+    built = _build(make_url(TEST_DATABASE_URL))
+    try:
+        yield built
+    finally:
+        _dispose(built)
+
+
+@pytest.fixture(scope="session")
+def engine(databases: Databases) -> Engine:
+    return app_engine
 
 
 @pytest.fixture
-def scratch_engine(engine: Engine) -> Iterator[Engine]:
+def scratch_engine(databases: Databases) -> Iterator[Engine]:
     """A separate, freshly migrated and seeded database for tests that must really commit
     (threads and row locks). It is dropped afterwards, so nothing has to be cleaned up."""
     assert TEST_DATABASE_URL
     name = f"tradesphere_scratch_{uuid.uuid4().hex[:10]}"
-    url = make_url(TEST_DATABASE_URL).set(database=name)
-    admin = engine.execution_options(isolation_level="AUTOCOMMIT")
+    admin = databases.admin.execution_options(isolation_level="AUTOCOMMIT")
     with admin.connect() as conn:
         conn.execute(text(f'CREATE DATABASE "{name}"'))
-    scratch = create_engine(url, pool_size=10)
     try:
-        cfg = Config("alembic.ini")
-        cfg.attributes["database_url"] = url.render_as_string(hide_password=False)
-        cfg.attributes["configure_logger"] = False
-        command.upgrade(cfg, "head")
-        with Session(scratch) as session:
-            run_seed(session)
-            session.commit()
-        yield scratch
+        scratch = _build(make_url(TEST_DATABASE_URL).set(database=name))
+        try:
+            yield scratch.app
+        finally:
+            _dispose(scratch)
     finally:
-        scratch.dispose()
         with admin.connect() as conn:
             conn.execute(text(f'DROP DATABASE "{name}" WITH (FORCE)'))
 

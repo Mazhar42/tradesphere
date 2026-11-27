@@ -4,6 +4,7 @@ from sqlalchemy import engine_from_config, pool
 
 from alembic import context
 from app.core.config import settings
+from app.core.provision import apply_grants
 from app.models import Base
 
 config = context.config
@@ -11,7 +12,7 @@ if config.config_file_name is not None and config.attributes.get("configure_logg
     fileConfig(config.config_file_name)
 
 # Tests pass an explicit URL; otherwise use the application's DATABASE_URL.
-url = config.attributes.get("database_url") or settings.database_url
+url = config.attributes.get("database_url") or settings.owner_database_url
 config.set_main_option("sqlalchemy.url", url.replace("%", "%%"))
 
 target_metadata = Base.metadata
@@ -39,6 +40,8 @@ def run_migrations_online() -> None:
         context.configure(connection=connection, target_metadata=target_metadata, compare_type=True)
         with context.begin_transaction():
             context.run_migrations()
+            # New tables get the grants their classification allows (core/tables.py).
+            apply_grants(connection)
 
 
 if context.is_offline_mode():

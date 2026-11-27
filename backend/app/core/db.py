@@ -24,11 +24,12 @@ from contextvars import ContextVar
 from typing import Annotated
 
 from fastapi import Depends
-from sqlalchemy import create_engine, event
+from sqlalchemy import Engine, create_engine, event
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.config import settings
+from app.core.provision import privileged_reason
 
 engine = create_engine(
     settings.database_url,
@@ -57,6 +58,19 @@ def _note_commit(_: Session) -> None:
     log = commit_log.get()
     if log is not None:
         log.append(True)
+
+
+def check_database_role(bind: Engine | None = None) -> None:
+    """In production, refuse to serve through a role that row-level security cannot restrain."""
+    if not settings.is_production:
+        return
+    with (bind or engine).connect() as connection:
+        reason = privileged_reason(connection)
+    if reason:
+        raise RuntimeError(
+            f"The application's database role must be restricted, but {reason}. "
+            "See docs/operations.md, 'Database roles'."
+        )
 
 
 def get_db() -> Iterator[Session]:

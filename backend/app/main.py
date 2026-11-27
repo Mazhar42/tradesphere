@@ -1,6 +1,7 @@
 import time
 import uuid
-from collections.abc import Awaitable, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable
+from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,6 +12,7 @@ from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 import app.models as _models  # noqa: F401  (register all tables)
 from app.core.config import settings
 from app.core.context import client_ip_var, request_id_var
+from app.core.db import check_database_role
 from app.core.errors import RetryTransientConflicts, register_exception_handlers
 from app.core.health import router as health_router
 from app.core.observability import access_log, configure_logging, init_error_tracking
@@ -36,11 +38,18 @@ def _operation_id(route: APIRoute) -> str:
     return route.name
 
 
+@asynccontextmanager
+async def _lifespan(_: FastAPI) -> AsyncIterator[None]:
+    check_database_role()
+    yield
+
+
 def create_app() -> FastAPI:
     configure_logging()
     if settings.sentry_dsn and settings.sentry_dsn.get_secret_value():
         init_error_tracking(settings.sentry_dsn.get_secret_value())
     app = FastAPI(
+        lifespan=_lifespan,
         title="TradeSphere API",
         version="0.1.0",
         description="Dealership inventory, sales, purchasing, claims and accounts.",
