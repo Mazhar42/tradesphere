@@ -38,6 +38,10 @@ class Settings(BaseSettings):
 
     cors_origins: list[str] = []
 
+    # A second dealership shares the database only once isolation has been reviewed
+    # (docs/operations.md, "Dealerships").
+    allow_multiple_tenants: bool = False
+
     # Addresses or networks of the reverse proxies in front of the API. Only from these is
     # X-Forwarded-For believed; from anyone else the connecting address is the client.
     trusted_proxies: list[str] = ["127.0.0.1"]

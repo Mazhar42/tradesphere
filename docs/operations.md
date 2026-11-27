@@ -90,6 +90,22 @@ result in the operations log. A drill that has not been run for 35 days is overd
 For a real disaster recovery, restore into an empty database the same way (`pg_restore --no-owner`),
 then start the stack against it.
 
+## Dealerships
+
+`seed` maintains the permission catalog and every dealership's system rows. A dealership is
+created with:
+
+```sh
+docker compose -f docker-compose.prod.yml --env-file .env run --rm --no-deps migrate \
+  python -m app.cli provision-tenant --slug rahman-traders --name "Rahman Traders"
+docker compose -f docker-compose.prod.yml --env-file .env run --rm --no-deps migrate \
+  python -m app.cli create-owner --tenant rahman-traders
+```
+
+An installation holds one dealership unless `ALLOW_MULTIPLE_TENANTS=true`. Set it only after the
+isolation suite is green and migrations of phase 2 steps 2.5 and 2.7 have had a second review.
+`reconcile` and `rebuild-projections` take `--tenant <slug>` or `--all-tenants`.
+
 ## Database roles
 
 | Role | Used by | Can |

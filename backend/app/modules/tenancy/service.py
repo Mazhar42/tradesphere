@@ -5,7 +5,13 @@ import re
 from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
 
-from app.core.errors import BusinessRuleError, ForbiddenError, NotFoundError
+from app.core.config import settings
+from app.core.errors import (
+    BusinessRuleError,
+    ConflictError,
+    ForbiddenError,
+    NotFoundError,
+)
 from app.core.tenant_context import set_context, tenant_id_of
 from app.modules.tenancy.models import Tenant, TenantMembership
 from app.shared.business import BusinessConfig, default_config, use_business
@@ -30,6 +36,11 @@ def create_tenant(
             errors=[{"field": "slug", "message": "Invalid"}],
         )
     config = config or default_config()
+    if not settings.allow_multiple_tenants and session.scalar(text("SELECT app_has_tenants()")):
+        raise ConflictError(
+            "This installation serves one dealership. Set ALLOW_MULTIPLE_TENANTS to add more.",
+            code="multiple_tenants_disabled",
+        )
     # Take the id first: row-level security only lets a session insert its own tenant.
     tenant_id = session.scalar(text("SELECT nextval(pg_get_serial_sequence('tenants', 'id'))"))
     assert tenant_id is not None

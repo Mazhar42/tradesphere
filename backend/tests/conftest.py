@@ -33,6 +33,7 @@ os.environ["PLATFORM_DATABASE_URL"] = _as(
     make_url(TEST_DATABASE_URL), provision.PLATFORM
 ).render_as_string(False)
 os.environ["ENVIRONMENT"] = "test"
+os.environ["ALLOW_MULTIPLE_TENANTS"] = "true"
 
 import uuid  # noqa: E402
 from collections.abc import Callable, Iterator  # noqa: E402
@@ -50,11 +51,10 @@ from app.core.db import engine as app_engine  # noqa: E402
 from app.core.db import get_db  # noqa: E402
 from app.core.tenant_context import clear_context, set_context  # noqa: E402
 from app.main import app  # noqa: E402
-from app.modules.tenancy.service import create_tenant  # noqa: E402
 from app.modules.users.models import User  # noqa: E402
 from app.modules.users.schemas import UserCreate  # noqa: E402
 from app.modules.users.service import create_user  # noqa: E402
-from app.seed import run_seed  # noqa: E402
+from app.seed import provision_tenant, run_seed  # noqa: E402
 from app.shared import dates  # noqa: E402
 
 DEFAULT_PASSWORD = "Str0ng-Passw0rd"
@@ -88,10 +88,9 @@ def _build(url: URL) -> Databases:
     owner = create_engine(_as(url, provision.OWNER))
     with Session(owner, autoflush=False, expire_on_commit=False) as session:
         run_seed(session)
-        session.commit()
     app_role = create_engine(_as(url, provision.APP), pool_size=10)
-    with Session(app_role) as session:
-        tenant = create_tenant(session, slug="test", legal_name="Test Dealership")
+    with Session(app_role, autoflush=False, expire_on_commit=False) as session:
+        tenant = provision_tenant(session, slug="test", legal_name="Test Dealership")
         assert tenant.id == TEST_TENANT
         session.commit()
     return Databases(admin, owner, app_role, dict(ROLE_PASSWORDS))

@@ -38,6 +38,8 @@ class Role(IdMixin, TimestampMixin, Base):
     code: Mapped[str] = mapped_column(String(30), unique=True)
     name: Mapped[str] = mapped_column(String(100))
     description: Mapped[str | None] = mapped_column(String(300))
+    # Kept up to date by the application; dealerships cannot change or delete these.
+    is_system: Mapped[bool] = mapped_column(server_default="false")
     permissions: Mapped[list[Permission]] = relationship(
         secondary=role_permissions, lazy="selectin", order_by=Permission.code
     )

@@ -1,19 +1,25 @@
-"""Idempotent reference data: permissions, roles, units, locations, accounts, defaults.
+"""Reference data. Idempotent: existing system rows are updated, nothing is deleted.
 
-Safe to run on every deploy; existing rows are updated, nothing is deleted.
+- `run_seed` (every deploy): the permission catalog, then each dealership's system rows.
+- `provision_tenant`: a new dealership with its roles, units, locations, chart of accounts,
+  payment accounts, walk-in customer and settings.
 """
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.tenant_context import set_context
 from app.modules.accounting.models import Account, PaymentAccount
 from app.modules.catalog.models import Uom
 from app.modules.inventory.models import Location
 from app.modules.parties.models import Customer
 from app.modules.settings.models import AppSetting
 from app.modules.settings.schemas import BusinessProfile, PeriodLock, Preferences
+from app.modules.tenancy.models import Tenant
+from app.modules.tenancy.service import all_tenants, create_tenant
 from app.modules.users.models import Permission, Role
 from app.modules.users.permissions_catalog import PERMISSIONS, ROLES
+from app.shared.business import BusinessConfig
 
 UOMS = [
     ("PCS", "Piece", "পিস"),
@@ -68,25 +74,31 @@ ACCOUNTS: list[tuple[str, str, str, str, str | None, bool, str | None]] = [
 ]
 
 
-def seed_permissions_and_roles(session: Session) -> None:
+def seed_permissions(session: Session) -> None:
+    """Global: the same for every dealership."""
     existing = {p.code: p for p in session.scalars(select(Permission)).all()}
     for code, description in PERMISSIONS.items():
         if code in existing:
             existing[code].description = description
         else:
-            existing[code] = Permission(code=code, description=description)
-            session.add(existing[code])
+            session.add(Permission(code=code, description=description))
     session.flush()
 
+
+def seed_roles(session: Session) -> None:
+    """The system roles of the current dealership. Roles it created itself are left alone."""
+    permissions = {p.code: p for p in session.scalars(select(Permission)).all()}
     roles = {r.code: r for r in session.scalars(select(Role)).all()}
-    for code, (name, description, perms) in ROLES.items():
+    for code, (name, description, granted) in ROLES.items():
         role = roles.get(code)
         if role is None:
-            role = Role(code=code, name=name, description=description)
+            role = Role(code=code, is_system=True)
             session.add(role)
+        elif not role.is_system:
+            continue
         role.name = name
         role.description = description
-        role.permissions = [existing[p] for p in sorted(perms)]
+        role.permissions = [permissions[p] for p in sorted(granted)]
     session.flush()
 
 
@@ -156,9 +168,10 @@ def seed_walk_in_customer(session: Session) -> None:
         session.flush()
 
 
-def seed_settings(session: Session) -> None:
+def seed_settings(session: Session, business_name: str | None = None) -> None:
+    profile = BusinessProfile(name=business_name) if business_name else BusinessProfile()
     defaults = {
-        "business_profile": BusinessProfile(),
+        "business_profile": profile,
         "preferences": Preferences(),
         "period_lock": PeriodLock(),
     }
@@ -168,11 +181,30 @@ def seed_settings(session: Session) -> None:
     session.flush()
 
 
-def run_seed(session: Session) -> None:
-    seed_permissions_and_roles(session)
+def seed_tenant(session: Session, business_name: str | None = None) -> None:
+    """Everything the current dealership needs before its first transaction."""
+    seed_roles(session)
     seed_uoms(session)
     seed_locations(session)
     seed_accounts(session)
     seed_payment_accounts(session)
     seed_walk_in_customer(session)
-    seed_settings(session)
+    seed_settings(session, business_name)
+
+
+def provision_tenant(
+    session: Session, *, slug: str, legal_name: str, config: BusinessConfig | None = None
+) -> Tenant:
+    tenant = create_tenant(session, slug=slug, legal_name=legal_name, config=config)
+    seed_tenant(session, legal_name)
+    return tenant
+
+
+def run_seed(session: Session) -> None:
+    """Commits per dealership, because each one needs its own database context."""
+    seed_permissions(session)
+    session.commit()
+    for tenant_id in [t.id for t in all_tenants(session)]:
+        set_context(session, tenant_id=tenant_id)
+        seed_tenant(session)
+        session.commit()

@@ -23,8 +23,8 @@ from app.modules.tenancy.service import all_tenants as all_dealerships
 from app.modules.tenancy.service import business_config
 from app.modules.users.schemas import UserCreate
 from app.modules.users.service import count_active_owners, create_user, get_by_username
-from app.seed import run_seed
-from app.shared.business import business_scope, use_business
+from app.seed import provision_tenant, run_seed
+from app.shared.business import BusinessConfig, business_scope, use_business
 
 cli = typer.Typer(no_args_is_help=True, add_completion=False)
 
@@ -149,6 +149,25 @@ def bootstrap_owner() -> None:
         created = ensure_owner(session, username=username, full_name=full_name, password=password)
         session.commit()
     typer.echo("Owner created." if created else "Owner already exists; nothing to do.")
+
+
+@cli.command("provision-tenant")
+def provision_tenant_command(
+    slug: Annotated[str, typer.Option(help="Short name, e.g. rahman-traders")],
+    name: Annotated[str, typer.Option(help="Legal name of the dealership")],
+    timezone: Annotated[str, typer.Option()] = settings.business_timezone,
+    fiscal_year_start_month: Annotated[int, typer.Option()] = settings.fiscal_year_start_month,
+) -> None:
+    """Create a dealership with its reference data. Then add its owner with `create-owner`."""
+    with business_scope(), SessionLocal() as session:
+        provision_tenant(
+            session,
+            slug=slug,
+            legal_name=name,
+            config=BusinessConfig(timezone, fiscal_year_start_month),
+        )
+        session.commit()
+    typer.echo(f"Dealership '{slug}' created.")
 
 
 @cli.command("provision-db")

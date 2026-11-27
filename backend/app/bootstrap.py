@@ -12,6 +12,7 @@ from app.core.tenant_context import set_context
 from app.modules.tenancy import service as tenancy
 from app.modules.users.schemas import UserCreate
 from app.modules.users.service import count_active_owners, create_user, get_by_username
+from app.seed import provision_tenant
 
 DEFAULT_SLUG = "default"
 
@@ -24,7 +25,7 @@ def ensure_tenant(platform: Session, session: Session) -> int:
     if tenants:
         set_context(session, tenant_id=tenants[0].id)
         return tenants[0].id
-    return tenancy.create_tenant(session, slug=DEFAULT_SLUG, legal_name="My Dealership").id
+    return provision_tenant(session, slug=DEFAULT_SLUG, legal_name="My Dealership").id
 
 
 def ensure_owner(session: Session, *, username: str, full_name: str, password: str) -> bool:
