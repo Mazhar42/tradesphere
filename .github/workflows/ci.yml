@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, saas-transformation]
+    branches: [main, saas-transformation, 'p0/**']
   pull_request:
 
 concurrency:
