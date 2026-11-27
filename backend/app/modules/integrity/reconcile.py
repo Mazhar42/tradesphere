@@ -6,7 +6,7 @@ sequence of business events: every check must come back clean.
 
 from decimal import Decimal
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
 
 from app.modules.accounting.journal import INVENTORY
@@ -110,4 +110,50 @@ def reconcile(session: Session) -> ReconcileRead:
     for detail in projection_drift(session):
         issues.append(ReconcileIssue(check="daily_sales", detail=detail))
 
+    # 6. every ledger row's source document exists in this dealership (these references cannot
+    #    be foreign keys; row-level security hides another dealership's documents)
+    issues.extend(_missing_sources(session))
+
     return ReconcileRead(ok=not issues, issues=issues)
+
+
+# source_doc_type -> table of the document. Other types are not checked.
+SOURCE_TABLES = {
+    "sales_invoice": "sales_invoices",
+    "customer_receipt": "customer_receipts",
+    "sales_return": "sales_returns",
+    "GRN": "goods_receipts",
+    "SPAY": "supplier_payments",
+    "purchase_return": "purchase_returns",
+    "OPENING": "opening_balances",
+    "stock_adjustment": "stock_adjustments",
+    "stock_transfer": "stock_transfers",
+    "claim_settlement": "claim_settlements",
+    "commission_payment": "commission_payments",
+    "expense": "expenses",
+    "fund_transfer": "fund_transfers",
+    "owner_transaction": "owner_transactions",
+}
+
+
+def _missing_sources(session: Session) -> list[ReconcileIssue]:
+    issues = []
+    for ledger in ("journal_entries", "inventory_movements", "claimable_items"):
+        for doc_type, table in SOURCE_TABLES.items():
+            # Names come from the constants above, never from input.
+            count = session.scalar(
+                text(
+                    f"SELECT count(*) FROM {ledger} l WHERE l.source_doc_type = :type "  # noqa: S608
+                    f"AND NOT EXISTS (SELECT 1 FROM {table} d "
+                    "WHERE d.id = l.source_doc_id AND d.tenant_id = l.tenant_id)"
+                ),
+                {"type": doc_type},
+            )
+            if count:
+                issues.append(
+                    ReconcileIssue(
+                        check="missing_source",
+                        detail=f"{count} {ledger} rows name a {doc_type} that does not exist",
+                    )
+                )
+    return issues

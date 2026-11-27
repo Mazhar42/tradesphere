@@ -4,9 +4,11 @@
 import pytest
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
 from app.core.tables import TENANT_TABLES
 from app.models import Base
+from app.modules.integrity.reconcile import reconcile
 from tests.conftest import Databases
 
 # database-transformation.md §9, queries 2 and 3.
@@ -136,3 +138,14 @@ def test_the_database_refuses_a_cross_dealership_reference(
         with pytest.raises(IntegrityError, match="foreign key"):
             conn.execute(text(statement))
         transaction.rollback()
+
+
+def test_reconcile_reports_a_ledger_row_without_its_document(db: Session) -> None:
+    assert reconcile(db).ok
+    db.execute(
+        text(
+            "INSERT INTO journal_entries (entry_no, business_date, source_doc_type, "
+            "source_doc_id, memo) VALUES ('JV-X', current_date, 'sales_invoice', 424242, 'x')"
+        )
+    )
+    assert [i.check for i in reconcile(db).issues] == ["missing_source"]
