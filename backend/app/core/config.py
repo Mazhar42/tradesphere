@@ -39,6 +39,9 @@ class Settings(BaseSettings):
     trusted_proxies: list[str] = ["127.0.0.1"]
 
     log_format: Literal["text", "json"] = "text"
+    # Where unhandled errors are reported (Sentry, or a compatible service such as GlitchTip).
+    # Unset: errors are only logged.
+    sentry_dsn: SecretStr | None = None
 
     business_timezone: str = "Asia/Dhaka"
     fiscal_year_start_month: int = 7  # Bangladesh fiscal year: 1 July - 30 June

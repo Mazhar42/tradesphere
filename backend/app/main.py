@@ -5,15 +5,15 @@ from collections.abc import Awaitable, Callable
 from fastapi import APIRouter, FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.routing import APIRoute
-from sqlalchemy import text
+from sentry_sdk import set_tag
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 import app.models as _models  # noqa: F401  (register all tables)
 from app.core.config import settings
 from app.core.context import client_ip_var, request_id_var
-from app.core.db import DbSession
 from app.core.errors import RetryTransientConflicts, register_exception_handlers
-from app.core.observability import access_log, configure_logging
+from app.core.health import router as health_router
+from app.core.observability import access_log, configure_logging, init_error_tracking
 from app.modules.accounting.router import router as accounting_router
 from app.modules.audit.router import router as audit_router
 from app.modules.auth.router import router as auth_router
@@ -38,6 +38,8 @@ def _operation_id(route: APIRoute) -> str:
 
 def create_app() -> FastAPI:
     configure_logging()
+    if settings.sentry_dsn and settings.sentry_dsn.get_secret_value():
+        init_error_tracking(settings.sentry_dsn.get_secret_value())
     app = FastAPI(
         title="TradeSphere API",
         version="0.1.0",
@@ -68,6 +70,7 @@ def create_app() -> FastAPI:
         ip = request.client.host if request.client else None
         rid_token = request_id_var.set(request_id[:64])
         ip_token = client_ip_var.set(ip)
+        set_tag("request_id", request_id[:64])  # does nothing while error tracking is off
         started = time.perf_counter()
         status = 500  # stays 500 when an exception escapes every handler
         try:
@@ -114,11 +117,7 @@ def create_app() -> FastAPI:
     ):
         api.include_router(router)
     app.include_router(api)
-
-    @app.get("/api/health", tags=["health"])
-    def health(db: DbSession) -> dict[str, str]:
-        db.execute(text("SELECT 1"))
-        return {"status": "ok"}
+    app.include_router(health_router)
 
     return app
 

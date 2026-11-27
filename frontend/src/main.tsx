@@ -8,6 +8,7 @@ import { Toaster } from 'sonner'
 
 import { ApiError } from '@/api/client'
 import { App } from '@/App'
+import { ErrorBoundary } from '@/components/layout/ErrorBoundary'
 import { applyTheme, initialTheme } from '@/components/layout/theme'
 import { AuthProvider } from '@/features/auth/AuthProvider'
 
@@ -27,11 +28,13 @@ const queryClient = new QueryClient({
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <App />
-        <Toaster richColors position="top-right" closeButton />
-      </AuthProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <App />
+          <Toaster richColors position="top-right" closeButton />
+        </AuthProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   </StrictMode>,
 )

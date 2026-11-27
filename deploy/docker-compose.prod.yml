@@ -38,6 +38,7 @@ services:
       JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
       ENVIRONMENT: production
       LOG_FORMAT: json
+      SENTRY_DSN: ${SENTRY_DSN:-}
       CORS_ORIGINS: '["${SITE_URL:?set SITE_URL in .env}"]'
       # Only Caddy reaches the API, over this stack's own network (see `networks` below).
       TRUSTED_PROXIES: '["${STACK_SUBNET:-172.30.0.0/24}"]'
