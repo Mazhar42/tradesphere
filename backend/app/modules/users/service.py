@@ -158,7 +158,21 @@ def reset_password(session: Session, user_id: int, new_password: str, actor: Cur
     )
 
 
+def lock_sessions(session: Session, user_id: int, *, ending: bool) -> None:
+    """Serialise issuing a user's tokens with revoking them, until the transaction ends.
+
+    Refreshes share the lock; anything that ends sessions takes it exclusively, so it sees
+    every token a refresh in progress is about to commit. Take it before any token row.
+    """
+    session.execute(
+        select(User.id)
+        .where(User.id == user_id)
+        .with_for_update(read=not ending, key_share=ending)  # FOR SHARE / FOR NO KEY UPDATE
+    )
+
+
 def revoke_all_tokens(session: Session, user_id: int) -> None:
+    lock_sessions(session, user_id, ending=True)
     tokens = session.scalars(
         select(RefreshToken).where(
             RefreshToken.user_id == user_id, RefreshToken.revoked_at.is_(None)

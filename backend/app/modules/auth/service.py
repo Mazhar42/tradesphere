@@ -8,7 +8,7 @@ the whole token family is revoked and the user must log in again.
 
 import uuid
 from dataclasses import dataclass
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -18,7 +18,7 @@ from app.core.errors import RateLimitedError, UnauthorizedError
 from app.core.security import create_access_token, hash_token, new_refresh_token, verify_password
 from app.modules.auth.schemas import MeRead, TokenResponse
 from app.modules.users.models import RefreshToken, User
-from app.modules.users.service import get_by_username
+from app.modules.users.service import get_by_username, lock_sessions
 from app.shared.audit import AuditLog, record_audit
 from app.shared.dates import now_utc
 
@@ -118,11 +118,12 @@ def refresh(
 ) -> AuthResult:
     if not raw_token:
         raise UnauthorizedError("No refresh token.", code="no_refresh_token")
-    token = session.scalar(
-        select(RefreshToken)
-        .where(RefreshToken.token_hash == hash_token(raw_token))
-        .with_for_update()
-    )
+    by_hash = select(RefreshToken).where(RefreshToken.token_hash == hash_token(raw_token))
+    user_id = session.scalar(by_hash.with_only_columns(RefreshToken.user_id))
+    token = None
+    if user_id is not None:
+        lock_sessions(session, user_id, ending=False)
+        token = session.scalar(by_hash.with_for_update().execution_options(populate_existing=True))
     now = now_utc()
     if token is None or token.expires_at <= now:
         raise UnauthorizedError("Session expired. Please log in again.", code="session_expired")
@@ -139,6 +140,11 @@ def refresh(
         if within_grace:
             # Concurrent refresh (e.g. two tabs): the browser already holds the
             # newer cookie, so hand out an access token without rotating again.
+            # Only while the session is still open: not after a logout or password reset.
+            if not _family_is_alive(session, token.family_id, now):
+                raise UnauthorizedError(
+                    "Session expired. Please log in again.", code="session_expired"
+                )
             return AuthResult(_token_response(user), None)
         _revoke_family(session, token.family_id, now)
         record_audit(
@@ -161,6 +167,7 @@ def logout(session: Session, raw_token: str | None) -> None:
     )
     if token is None:
         return
+    lock_sessions(session, token.user_id, ending=True)
     _revoke_family(session, token.family_id, now_utc())
     record_audit(
         session,
@@ -169,6 +176,15 @@ def logout(session: Session, raw_token: str | None) -> None:
         entity_type="auth",
         entity_id=token.user_id,
     )
+
+
+def _family_is_alive(session: Session, family_id: str, now: datetime) -> bool:
+    live = select(RefreshToken.id).where(
+        RefreshToken.family_id == family_id,
+        RefreshToken.revoked_at.is_(None),
+        RefreshToken.expires_at > now,
+    )
+    return session.scalar(live.limit(1)) is not None
 
 
 def _revoke_family(session: Session, family_id: str, now: object) -> None:

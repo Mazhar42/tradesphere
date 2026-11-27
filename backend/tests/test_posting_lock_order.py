@@ -7,14 +7,13 @@ in a throwaway database (`scratch_engine`).
 
 import os
 import threading
-import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any
 
 import pytest
-from sqlalchemy import Engine, select, text
+from sqlalchemy import Engine, select
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import Session
 
@@ -32,6 +31,7 @@ from app.modules.users.permissions_catalog import PERMISSIONS
 from app.modules.users.schemas import UserCreate
 from app.modules.users.service import create_user
 from app.shared.dates import business_date
+from tests.helpers import wait_until_blocked
 
 D = Decimal
 
@@ -153,20 +153,6 @@ def counter(scratch_engine: Engine) -> Counter:
         )
 
 
-def _wait_until_someone_is_blocked(engine: Engine, timeout: float = 15) -> None:
-    query = text(
-        "SELECT count(*) FROM pg_stat_activity "
-        "WHERE datname = current_database() AND wait_event_type = 'Lock'"
-    )
-    deadline = time.monotonic() + timeout
-    with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
-        while time.monotonic() < deadline:
-            if conn.execute(query).scalar_one():
-                return
-            time.sleep(0.02)
-    raise AssertionError("The second transaction never had to wait; the test proves nothing.")
-
-
 def _interleave(
     counter: Counter,
     monkeypatch: pytest.MonkeyPatch,
@@ -202,7 +188,7 @@ def _interleave(
     assert paused.wait(timeout=30), outcomes
     two.start()
     try:
-        _wait_until_someone_is_blocked(counter.engine)
+        wait_until_blocked(counter.engine)
     finally:
         resume.set()
         one.join(timeout=30)

@@ -4,7 +4,8 @@ Lock order. A transaction takes locks in this order and never goes back up it, s
 wait for each other instead of deadlocking:
 
 1. the party (customer);
-2. the document being posted or reversed (and the purchase order or claim it belongs to);
+2. the document being posted or reversed (and the purchase order or claim it belongs to),
+   then the period-lock setting, shared (`settings.service.ensure_period_open`);
 3. `product_costs` rows, in product id order (`inventory.stock.lock_costs`);
 4. `stock_balances` rows;
 5. document numbers (`shared.sequences`) other than the journal's;
