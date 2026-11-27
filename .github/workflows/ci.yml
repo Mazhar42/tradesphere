@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, saas-transformation]
   pull_request:
 
 concurrency:
@@ -40,6 +40,12 @@ jobs:
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run mypy app
+      - name: migrations apply, match the models, and reverse
+        run: |
+          uv run alembic upgrade head
+          uv run alembic check
+          uv run alembic downgrade base
+          uv run alembic upgrade head
       - run: uv run pytest
 
   frontend:
@@ -62,6 +68,66 @@ jobs:
       - run: pnpm lint
       - run: pnpm test
       - run: pnpm build
+
+  contract:
+    # frontend/src/api/schema.d.ts must be what the API generates. To update it, run the API
+    # and `pnpm gen:api`.
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql+psycopg://unused:unused@localhost:5432/unused
+      JWT_SECRET: ci-only-secret-0123456789abcdef0123456789abcdef
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.13.6"
+          enable-cache: true
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: export the OpenAPI schema
+        working-directory: backend
+        run: |
+          uv sync --frozen
+          uv run python -c "import json; from app.main import app; print(json.dumps(app.openapi()))" > "$RUNNER_TEMP/openapi.json"
+      - name: the committed API types are current
+        working-directory: frontend
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm exec openapi-typescript "$RUNNER_TEMP/openapi.json" --default-non-nullable false -o "$RUNNER_TEMP/schema.d.ts"
+          diff -u src/api/schema.d.ts "$RUNNER_TEMP/schema.d.ts"
+
+  security:
+    # Known-vulnerable dependencies, and secrets anywhere in the history.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.13.6"
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: audit Python dependencies (runtime)
+        working-directory: backend
+        run: |
+          uv export --frozen --no-dev --no-hashes --no-emit-project -o "$RUNNER_TEMP/requirements.txt"
+          uvx pip-audit==2.9.0 --strict --disable-pip --no-deps -r "$RUNNER_TEMP/requirements.txt"
+      - name: audit JavaScript dependencies (high and critical)
+        working-directory: frontend
+        run: pnpm audit --audit-level high
+      - name: scan the history for secrets
+        run: docker run --rm -v "$PWD:/repo:ro" ghcr.io/gitleaks/gitleaks:v8.28.0 git /repo --redact --no-banner
 
   images:
     # Production images and the compose file must build and validate on every change.

@@ -1,0 +1,13 @@
+# Secret scanning (CI job "security"). The default rules apply.
+[extend]
+useDefault = true
+
+# Only these exact made-up values (used by the tests) are allowed. Do not add `paths` here:
+# gitleaks 8.28 then skips every file under the path, real secrets included.
+[[allowlists]]
+description = "Fake credentials used by the test suite"
+regexTarget = "secret"
+regexes = [
+  '''^0123456789abcdef0123456789abcdef$''',
+  '''^(Str0ng|An0ther|Second)-Passw0rd$''',
+]
