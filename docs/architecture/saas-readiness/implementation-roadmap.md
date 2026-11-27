@@ -131,6 +131,12 @@ Differences from the brief's list: jobs are a phase of their own; financial corr
 - **Accept:** MFA enforced; a shared user cannot be taken over; operator cannot read business tables.
 - **Deployment:** `MFA` key and email settings. **Rollback:** feature flags for registration and invitations.
 
+**Status 2026-11-27:** implemented, branches `p3/3.1-tenant-switch` to `p3/3.5-platform-operators` (3.5 and 3.6 in one commit).
+
+- Not built: registration and its feature flag (phase 10); a screen for operators to browse records under a support grant (the API issues the read-only token); creating dealerships from the platform screen (command line only); QR code for enrolment (key and `otpauth:` link are shown); breached-password list beyond a short common-password list.
+- Not verified: email through a real SMTP server; the new screens in a browser; Bangla wording.
+- Still open from TS-15: a hostile client can lock out a known username; no general rate limit.
+
 ## Phase 4 — Jobs and outbox
 
 **Objective:** reliable background work (ADR-006). **Prerequisites:** 2.
@@ -141,6 +147,8 @@ Differences from the brief's list: jobs are a phase of their own; financial corr
 - **Tests:** two workers never run one job; crash and retry; missing context fails.
 - **Accept:** killing a worker loses no job and repeats no effect.
 - **Deployment:** worker service; in-process thread on the demo. **Rollback:** stop the worker; jobs remain queued.
+
+**Status 2026-11-27:** implemented, branch `p4/4.1-jobs` (4.1 to 4.3 in one commit). A handler's database work and its completion commit together; email can be sent twice if a worker dies between sending and committing. No alerting on job failures yet (phase 15). Audit and sign-in history are never purged (retention is a policy decision).
 
 ## Phase 5 — Subscriptions, entitlements, manual billing
 

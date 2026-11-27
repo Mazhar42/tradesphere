@@ -9,6 +9,7 @@ Production runs on one Ubuntu VPS with Docker Compose. The stack is defined in
 | `api`    | FastAPI under uvicorn, 2 workers, runs as the least-privileged DB role | nothing |
 | `migrate`| `alembic upgrade head`, runs before every API start, then exits | nothing |
 | `provision` | Creates or repairs the database roles (the only use of the superuser), then exits | nothing |
+| `worker` | Background jobs: email, daily housekeeping | nothing |
 | `db`     | PostgreSQL 17 | nothing |
 | `backup` | nightly `pg_dump -Fc`, verification, retention, off-site copy | nothing |
 
@@ -20,10 +21,11 @@ Production runs on one Ubuntu VPS with Docker Compose. The stack is defined in
    ```sh
    cd deploy
    cp .env.example .env
-   openssl rand -base64 48   # use the output for JWT_SECRET
-   openssl rand -base64 32   # and for POSTGRES_PASSWORD / APP_DB_PASSWORD (one each)
+   openssl rand -base64 48   # once for JWT_SECRET, once more for MFA_ENCRYPTION_KEY
+   openssl rand -hex 24      # once for each of the five database passwords
    ```
-   Fill in `SITE_ADDRESS` (the domain), `SITE_URL` (`https://` + the domain), and the three secrets.
+   Fill in `SITE_ADDRESS` (the domain), `SITE_URL` (`https://` + the domain), the two keys and the
+   database passwords. Database passwords go into connection addresses, so use letters and digits.
    `.env` is gitignored; keep a copy in your password manager.
 3. Build and start:
    ```sh
@@ -35,6 +37,17 @@ Production runs on one Ubuntu VPS with Docker Compose. The stack is defined in
    The owner password is prompted for, not passed on the command line.
 4. Check: `https://<domain>/api/health` returns `{"status":"ok"}`, and `https://<domain>/api/docs` returns
    404 (docs are disabled in production).
+
+Owners must set up two-step sign-in the first time they sign in. To create a platform operator
+(someone who runs the service, with an account of their own):
+
+```sh
+docker compose -f docker-compose.prod.yml --env-file .env run --rm --no-deps migrate \
+  python -m app.cli platform-operator --username <existing-user>
+```
+
+It prints the authenticator setup address and recovery codes once. Operators sign in at
+`https://<domain>/platform`.
 
 ## 2. Updating the application
 
@@ -51,6 +64,18 @@ Take a backup before updating if the release contains migrations (see section 3)
 `docker compose -f docker-compose.prod.yml --env-file .env down` (volumes are kept; do **not** add
 `-v`) before `up`, so the network is recreated with `STACK_SUBNET`. The API trusts only that
 network to name the client address.
+
+**Upgrading to the multi-dealership release** (from the single-dealership one). Back up first and
+rehearse on a copy if the data is real.
+
+1. Add to `.env`: `OWNER_DB_PASSWORD`, `PLATFORM_DB_PASSWORD`, `BACKUP_DB_PASSWORD`,
+   `MFA_ENCRYPTION_KEY` (a new value, not `JWT_SECRET`); optionally the email settings.
+2. `docker compose ... down` (without `-v`), then `up -d --build`. `provision` creates the roles,
+   `migrate` turns the existing books into the first dealership.
+3. Run `reconcile --all-tenants`.
+4. Tell users: everyone signs in again, and owners set up two-step sign-in.
+
+Rolling back after this needs the backup: do not rely on downgrading a database in use.
 
 **Rollback:** check out the previous commit and repeat the command. Migrations are not reversed
 automatically; a rollback across a migration needs a restore from backup (section 4).

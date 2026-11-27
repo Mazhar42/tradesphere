@@ -48,6 +48,15 @@ repository you own. Then connect that repository in Render. Render must be grant
 6. **Check.** `https://tradesphere-api-m8s0.onrender.com/api/health` (your API's actual address) shows `{"status":"ok"}`, and
    `https://tradesphere-web.onrender.com/api/docs` shows 404 (docs are off in production).
 
+## Upgrading an existing demo to the multi-dealership release
+
+The Blueprint now sets `MFA_ENCRYPTION_KEY` (generated), `TRUSTED_PROXIES`, `PUBLIC_URL` and
+`RUN_WORKER_IN_PROCESS`; if Render does not add them on sync, add them by hand **before** the
+deploy, or the API will not start. First check the database user is not a superuser:
+`SELECT rolsuper, rolbypassrls FROM pg_roles WHERE rolname = current_user;` (both must be false,
+or the app refuses to start). The existing books become one dealership. Owners are asked to set up
+two-step sign-in. This was rehearsed locally with a single ordinary database user, not on Render.
+
 ## Check the client address
 
 `TRUSTED_PROXIES` in `render.yaml` trusts private network addresses, which is an assumption about

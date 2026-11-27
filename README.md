@@ -14,8 +14,7 @@ Requirements: Docker Desktop, Node 22+ with pnpm.
 ```bash
 # 1. Database + API (the API runs in a container with live reload)
 docker compose up -d
-docker compose exec api alembic upgrade head
-docker compose exec api python -m app.cli seed
+# the `setup` service creates the database roles, migrates and seeds on start
 docker compose exec api python -m app.cli create-owner   # prompts for username/password
 
 # 2. Frontend
