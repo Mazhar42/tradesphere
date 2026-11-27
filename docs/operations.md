@@ -46,6 +46,11 @@ docker compose -f docker-compose.prod.yml --env-file .env up -d --build
 `migrate` runs the pending migrations first; the API starts only after it has finished successfully.
 Take a backup before updating if the release contains migrations (see section 3).
 
+**One-time step** for a stack created before the fixed network was added: run
+`docker compose -f docker-compose.prod.yml --env-file .env down` (volumes are kept; do **not** add
+`-v`) before `up`, so the network is recreated with `STACK_SUBNET`. The API trusts only that
+network to name the client address.
+
 **Rollback:** check out the previous commit and repeat the command. Migrations are not reversed
 automatically; a rollback across a migration needs a restore from backup (section 4).
 
@@ -88,10 +93,10 @@ then start the stack against it.
 
 | What | How | Status |
 |------|-----|--------|
-| Application health | Uptime monitor on `https://<domain>/api/health`, every 1 minute, alert after 2 failures | To set up (service account required) |
+| Application health | Uptime monitor on `https://<domain>/api/ready` (database reachable, migrations applied), every 1 minute, alert after 2 failures. `/api/live` answers whenever the process does; `/api/health` checks the database only | To set up (service account required) |
 | Container health | `docker compose ps` shows `healthy` for `api` | Built in |
 | Structured logs | JSON lines on stdout of `api` (`docker compose logs api`). Each request has `request_id`, `status`, `duration_ms`, `ip`. `X-Request-ID` ties a response to its log line and audit rows | Built in |
-| Errors | Sentry for backend and frontend | **Not set up** (needs a Sentry project and an approved dependency) |
+| Errors | Set `SENTRY_DSN` in `.env` (Sentry, or a compatible service such as GlitchTip). Unhandled API errors are reported with stack trace, path and request id; no request data, local variables or database messages | Built in for the API, **off until a DSN is set**. Nothing for the frontend |
 | Disk and database size | Host alert on disk above 80%; `pg_database_size('tradesphere')` weekly | To set up on the host |
 | Backups | `BACKUP FAILED` in logs; check the off-site copy weekly | Manual until alerting is added |
 
@@ -155,6 +160,9 @@ few hundred invoices a day, so this is well above the need. Re-run on the VPS be
 - Passwords are hashed with Argon2id. Refresh tokens rotate on each use and are revoked on reuse.
 - Interactive API docs and the OpenAPI schema are disabled in production.
 - Caddy sends HSTS, `X-Content-Type-Options`, `X-Frame-Options: DENY` and a referrer policy.
+- `X-Forwarded-For` is believed only from `TRUSTED_PROXIES` (here: the stack's own network, so
+  Caddy). Putting another proxy such as Cloudflare in front of Caddy needs Caddy's own
+  `trusted_proxies` setting first, or every user shows the proxy's address.
 - Only ports 80 and 443 are published. The database and the API are reachable only inside the stack.
 - Secrets live in `deploy/.env` on the server only.
 
@@ -174,8 +182,9 @@ Record who has been trained and when.
 
 - [ ] VPS provisioned, domain pointed, `.env` filled in, stack running with HTTPS.
 - [ ] Off-site backup bucket configured and one backup confirmed in it.
-- [ ] Uptime monitor set up on `/api/health`.
-- [ ] Sentry (backend and frontend) — needs an account and an approved dependency.
+- [ ] Uptime monitor set up on `/api/ready`.
+- [ ] Error tracking: create the project, set `SENTRY_DSN`, and raise one test error to see it
+      arrive. Frontend error reporting is not built.
 - [ ] Restore drill run on the VPS.
 - [ ] Go-live data collected from the books and loaded through the wizard; reconcile clean.
 - [ ] Staff trained.

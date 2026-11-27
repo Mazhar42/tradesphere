@@ -2,6 +2,11 @@
 
 Every record carries the request id (when it was written during a request), so a line in the
 access log can be matched with the application errors and the audit rows of the same request.
+
+Unhandled errors can also be reported to an error tracker. A report carries the stack trace,
+the method and path and the request id. It must not carry business or personal data: no
+request body, query, headers or cookies, no local variables, and no database messages (they
+quote SQL parameters and row values).
 """
 
 import json
@@ -9,6 +14,13 @@ import logging
 import sys
 from datetime import UTC, datetime
 from typing import Any
+
+import sentry_sdk
+from sentry_sdk.integrations.fastapi import FastApiIntegration
+from sentry_sdk.integrations.logging import LoggingIntegration
+from sentry_sdk.integrations.starlette import StarletteIntegration
+from sentry_sdk.transport import Transport
+from sentry_sdk.types import Event, Hint
 
 from app.core.config import settings
 from app.core.context import request_id_var
@@ -59,6 +71,39 @@ def configure_logging() -> None:
         handler.setFormatter(logging.Formatter(_TEXT_FORMAT))
     logger.addHandler(handler)
     logger.setLevel(logging.INFO)
+
+
+def _scrub(event: Event, _: Hint) -> Event:
+    request = event.get("request")
+    if request:
+        event["request"] = {k: v for k, v in request.items() if k in ("method", "url")}
+    event.pop("user", None)
+    event.pop("breadcrumbs", None)
+    event.pop("extra", None)
+    exception: Any = event.get("exception") or {}
+    for value in exception.get("values", []):
+        if str(value.get("module")).split(".")[0] in ("sqlalchemy", "psycopg"):
+            value["value"] = "Database error (the message is in the server log)."
+    return event
+
+
+def init_error_tracking(dsn: str, *, transport: Transport | None = None) -> None:
+    sentry_sdk.init(
+        dsn=dsn,
+        transport=transport,
+        environment=settings.environment,
+        # Personal data stays off by default (`send_default_pii` unset); `_scrub` removes the rest.
+        include_local_variables=False,
+        max_request_body_size="never",
+        max_breadcrumbs=0,
+        auto_enabling_integrations=False,
+        integrations=[
+            StarletteIntegration(),
+            FastApiIntegration(),
+            LoggingIntegration(level=None, event_level=None),
+        ],
+        before_send=_scrub,
+    )
 
 
 def access_log(*, method: str, path: str, status: int, duration_ms: float, ip: str | None) -> None:

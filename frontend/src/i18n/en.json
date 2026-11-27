@@ -81,6 +81,16 @@
     "dark": "Dark",
     "toggle": "Toggle theme"
   },
+  "notFound": {
+    "title": "Page not found",
+    "body": "There is nothing at this address. It may have been moved or typed wrongly.",
+    "home": "Go to the dashboard"
+  },
+  "crash": {
+    "title": "Something went wrong",
+    "body": "This screen could not be shown. Nothing you already saved is affected. Reload to try again.",
+    "reload": "Reload"
+  },
   "forbidden": {
     "title": "No access",
     "body": "Your role does not allow access to this page. Ask the owner if you need it."

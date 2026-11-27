@@ -27,7 +27,7 @@ COPY start.sh ./start.sh
 RUN useradd --system --uid 10001 app
 USER app
 EXPOSE 8000
-# Behind Caddy: trust X-Forwarded-For so audit and rate-limit records show the real client.
-# This is safe only because this port is never published; only the proxy can reach it.
+# Which proxies may name the client is set by TRUSTED_PROXIES and applied by the app, so
+# uvicorn's own proxy-header handling is off.
 # Uvicorn's plain access log is off: the app writes its own structured access log instead.
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2", "--proxy-headers", "--forwarded-allow-ips", "*", "--no-access-log"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2", "--no-proxy-headers", "--no-access-log"]

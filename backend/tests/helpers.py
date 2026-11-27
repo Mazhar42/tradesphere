@@ -1,12 +1,13 @@
 """Test helpers that drive the real HTTP API the way the frontend does."""
 
+import time
 import uuid
 from datetime import date, timedelta
 from decimal import Decimal
 from typing import Any
 
 from fastapi.testclient import TestClient
-from sqlalchemy import func, select
+from sqlalchemy import Engine, func, select, text
 from sqlalchemy.orm import Session
 
 from app.modules.accounting.models import Account, JournalEntry, JournalLine
@@ -15,6 +16,21 @@ from app.modules.inventory.models import Location, StockBalance
 from app.shared.dates import business_date
 
 D = Decimal
+
+
+def wait_until_blocked(engine: Engine, timeout: float = 15) -> None:
+    """Return once some transaction in this database is waiting for a lock."""
+    query = text(
+        "SELECT count(*) FROM pg_stat_activity "
+        "WHERE datname = current_database() AND wait_event_type = 'Lock'"
+    )
+    deadline = time.monotonic() + timeout
+    with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
+        while time.monotonic() < deadline:
+            if conn.execute(query).scalar_one():
+                return
+            time.sleep(0.02)
+    raise AssertionError("The second transaction never had to wait; the test proves nothing.")
 
 
 def today() -> date:

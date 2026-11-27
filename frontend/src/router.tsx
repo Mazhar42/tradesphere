@@ -10,6 +10,7 @@ import type { RouteComponent } from '@tanstack/react-router'
 import { z } from 'zod'
 
 import { AppLayout } from '@/components/layout/AppLayout'
+import { CrashPage, NotFoundPage } from '@/components/layout/errors'
 import type { AuthContextValue } from '@/features/auth/auth-context'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { RequirePermission } from '@/features/auth/RequirePermission'
@@ -132,6 +133,8 @@ export const router = createRouter({
   routeTree,
   context: { auth: undefined! },
   defaultPreload: 'intent',
+  defaultNotFoundComponent: NotFoundPage,
+  defaultErrorComponent: CrashPage,
 })
 
 declare module '@tanstack/react-router' {

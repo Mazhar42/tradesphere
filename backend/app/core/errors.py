@@ -6,10 +6,12 @@ from typing import Any
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, OperationalError
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from app.core.config import settings
+from app.core.db import commit_log, is_transient_conflict
 
 logger = logging.getLogger("app.errors")
 
@@ -89,6 +91,70 @@ def problem(
     if errors:
         body["errors"] = errors
     return JSONResponse(body, status_code=status, media_type=PROBLEM_JSON, headers=headers)
+
+
+class RetryTransientConflicts:
+    """Run a request a second time when PostgreSQL aborted it for a deadlock or a
+    serialisation failure; if that fails too, answer 409 so the client can try again.
+
+    Only whole, uncommitted operations are repeated: once the request has committed anything,
+    or started answering, the error is passed on unchanged.
+    """
+
+    ATTEMPTS = 2
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        body: list[Message] = []  # what has been read, so a second attempt can read it again
+        answering = False
+
+        async def tracked_send(message: Message) -> None:
+            nonlocal answering
+            answering = True
+            await send(message)
+
+        for attempt in range(1, self.ATTEMPTS + 1):
+            position = 0
+
+            async def replay() -> Message:
+                nonlocal position
+                if position == len(body):
+                    body.append(await receive())
+                position += 1
+                return body[position - 1]
+
+            commits: list[bool] = []
+            token = commit_log.set(commits)
+            try:
+                await self.app(dict(scope), replay, tracked_send)
+                return
+            except OperationalError as exc:
+                if not is_transient_conflict(exc) or commits or answering:
+                    raise
+                logger.warning(
+                    "Transaction conflict on %s %s (attempt %d of %d): %s",
+                    scope["method"],
+                    scope["path"],
+                    attempt,
+                    self.ATTEMPTS,
+                    getattr(exc.orig, "sqlstate", None),
+                )
+            finally:
+                commit_log.reset(token)
+
+        response = problem(
+            409,
+            "Conflict",
+            "Another change was being saved at the same moment. Please try again.",
+            "concurrent_update",
+        )
+        await response(scope, receive, send)
 
 
 def _field_from_constraint(constraint: str | None) -> str | None:

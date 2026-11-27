@@ -50,6 +50,7 @@ from app.modules.sales.models import (
 from app.modules.sales.projections import apply_sales_summary
 from app.modules.sales.receipts import (
     create_cash_receipt_for_sale,
+    next_receipt_number,
     receipt_list_item,
     reverse_receipt_record,
 )
@@ -553,11 +554,15 @@ def post_invoice(session: Session, invoice_id: int, actor: CurrentUser) -> Sales
     invoice.doc_no = next_doc_number(session, DOC_PREFIX, invoice.business_date)
     session.flush()  # item ids are needed as source lines
     _issue_stock(session, invoice, actor)
+    # The receipt number must be taken before the first journal number (lock order, core/db.py).
+    receipt_no = (
+        next_receipt_number(session, invoice.business_date) if invoice.paid_amount > 0 else None
+    )
     _post_sale_journal(session, invoice, actor)
     _create_claims(session, invoice, actor)
     apply_sales_summary(session, invoice, +1)
-    if invoice.paid_amount > 0:
-        create_cash_receipt_for_sale(session, invoice, actor_id=actor.id)
+    if receipt_no is not None:
+        create_cash_receipt_for_sale(session, invoice, doc_no=receipt_no, actor_id=actor.id)
     invoice.status = "posted"
     invoice.posted_at = now_utc()
     session.flush()
@@ -614,6 +619,15 @@ def reverse_invoice(session: Session, invoice_id: int, actor: CurrentUser) -> Sa
             f"Goods were returned against {invoice.doc_no}, so it can no longer be reversed.",
             code="returns_posted",
         )
+    # Stock first: it locks the product costs, and everything below takes journal numbers
+    # (lock order, core/db.py).
+    reverse_movements(
+        session,
+        source_doc_type=DOC_TYPE,
+        source_doc_id=invoice.id,
+        business_date=on,
+        actor_id=actor.id,
+    )
     own_cash = session.scalar(
         select(CustomerReceipt).where(
             CustomerReceipt.sales_invoice_id == invoice.id,
@@ -622,14 +636,6 @@ def reverse_invoice(session: Session, invoice_id: int, actor: CurrentUser) -> Sa
     )
     if own_cash is not None:
         reverse_receipt_record(session, own_cash, on=on, actor_id=actor.id)
-
-    reverse_movements(
-        session,
-        source_doc_type=DOC_TYPE,
-        source_doc_id=invoice.id,
-        business_date=on,
-        actor_id=actor.id,
-    )
     reverse_entries(
         session,
         source_doc_type=DOC_TYPE,

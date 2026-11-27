@@ -1,6 +1,7 @@
 from datetime import date
 
 from pydantic import BaseModel
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, ConflictError
@@ -60,13 +61,19 @@ def set_period_lock(session: Session, value: PeriodLock, actor: CurrentUser) -> 
     put_setting(session, "period_lock", value, actor)
 
 
-def period_lock_date(session: Session) -> date | None:
-    return get_setting(session, "period_lock", PeriodLock).lock_date
-
-
 def ensure_period_open(session: Session, on: date) -> None:
-    """Reject postings dated on or before the period lock date."""
-    lock = period_lock_date(session)
+    """Reject postings dated on or before the period lock date.
+
+    The setting stays share-locked until the transaction ends, so the date cannot move under a
+    posting in progress, and a posting waits for a change that is being saved.
+    """
+    row = session.scalar(
+        select(AppSetting)
+        .where(AppSetting.key == "period_lock")
+        .with_for_update(read=True)
+        .execution_options(populate_existing=True)
+    )
+    lock = PeriodLock.model_validate(row.value).lock_date if row else None
     if lock is not None and on <= lock:
         raise ConflictError(
             f"The period up to {lock.isoformat()} is locked; nothing can be posted or reversed "
