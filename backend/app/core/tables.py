@@ -7,7 +7,12 @@ and a test fails if a table is missing from it.
 - APPEND_ONLY: nothing may change or remove a row, by grant as well as by trigger.
 """
 
-PLATFORM_TABLES = frozenset({"users", "refresh_tokens"})
+PLATFORM_TABLES = frozenset(
+    {"users", "refresh_tokens", "tenants", "tenant_memberships", "auth_events"}
+)
+
+# Rows that are deactivated, never removed: documents and history point at them.
+NO_DELETE_TABLES = frozenset({"tenants", "tenant_memberships"})
 
 GLOBAL_TABLES = frozenset({"permissions"})
 
@@ -78,7 +83,7 @@ TENANT_TABLES = frozenset(
 )
 
 APPEND_ONLY_TABLES = frozenset(
-    {"inventory_movements", "journal_entries", "journal_lines", "audit_logs"}
+    {"inventory_movements", "journal_entries", "journal_lines", "audit_logs", "auth_events"}
 )
 
 # Not application data.

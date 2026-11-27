@@ -15,7 +15,13 @@ from collections.abc import Mapping
 from psycopg import sql
 from sqlalchemy import Connection, Engine, text
 
-from app.core.tables import APPEND_ONLY_TABLES, GLOBAL_TABLES, PLATFORM_TABLES, SYSTEM_TABLES
+from app.core.tables import (
+    APPEND_ONLY_TABLES,
+    GLOBAL_TABLES,
+    NO_DELETE_TABLES,
+    PLATFORM_TABLES,
+    SYSTEM_TABLES,
+)
 
 OWNER = "tradesphere_owner"
 APP = "tradesphere_app"
@@ -92,6 +98,15 @@ def transfer_ownership(conn: Connection, role: str) -> None:
         conn.exec_driver_sql(f"ALTER FUNCTION {signature} OWNER TO {quoted}")
 
 
+def _verbs(table: str) -> str:
+    """What a runtime role may do with an application table."""
+    if table in APPEND_ONLY_TABLES:
+        return "SELECT, INSERT"
+    if table in NO_DELETE_TABLES:
+        return "SELECT, INSERT, UPDATE"
+    return "SELECT, INSERT, UPDATE, DELETE"
+
+
 def apply_grants(conn: Connection) -> None:
     """Give each existing role exactly what the table classification allows."""
     tables = _tables(conn)
@@ -100,10 +115,8 @@ def apply_grants(conn: Connection) -> None:
             _run(conn, "REVOKE ALL ON {} FROM {}", table, APP)
             if table in GLOBAL_TABLES | SYSTEM_TABLES:
                 _run(conn, "GRANT SELECT ON {} TO {}", table, APP)
-            elif table in APPEND_ONLY_TABLES:
-                _run(conn, "GRANT SELECT, INSERT ON {} TO {}", table, APP)
             else:
-                _run(conn, "GRANT SELECT, INSERT, UPDATE, DELETE ON {} TO {}", table, APP)
+                _run(conn, "GRANT " + _verbs(table) + " ON {} TO {}", table, APP)
         _run(conn, "GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO {}", APP)
     if _exists(conn, PLATFORM):
         for table in tables:
@@ -111,12 +124,7 @@ def apply_grants(conn: Connection) -> None:
             if table in GLOBAL_TABLES | SYSTEM_TABLES:
                 _run(conn, "GRANT SELECT ON {} TO {}", table, PLATFORM)
             elif table in PLATFORM_TABLES:
-                verbs = (
-                    "SELECT, INSERT"
-                    if table in APPEND_ONLY_TABLES
-                    else ("SELECT, INSERT, UPDATE, DELETE")
-                )
-                _run(conn, "GRANT " + verbs + " ON {} TO {}", table, PLATFORM)
+                _run(conn, "GRANT " + _verbs(table) + " ON {} TO {}", table, PLATFORM)
         _run(conn, "GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO {}", PLATFORM)
     if _exists(conn, BACKUP):
         _run(conn, "GRANT SELECT ON ALL TABLES IN SCHEMA public TO {}", BACKUP)

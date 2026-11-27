@@ -50,6 +50,7 @@ from app.modules.sales.models import (
     SalesReturnItem,
 )
 from app.modules.settings.models import AppSetting
+from app.modules.tenancy.models import AuthEvent, Tenant, TenantMembership
 from app.modules.users.models import Permission, RefreshToken, Role, User
 from app.shared.audit import AuditLog
 from app.shared.idempotency import IdempotencyKey
@@ -60,6 +61,7 @@ __all__ = [
     "Account",
     "AppSetting",
     "AuditLog",
+    "AuthEvent",
     "Base",
     "Batch",
     "Brand",
@@ -110,6 +112,8 @@ __all__ = [
     "StockTransferItem",
     "Supplier",
     "SupplierPayment",
+    "Tenant",
+    "TenantMembership",
     "Uom",
     "User",
 ]
