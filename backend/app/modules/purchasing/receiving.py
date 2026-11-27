@@ -33,6 +33,7 @@ from app.shared.dates import business_date as today
 from app.shared.dates import now_utc
 from app.shared.money import ZERO, round_money
 from app.shared.pagination import PageParams, paginate
+from app.shared.search import like_pattern
 from app.shared.sequences import next_doc_number
 
 DOC_TYPE = "GRN"
@@ -111,7 +112,7 @@ def list_grns(
         .order_by(GoodsReceipt.business_date.desc(), GoodsReceipt.id.desc())
     )
     if q:
-        like = f"%{q}%"
+        like = like_pattern(q)
         stmt = stmt.where(
             or_(
                 GoodsReceipt.doc_no.ilike(like),

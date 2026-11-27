@@ -77,6 +77,8 @@ def provision(admin: Engine, passwords: Mapping[str, str]) -> None:
             )
             _run(conn, "GRANT CONNECT ON DATABASE {} TO {}", database, role)
         _run(conn, "ALTER SCHEMA public OWNER TO {}", OWNER)
+        # Needs more rights than the owner has; the migration then finds it present.
+        conn.exec_driver_sql("CREATE EXTENSION IF NOT EXISTS pg_trgm")
         for role in (APP, PLATFORM, BACKUP):
             _run(conn, "GRANT USAGE ON SCHEMA public TO {}", role)
         transfer_ownership(conn, OWNER)

@@ -216,6 +216,8 @@ Differences from the brief's list: jobs are a phase of their own; financial corr
 
 ## Phase 8 — Search and discovery
 
+**Status 2026-11-27:** 8.1 to 8.5 implemented on branch `p8/8.1-search`; 8.6 not started (needs legal review). Supplier catalogs live in the purchasing module. On about 25,000 products, 10,000 customers and 200,000 invoices, global search p95 was 74 to 221 ms as the app role on a development machine; searches without a digit skip document numbers. Cursor paging is offered by the invoice, journal and audit APIs (movements already had it), but the screens still page by number and totals are still counted. No trigram indexes (ADR-008), batches are searched by number only, and discovery has no external source.
+
 **Objective:** `search-and-discovery.md`. **Prerequisites:** 2 (7 for supplier files).
 
 - **Frontend:** global search box, discovery dialog, supplier product review queue.

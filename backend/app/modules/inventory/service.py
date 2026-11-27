@@ -26,6 +26,7 @@ from app.modules.inventory.schemas import (
 from app.shared.dates import business_date
 from app.shared.money import ZERO
 from app.shared.pagination import PageParams, paginate, paginate_rows
+from app.shared.search import all_words, clean, like_pattern
 
 
 def _units(product: Product) -> list[UnitInfo]:
@@ -50,15 +51,8 @@ def stock_summary(
         .order_by(Product.name_en)
     )
     if q:
-        like = f"%{q}%"
-        stmt = stmt.where(
-            or_(
-                Product.sku.ilike(like),
-                Product.name_en.ilike(like),
-                Product.name_bn.ilike(like),
-                Product.barcode == q,
-            )
-        )
+        words = all_words(q, Product.sku, Product.name_en, Product.name_bn)
+        stmt = stmt.where(or_(words, Product.barcode == clean(q)))
     if category_id is not None:
         stmt = stmt.where(Product.category_id == category_id)
     if in_stock_only:
@@ -138,7 +132,7 @@ def batch_stock(
             Batch.expiry_date <= business_date() + timedelta(days=expiring_within_days),
         )
     if q:
-        like = f"%{q}%"
+        like = like_pattern(q)
         stmt = stmt.where(
             or_(Product.sku.ilike(like), Product.name_en.ilike(like), Batch.batch_no.ilike(like))
         )

@@ -35,7 +35,7 @@ from app.modules.settings.schemas import BusinessProfile
 from app.modules.settings.service import get_setting
 from app.shared.dates import business_date
 from app.shared.idempotency import IdempotencyKeyHeader, run_idempotent
-from app.shared.pagination import PageParamsDep
+from app.shared.pagination import CursorQuery, PageParamsDep
 from app.shared.schemas import Page
 
 router = APIRouter(tags=["sales"])
@@ -66,8 +66,9 @@ def list_sales_invoices(
     customer_id: int | None = None,
     date_from: date | None = None,
     date_to: date | None = None,
+    cursor: CursorQuery = None,
 ) -> Page[InvoiceListItem]:
-    items, total = invoices.list_invoices(
+    items, total, following = invoices.list_invoices(
         db,
         page,
         q=q,
@@ -75,8 +76,15 @@ def list_sales_invoices(
         customer_id=customer_id,
         date_from=date_from,
         date_to=date_to,
+        cursor=cursor,
     )
-    return Page(items=items, total=total, page=page.page, page_size=page.page_size)
+    return Page(
+        items=items,
+        total=total,
+        page=page.page,
+        page_size=page.page_size,
+        next_cursor=following,
+    )
 
 
 @router.post("/sales-invoices", response_model=InvoiceRead, status_code=status.HTTP_201_CREATED)

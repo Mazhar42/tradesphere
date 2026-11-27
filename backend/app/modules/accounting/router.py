@@ -16,7 +16,7 @@ from app.modules.accounting.schemas import (
     PaymentAccountUpdate,
     TrialBalanceRead,
 )
-from app.shared.pagination import PageParamsDep
+from app.shared.pagination import CursorQuery, PageParamsDep
 from app.shared.schemas import Page
 
 router = APIRouter(tags=["accounting"])
@@ -71,15 +71,23 @@ def list_journal(
     date_to: date | None = None,
     source_doc_type: Annotated[str | None, Query(max_length=20)] = None,
     q: Annotated[str | None, Query(max_length=100)] = None,
+    cursor: CursorQuery = None,
 ) -> Page[JournalEntryRead]:
-    entries, total = service.list_entries(
-        db, page, date_from=date_from, date_to=date_to, source_doc_type=source_doc_type, q=q
+    entries, total, following = service.list_entries(
+        db,
+        page,
+        date_from=date_from,
+        date_to=date_to,
+        source_doc_type=source_doc_type,
+        q=q,
+        cursor=cursor,
     )
     return Page(
         items=[service.entry_to_read(e) for e in entries],
         total=total,
         page=page.page,
         page_size=page.page_size,
+        next_cursor=following,
     )
 
 

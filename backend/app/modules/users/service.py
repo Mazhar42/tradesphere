@@ -22,6 +22,7 @@ from app.modules.users.schemas import (
 from app.shared.audit import record_audit, snapshot
 from app.shared.dates import now_utc
 from app.shared.pagination import PageParams, paginate
+from app.shared.search import like_pattern
 
 
 def to_read(session: Session, user: User) -> UserRead:
@@ -70,7 +71,7 @@ def list_users(
 ) -> tuple[Sequence[User], int]:
     stmt = _members(session).options(selectinload(User.roles)).order_by(User.username)
     if q:
-        like = f"%{q}%"
+        like = like_pattern(q)
         stmt = stmt.where(or_(User.username.ilike(like), User.full_name.ilike(like)))
     if is_active is not None:
         active = and_(User.is_active.is_(True), TenantMembership.status == "active")

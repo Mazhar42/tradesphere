@@ -17,6 +17,7 @@ from app.modules.catalog.schemas import (
 )
 from app.shared.audit import record_audit, snapshot
 from app.shared.pagination import PageParams, paginate
+from app.shared.search import all_words, clean, like_pattern
 
 _ENTITY_NAMES = {Category: "category", Brand: "brand", Uom: "uom"}
 
@@ -28,7 +29,7 @@ def list_simple[M: (Category, Brand, Uom)](
     order_col = model.code if model is Uom else model.name_en  # type: ignore[attr-defined]
     stmt = select(model).order_by(order_col)
     if q:
-        like = f"%{q}%"
+        like = like_pattern(q)
         stmt = stmt.where(or_(model.name_en.ilike(like), model.name_bn.ilike(like)))
     if is_active is not None:
         stmt = stmt.where(model.is_active == is_active)
@@ -166,13 +167,10 @@ def list_products(
 ) -> tuple[Sequence[Product], int]:
     stmt = select(Product).order_by(Product.name_en)
     if q:
-        like = f"%{q}%"
         stmt = stmt.where(
             or_(
-                Product.sku.ilike(like),
-                Product.name_en.ilike(like),
-                Product.name_bn.ilike(like),
-                Product.barcode == q,
+                all_words(q, Product.sku, Product.name_en, Product.name_bn),
+                Product.barcode == clean(q),
             )
         )
     if category_id is not None:

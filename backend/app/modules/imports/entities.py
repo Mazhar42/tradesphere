@@ -32,7 +32,9 @@ from app.modules.parties.schemas import (
     SupplierUpdate,
 )
 from app.modules.purchasing import service as purchasing
+from app.modules.purchasing.models import SupplierProduct
 from app.modules.purchasing.schemas import POCreate, POLineIn
+from app.modules.purchasing.supplier_catalog import upsert_supplier_product
 
 Row = dict[str, str]
 
@@ -524,6 +526,56 @@ def _create_history(context: Context, checked: Checked, _: CurrentUser) -> int:
     return document.id
 
 
+# --- Company price lists ----------------------------------------------------------------------
+
+
+def _check_supplier_line(context: Context, row: Row) -> Checked:
+    checked = Checked()
+    session = context.session
+    fmt = context.options.get("date_format", "YYYY-MM-DD")
+    _need(checked, row, "supplier_code", "supplier_sku", "description")
+    _copy(checked, row, "description")
+    _parse(checked, row, "supplier_sku", fields.code)
+    _parse(checked, row, "price", lambda v: fields.number(v, places=4))
+    _parse(checked, row, "pack_factor", lambda v: fields.number(v, places=3, positive=True))
+    _parse(checked, row, "min_order_qty", lambda v: fields.number(v, places=3))
+    _parse(checked, row, "valid_from", lambda v: fields.day(v, fmt))
+    supplier_id = _find(session, Supplier, Supplier.code, row.get("supplier_code", ""))
+    if supplier_id is None:
+        checked.errors.append("supplier_code: no supplier has this code")
+    if row.get("sku"):
+        # Only an exact code of ours links the line; names are never guessed.
+        product_id = _find(session, Product, Product.sku, row["sku"])
+        if product_id is None:
+            checked.errors.append("sku: no such product")
+        checked.values["product_id"] = product_id
+    checked.values["supplier_id"] = supplier_id
+    if supplier_id and row.get("supplier_sku"):
+        checked.target_id = session.scalar(
+            select(SupplierProduct.id).where(
+                SupplierProduct.supplier_id == supplier_id,
+                SupplierProduct.supplier_sku == checked.values.get("supplier_sku"),
+            )
+        )
+    return checked
+
+
+def _save_supplier_line(context: Context, checked: Checked, _: CurrentUser) -> int:
+    values = dict(checked.values)
+    supplier_id, sku = values.pop("supplier_id"), values.pop("supplier_sku")
+    return upsert_supplier_product(
+        context.session,
+        supplier_id=supplier_id,
+        supplier_sku=sku,
+        source=context.source,
+        values=values,
+    ).id
+
+
+def _refresh_supplier_line(context: Context, checked: Checked, actor: CurrentUser) -> None:
+    _save_supplier_line(context, checked, actor)
+
+
 EXTERNAL = Column("external_id", "বাহ্যিক আইডি")
 
 ENTITIES: dict[str, Entity] = {
@@ -651,6 +703,23 @@ ENTITIES: dict[str, Entity] = {
             _check_order,
             lambda row: f"{row.get('external_id', '')}|{row.get('sku', '')}".lower(),
             grouped=True,
+        ),
+        Entity(
+            "supplier_products",
+            (
+                Column("supplier_code", "কোম্পানি কোড", True),
+                Column("supplier_sku", "কোম্পানির কোড", True, ("code", "item code")),
+                Column("description", "বিবরণ", True, ("name",)),
+                Column("price", "দর"),
+                Column("pack_factor", "প্যাকে সংখ্যা"),
+                Column("min_order_qty", "ন্যূনতম অর্ডার"),
+                Column("valid_from", "কার্যকর তারিখ"),
+                Column("sku", "আমাদের এসকেইউ"),
+            ),
+            _check_supplier_line,
+            lambda row: f"{row.get('supplier_code', '')}|{row.get('supplier_sku', '')}".lower(),
+            _save_supplier_line,
+            _refresh_supplier_line,
         ),
         Entity(
             "history",

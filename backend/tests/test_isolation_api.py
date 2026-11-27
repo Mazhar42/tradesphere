@@ -273,6 +273,13 @@ def _build_other(client: TestClient, db: Session) -> Other:
             "party, amount) VALUES ('x', '1', 'sale', current_date, 'ZZB party', 7777)"
         )
     )
+    ids["supplier_product_id"] = db.scalar(
+        text(
+            "INSERT INTO supplier_products (supplier_id, supplier_sku, description, source) "
+            "VALUES (:s, 'ZZB-S1', 'ZZB company item', 'x') RETURNING id"
+        ),
+        {"s": ids["supplier_id"]},
+    )
     ids["invitation_id"] = post(
         "/api/v1/invitations", {"note": f"{MARK} invitee", "roles": ["cashier"]}
     )["invitation"]["id"]
@@ -411,6 +418,9 @@ BODIES: dict[tuple[str, str], Body] = {
     ("PUT", "/imports/{job_id}/mapping"): lambda i: {"mapping": {}},
     ("POST", "/imports/{job_id}/approve"): lambda i: {"dry_run_digest": "x"},
     ("POST", "/imports/cutover/sign-off"): lambda i: {"declared": {}},
+    ("POST", "/supplier-products/{supplier_product_id}/link"): lambda i: {
+        "product_id": i["product_id"]
+    },
     ("POST", "/opening-balances"): lambda i: {
         "business_date": (business_date() - timedelta(days=1)).isoformat(),
         "cash": [{"payment_account_id": i["payment_account_id"], "amount": "1"}],

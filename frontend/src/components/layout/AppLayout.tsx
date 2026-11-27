@@ -34,6 +34,7 @@ import { Button } from '@/components/ui/button'
 import { TwoStep } from '@/features/auth/AccountPage'
 import { useAuth } from '@/features/auth/auth-context'
 import { StepUpDialog } from '@/features/auth/StepUpDialog'
+import { GlobalSearch } from '@/features/search/GlobalSearch'
 import { cn, safeStorage } from '@/lib/utils'
 
 import { LanguageSwitch } from './LanguageSwitch'
@@ -75,6 +76,7 @@ const SECTIONS: NavSection[] = [
       { to: '/catalog', label: 'nav.catalog', icon: Tags, permission: 'catalog:read' },
       { to: '/customers', label: 'nav.customers', icon: Users, permission: 'customers:read' },
       { to: '/suppliers', label: 'nav.suppliers', icon: Building2, permission: 'suppliers:read' },
+      { to: '/supplier-lines', label: 'search.linesTitle', icon: Tags, permission: 'purchasing:read' },
     ],
   },
   {
@@ -316,6 +318,7 @@ export function AppLayout() {
           >
             {collapsed ? <PanelLeftOpen className="size-5" /> : <PanelLeftClose className="size-5" />}
           </Button>
+          <GlobalSearch />
           <div className="flex-1" />
           <LanguageSwitch />
           <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={t('theme.toggle')}>

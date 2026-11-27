@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 
-from sqlalchemy import or_, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, ConflictError, NotFoundError
@@ -14,6 +14,7 @@ from app.modules.parties.schemas import (
 )
 from app.shared.audit import record_audit, snapshot
 from app.shared.pagination import PageParams, paginate
+from app.shared.search import all_words, like_pattern
 from app.shared.sequences import next_master_code
 
 _CONFIG: dict[type, tuple[str, str, int]] = {
@@ -53,15 +54,14 @@ def list_parties[P: (Customer, Supplier)](
 ) -> tuple[Sequence[P], int]:
     stmt = select(model).order_by(model.name)
     if q:
-        like = f"%{q}%"
-        conditions = [model.code.ilike(like), model.name.ilike(like), model.phone.ilike(like)]
+        columns = [model.code, model.name, model.phone]
         if model is Customer:
-            conditions.append(Customer.shop_name.ilike(like))
-        stmt = stmt.where(or_(*conditions))
+            columns.append(Customer.shop_name)
+        stmt = stmt.where(all_words(q, *columns))
     if is_active is not None:
         stmt = stmt.where(model.is_active == is_active)
     if area and model is Customer:
-        stmt = stmt.where(Customer.area.ilike(f"%{area}%"))
+        stmt = stmt.where(Customer.area.ilike(like_pattern(area)))
     return paginate(session, stmt, params)
 
 

@@ -134,11 +134,14 @@ TENANT_TABLES = frozenset(
         "opening_lines",
         "imported_documents",
         "cutover_signoffs",
+        "supplier_products",
+        "supplier_price_history",
     }
 )
 
 APPEND_ONLY_TABLES = frozenset(
     {
+        "supplier_price_history",
         "inventory_movements",
         "journal_entries",
         "journal_lines",

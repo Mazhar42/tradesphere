@@ -33,6 +33,7 @@ from app.shared.audit import record_audit, snapshot
 from app.shared.dates import business_date, now_utc
 from app.shared.money import ZERO, round_money
 from app.shared.pagination import PageParams, paginate
+from app.shared.search import like_pattern
 from app.shared.sequences import next_doc_number
 
 QTY_Q = Decimal("0.001")
@@ -262,7 +263,7 @@ def list_pos(
         .order_by(PurchaseOrder.business_date.desc(), PurchaseOrder.id.desc())
     )
     if q:
-        like = f"%{q}%"
+        like = like_pattern(q)
         stmt = stmt.where(or_(PurchaseOrder.doc_no.ilike(like), Supplier.name.ilike(like)))
     if supplier_id is not None:
         stmt = stmt.where(PurchaseOrder.supplier_id == supplier_id)

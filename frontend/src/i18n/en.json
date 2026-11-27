@@ -312,7 +312,8 @@
       "opening_claims": "Pending claims",
       "opening_cash": "Cash and bank",
       "purchase_orders": "Open purchase orders",
-      "history": "Old transactions (reference only)"
+      "history": "Old transactions (reference only)",
+      "supplier_products": "Company price list"
     }
   },
   "forbidden": {
@@ -1182,5 +1183,45 @@
       "balanceDue": "Balance due",
       "advance": "Advance"
     }
+  },
+  "search": {
+    "placeholder": "Search products, shops, documents…",
+    "none": "Nothing found.",
+    "findProduct": "Find a product that is not here",
+    "discoverTitle": "Where is “{{q}}” known?",
+    "discoverHint": "Your products and companies' price lists. Nothing is added or linked automatically.",
+    "nothingKnown": "Not found in your products or any company list. Add it as a new product.",
+    "source": {
+      "catalog": "Your products",
+      "supplier_catalog": "Company list"
+    },
+    "confidence": {
+      "exact": "Exact",
+      "likely": "Likely",
+      "possible": "Possible"
+    },
+    "groups": {
+      "products": "Products",
+      "batches": "Batches",
+      "categories": "Categories",
+      "brands": "Brands",
+      "customers": "Customers",
+      "suppliers": "Suppliers",
+      "purchase_orders": "Purchase orders",
+      "goods_receipts": "Goods receipts",
+      "invoices": "Invoices",
+      "sales_returns": "Sales returns",
+      "receipts": "Money received",
+      "supplier_payments": "Supplier payments",
+      "accounts": "Accounts",
+      "history": "Imported history"
+    },
+    "linesTitle": "Company price lists",
+    "linesHint": "What each company calls its goods and charges. Match a line to your own product here.",
+    "onlyUnlinked": "Only unmatched",
+    "noLines": "No lines. Import a company's price list from Import data.",
+    "link": "Match",
+    "linked": "Matched",
+    "listPrice": "company list ৳{{price}} (pack of {{pack}}, {{date}})"
   }
 }

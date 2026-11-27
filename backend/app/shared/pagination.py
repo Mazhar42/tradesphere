@@ -1,10 +1,15 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
+from datetime import date
 from typing import Annotated, Any
 
 from fastapi import Depends, Query
-from sqlalchemy import Select, func, select
-from sqlalchemy.orm import Session
+from sqlalchemy import Select, func, select, tuple_
+from sqlalchemy.orm import InstrumentedAttribute, Session
+
+from app.core.errors import BusinessRuleError
+
+CursorQuery = Annotated[str | None, Query(max_length=60)]
 
 
 @dataclass(frozen=True)
@@ -43,3 +48,40 @@ def paginate_rows(
     total = session.scalar(select(func.count()).select_from(stmt.order_by(None).subquery())) or 0
     rows = session.execute(stmt.limit(params.page_size).offset(params.offset)).all()
     return rows, total
+
+
+def paginate_keyset(
+    session: Session,
+    stmt: Select[*tuple[Any, ...]],
+    params: PageParams,
+    keys: tuple[InstrumentedAttribute[Any], ...],
+    cursor: str | None,
+    *,
+    rows: bool = False,
+) -> tuple[Sequence[Any], int, str | None]:
+    """A page by number, or (with `cursor`) the rows after the last one seen, which stays
+    fast however deep the list goes. `stmt` must be ordered by `keys`, all descending.
+    With `rows`, the keys are read from the first entity of each row."""
+    total = session.scalar(select(func.count()).select_from(stmt.order_by(None).subquery())) or 0
+    if cursor:
+        parts = cursor.split("|")
+        try:
+            if len(parts) != len(keys):
+                raise ValueError(cursor)
+            values = [
+                date.fromisoformat(part) if key.type.python_type is date else int(part)
+                for key, part in zip(keys, parts, strict=True)
+            ]
+        except ValueError as error:
+            raise BusinessRuleError("That cursor is not valid.", code="invalid_cursor") from error
+        stmt = stmt.where(tuple_(*keys) < tuple_(*values))
+    else:
+        stmt = stmt.offset(params.offset)
+    result = session.execute(stmt.limit(params.page_size + 1))
+    found = result.all() if rows else result.scalars().all()
+    items = found[: params.page_size]
+    following = None
+    if len(found) > params.page_size:
+        last = items[-1][0] if rows else items[-1]
+        following = "|".join(str(getattr(last, key.key)) for key in keys)
+    return items, total, following

@@ -45,6 +45,7 @@ from app.shared.dates import business_date as today
 from app.shared.dates import now_utc
 from app.shared.money import ZERO
 from app.shared.pagination import PageParams, paginate
+from app.shared.search import like_pattern
 from app.shared.sequences import next_doc_number
 
 DOC_TYPE = "SPAY"
@@ -108,7 +109,7 @@ def list_payments(
         .order_by(SupplierPayment.business_date.desc(), SupplierPayment.id.desc())
     )
     if q:
-        like = f"%{q}%"
+        like = like_pattern(q)
         stmt = stmt.where(
             or_(
                 SupplierPayment.doc_no.ilike(like),

@@ -8,7 +8,7 @@ from app.core.db import DbSession
 from app.core.permissions import CurrentUser, require
 from app.modules.users.models import User
 from app.shared.audit import AuditLog
-from app.shared.pagination import PageParamsDep, paginate
+from app.shared.pagination import CursorQuery, PageParamsDep, paginate_keyset
 from app.shared.schemas import Page, ReadSchema
 
 router = APIRouter(tags=["audit"])
@@ -37,6 +37,7 @@ def list_audit_logs(
     entity_id: Annotated[str | None, Query(max_length=50)] = None,
     actor_id: int | None = None,
     action: Annotated[str | None, Query(max_length=50)] = None,
+    cursor: CursorQuery = None,
 ) -> Page[AuditLogRead]:
     stmt = select(AuditLog).order_by(AuditLog.id.desc())
     if entity_type:
@@ -47,7 +48,7 @@ def list_audit_logs(
         stmt = stmt.where(AuditLog.actor_id == actor_id)
     if action:
         stmt = stmt.where(AuditLog.action == action)
-    items, total = paginate(db, stmt, page)
+    items, total, following = paginate_keyset(db, stmt, page, (AuditLog.id,), cursor)
     actor_ids = {a.actor_id for a in items if a.actor_id}
     names = {
         uid: username
@@ -75,4 +76,5 @@ def list_audit_logs(
         total=total,
         page=page.page,
         page_size=page.page_size,
+        next_cursor=following,
     )

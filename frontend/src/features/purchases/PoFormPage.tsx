@@ -42,6 +42,33 @@ function unitOptions(product: Product) {
   ]
 }
 
+/** What this company's own list says, for information; the person decides the price. */
+function ListPrice({ supplierId, productId }: { supplierId: string; productId: number }) {
+  const { t } = useTranslation()
+  const listed = useQuery({
+    queryKey: ['supplier-lines', 'price', supplierId, productId],
+    queryFn: () =>
+      unwrap(
+        api.GET('/api/v1/supplier-products', {
+          params: { query: { supplier_id: Number(supplierId), product_id: productId } },
+        }),
+      ),
+    enabled: supplierId !== '',
+  })
+  const line = listed.data?.items.find((i) => i.price)
+  if (!line) return null
+  return (
+    <span>
+      {' · '}
+      {t('search.listPrice', {
+        price: Number(line.price),
+        pack: Number(line.pack_factor),
+        date: line.last_seen_at.slice(0, 10),
+      })}
+    </span>
+  )
+}
+
 export function PoFormPage() {
   const { t } = useTranslation()
   const { pick } = useLang()
@@ -275,6 +302,7 @@ export function PoFormPage() {
                   {line.product && (
                     <p className="text-xs text-muted lg:col-span-7">
                       {pick(line.product.name_en, line.product.name_bn)} · DP {Number(line.product.dp)} / {line.product.base_uom_code}
+                      <ListPrice supplierId={supplierId} productId={line.product.id} />
                     </p>
                   )}
                 </div>

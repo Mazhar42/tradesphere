@@ -6,9 +6,11 @@ from sqlalchemy import (
     CheckConstraint,
     ForeignKey,
     Index,
+    Numeric,
     String,
     Text,
     UniqueConstraint,
+    func,
     text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -289,3 +291,37 @@ class PurchaseReturnItem(TenantScoped, IdMixin, Base):
         CheckConstraint("qty_base > 0 AND unit_value >= 0", name="qty_value_valid"),
         CheckConstraint("settlement IN ('supplier_credit','claim')", name="settlement_valid"),
     )
+
+
+class SupplierProduct(TenantScoped, IdMixin, Base):
+    __tablename__ = "supplier_products"
+
+    supplier_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("suppliers.id"))
+    supplier_sku: Mapped[str] = mapped_column(String(60))
+    description: Mapped[str] = mapped_column(String(200))
+    product_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("products.id"))
+    pack_factor: Mapped[Decimal] = mapped_column(Numeric(18, 3), server_default="1")
+    price: Mapped[Decimal | None] = mapped_column(Numeric(18, 4))
+    min_order_qty: Mapped[Decimal | None] = mapped_column(Numeric(18, 3))
+    valid_from: Mapped[date | None]
+    source: Mapped[str] = mapped_column(String(40))
+    last_seen_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+    __table_args__ = (
+        UniqueConstraint(
+            "tenant_id", "supplier_id", "supplier_sku", name="uq_supplier_products_sku"
+        ),
+        Index("ix_supplier_products_product", "tenant_id", "product_id"),
+    )
+
+
+class SupplierPrice(TenantScoped, IdMixin, Base):
+    """One row per price change; never edited."""
+
+    __tablename__ = "supplier_price_history"
+
+    supplier_product_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("supplier_products.id"))
+    price: Mapped[Decimal] = mapped_column(Numeric(18, 4))
+    valid_from: Mapped[date | None]
+    source: Mapped[str] = mapped_column(String(40))
+    recorded_at: Mapped[datetime] = mapped_column(server_default=func.now())

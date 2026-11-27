@@ -62,6 +62,8 @@ from app.modules.purchasing.models import (
     PurchaseReturn,
     PurchaseReturnItem,
     SupplierPayment,
+    SupplierPrice,
+    SupplierProduct,
 )
 from app.modules.sales.models import (
     CustomerReceipt,
@@ -168,6 +170,8 @@ __all__ = [
     "SubscriptionEvent",
     "Supplier",
     "SupplierPayment",
+    "SupplierPrice",
+    "SupplierProduct",
     "SupportGrant",
     "Tenant",
     "TenantInvitation",

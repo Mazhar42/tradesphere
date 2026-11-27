@@ -26,7 +26,8 @@ from app.modules.accounting.schemas import (
 )
 from app.shared.audit import record_audit, snapshot
 from app.shared.money import ZERO
-from app.shared.pagination import PageParams, paginate, paginate_rows
+from app.shared.pagination import PageParams, paginate_keyset, paginate_rows
+from app.shared.search import like_pattern
 
 DEFAULT_GL = {"cash": CASH, "bank": BANK, "mfs": BKASH}
 KIND_ALLOWED_GL = {"cash": {CASH}, "bank": {BANK}, "mfs": {BKASH, NAGAD}}
@@ -210,7 +211,8 @@ def list_entries(
     date_to: date | None,
     source_doc_type: str | None,
     q: str | None,
-) -> tuple[Sequence[JournalEntry], int]:
+    cursor: str | None = None,
+) -> tuple[Sequence[JournalEntry], int, str | None]:
     stmt = select(JournalEntry).order_by(JournalEntry.business_date.desc(), JournalEntry.id.desc())
     if date_from:
         stmt = stmt.where(JournalEntry.business_date >= date_from)
@@ -219,13 +221,14 @@ def list_entries(
     if source_doc_type:
         stmt = stmt.where(JournalEntry.source_doc_type == source_doc_type)
     if q:
-        like = f"%{q}%"
+        like = like_pattern(q)
         stmt = stmt.where(
             JournalEntry.entry_no.ilike(like)
             | JournalEntry.source_doc_no.ilike(like)
             | JournalEntry.memo.ilike(like)
         )
-    return paginate(session, stmt, params)
+    keys = (JournalEntry.business_date, JournalEntry.id)
+    return paginate_keyset(session, stmt, params, keys, cursor)
 
 
 def trial_balance(session: Session, as_of: date | None) -> TrialBalanceRead:

@@ -68,7 +68,8 @@ from app.shared.audit import record_audit
 from app.shared.dates import business_date as today
 from app.shared.dates import now_utc
 from app.shared.money import ZERO, round_money
-from app.shared.pagination import PageParams, paginate_rows
+from app.shared.pagination import PageParams, paginate_keyset
+from app.shared.search import like_pattern
 from app.shared.sequences import next_doc_number
 
 DOC_TYPE = "sales_invoice"  # journal and stock source type
@@ -762,7 +763,8 @@ def list_invoices(
     customer_id: int | None,
     date_from: date | None,
     date_to: date | None,
-) -> tuple[list[InvoiceListItem], int]:
+    cursor: str | None = None,
+) -> tuple[list[InvoiceListItem], int, str | None]:
     received = posted_receipt_allocations().subquery()
     credited = credit_notes().subquery()
     stmt = (
@@ -776,7 +778,7 @@ def list_invoices(
         .order_by(SalesInvoice.business_date.desc(), SalesInvoice.id.desc())
     )
     if q:
-        like = f"%{q.strip()}%"
+        like = like_pattern(q)
         stmt = stmt.join(Customer, Customer.id == SalesInvoice.customer_id).where(
             or_(
                 SalesInvoice.doc_no.ilike(like),
@@ -793,7 +795,8 @@ def list_invoices(
     if date_to is not None:
         stmt = stmt.where(SalesInvoice.business_date <= date_to)
 
-    rows, total = paginate_rows(session, stmt, params)
+    keys = (SalesInvoice.business_date, SalesInvoice.id)
+    rows, total, following = paginate_keyset(session, stmt, params, keys, cursor, rows=True)
     items = []
     for invoice, received_amount, credited_amount in rows:
         rec = Decimal(received_amount)
@@ -814,4 +817,4 @@ def list_invoices(
                 payment_status=payment_status(invoice.status, invoice.net_amount, rec, cr),
             )
         )
-    return items, total
+    return items, total, following

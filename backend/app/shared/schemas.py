@@ -26,3 +26,5 @@ class Page[T](BaseModel):
     total: int
     page: int
     page_size: int
+    # Set by lists that can also be read by cursor; absent when there is nothing further.
+    next_cursor: str | None = None

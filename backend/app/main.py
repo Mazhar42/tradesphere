@@ -37,6 +37,7 @@ from app.modules.platform.support_router import router as support_router
 from app.modules.purchasing.return_router import router as purchase_returns_router
 from app.modules.purchasing.router import router as purchasing_router
 from app.modules.sales.router import router as sales_router
+from app.modules.search.router import router as search_router
 from app.modules.settings.router import router as settings_router
 from app.modules.users.router import router as users_router
 from app.shared.business import business_scope
@@ -151,6 +152,7 @@ def create_app() -> FastAPI:
         opening_router,
         integrity_router,
         imports_router,
+        search_router,
         settings_router,
         audit_router,
     ):

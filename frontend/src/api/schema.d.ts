@@ -2694,6 +2694,97 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Global Search
+         * @description Up to five hits per kind, only for kinds this person may read.
+         */
+        get: operations["global_search"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/search/discover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Discover */
+        get: operations["discover"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/supplier-products": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Supplier Products
+         * @description `unlinked` is the review queue; with a product, what each company calls it and charges.
+         */
+        get: operations["list_supplier_products"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/supplier-products/{supplier_product_id}/prices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Price History */
+        get: operations["price_history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/supplier-products/{supplier_product_id}/link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Link Supplier Product */
+        post: operations["link_supplier_product"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/settings": {
         parameters: {
             query?: never;
@@ -3186,6 +3277,21 @@ export interface components {
             bin_no?: string | null;
             /** Invoice Footer */
             invoice_footer?: string | null;
+        };
+        /** CandidateRead */
+        CandidateRead: {
+            /** Source */
+            source: string;
+            /** Confidence */
+            confidence: string;
+            /** Product Id */
+            product_id: number | null;
+            /** Supplier Product Id */
+            supplier_product_id: number | null;
+            /** Title */
+            title: string;
+            /** Detail */
+            detail: string;
         };
         /** CashAccountBalance */
         CashAccountBalance: {
@@ -3968,6 +4074,13 @@ export interface components {
             /** Items */
             items: components["schemas"]["GrnItemRead"][];
         };
+        /** GroupRead */
+        GroupRead: {
+            /** Group */
+            group: string;
+            /** Hits */
+            hits: components["schemas"]["HitRead"][];
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -3992,6 +4105,17 @@ export interface components {
             amount: string;
             /** Source System */
             source_system: string;
+        };
+        /** HitRead */
+        HitRead: {
+            /** Id */
+            id: number;
+            /** Title */
+            title: string;
+            /** Subtitle */
+            subtitle: string;
+            /** Url */
+            url: string;
         };
         /** InvitationAccept */
         InvitationAccept: {
@@ -4386,6 +4510,11 @@ export interface components {
             credit: string;
             /** Balance */
             balance: string;
+        };
+        /** LinkRequest */
+        LinkRequest: {
+            /** Product Id */
+            product_id: number;
         };
         /** LocationRead */
         LocationRead: {
@@ -4953,6 +5082,8 @@ export interface components {
             page: number;
             /** Page Size */
             page_size: number;
+            /** Next Cursor */
+            next_cursor?: string | null;
         };
         /** Page[AuditLogRead] */
         Page_AuditLogRead_: {
@@ -4964,6 +5095,8 @@ export interface components {
             page: number;
             /** Page Size */
             page_size: number;
+            /** Next Cursor */
+            next_cursor?: string | null;
         };
         /** Page[BatchStockRow] */
         Page_BatchStockRow_: {
@@ -4975,6 +5108,8 @@ export interface components {
             page: number;
             /** Page Size */
             page_size: number;
+            /** Next Cursor */
+            next_cursor?: string | null;
         };
         /** Page[ClaimableRead] */
         Page_ClaimableRead_: {
@@ -4986,6 +5121,8 @@ export interface components {
             page: number;
             /** Page Size */
             page_size: number;
+            /** Next Cursor */
+            next_cursor?: string | null;
         };
         /** Page[CommissionRead] */
         Page_CommissionRead_: {
@@ -4997,6 +5134,8 @@ export interface components {
             page: number;
             /** Page Size */
             page_size: number;
+            /** Next Cursor */
+            next_cursor?: string | null;
         };
         /** Page[CompanyClaimListItem] */
         Page_CompanyClaimListItem_: {
@@ -5008,6 +5147,8 @@ export interface components {
             page: number;
             /** Page Size */
             page_size: number;
+            /** Next Cursor */
+            next_cursor?: string | null;
         };
         /** Page[CustomerRead] */
         Page_CustomerRead_: {
@@ -5019,6 +5160,8 @@ export interface components {
             page: number;
             /** Page Size */
             page_size: number;
+            /** Next Cursor */
+            next_cursor?: string | null;
         };
         /** Page[ExpenseRead] */
         Page_ExpenseRead_: {
@@ -5030,6 +5173,8 @@ export interface components {
             page: number;
             /** Page Size */
             page_size: number;
+            /** Next Cursor */
+            next_cursor?: string | null;
         };
         /** Page[FundTransferRead] */
         Page_FundTransferRead_: {
@@ -5041,6 +5186,8 @@ export interface components {
             page: number;
             /** Page Size */
             page_size: number;
+            /** Next Cursor */
+            next_cursor?: string | null;
         };
         /** Page[GrnListItem] */
         Page_GrnListItem_: {
@@ -5052,6 +5199,8 @@ export interface components {
             page: number;
             /** Page Size */
             page_size: number;
+            /** Next Cursor */
+            next_cursor?: string | null;
         };
         /** Page[HistoryRead] */
         Page_HistoryRead_: {
@@ -5063,6 +5212,8 @@ export interface components {
             page: number;
             /** Page Size */
             page_size: number;
+            /** Next Cursor */
+            next_cursor?: string | null;
         };
         /** Page[InvoiceListItem] */
         Page_InvoiceListItem_: {
@@ -5074,6 +5225,8 @@ export interface components {
             page: number;
             /** Page Size */
             page_size: number;
+            /** Next Cursor */
+            next_cursor?: string | null;
         };
         /** Page[JobRead] */
         Page_JobRead_: {
@@ -5085,6 +5238,8 @@ export interface components {
             page: number;
             /** Page Size */
             page_size: number;
+            /** Next Cursor */
+            next_cursor?: string | null;
         };
         /** Page[JournalEntryRead] */
         Page_JournalEntryRead_: {
@@ -5096,6 +5251,8 @@ export interface components {
             page: number;
             /** Page Size */
             page_size: number;
+            /** Next Cursor */
+            next_cursor?: string | null;
         };
         /** Page[LedgerEntryRead] */
         Page_LedgerEntryRead_: {
@@ -5107,6 +5264,8 @@ export interface components {
             page: number;
             /** Page Size */
             page_size: number;
+            /** Next Cursor */
+            next_cursor?: string | null;
         };
         /** Page[OwnerTransactionRead] */
         Page_OwnerTransactionRead_: {
@@ -5118,6 +5277,8 @@ export interface components {
             page: number;
             /** Page Size */
             page_size: number;
+            /** Next Cursor */
+            next_cursor?: string | null;
         };
         /** Page[POListItem] */
         Page_POListItem_: {
@@ -5129,6 +5290,8 @@ export interface components {
             page: number;
             /** Page Size */
             page_size: number;
+            /** Next Cursor */
+            next_cursor?: string | null;
         };
         /** Page[ProductRead] */
         Page_ProductRead_: {
@@ -5140,6 +5303,8 @@ export interface components {
             page: number;
             /** Page Size */
             page_size: number;
+            /** Next Cursor */
+            next_cursor?: string | null;
         };
         /** Page[PurchaseReturnRead] */
         Page_PurchaseReturnRead_: {
@@ -5151,6 +5316,8 @@ export interface components {
             page: number;
             /** Page Size */
             page_size: number;
+            /** Next Cursor */
+            next_cursor?: string | null;
         };
         /** Page[ReceiptListItem] */
         Page_ReceiptListItem_: {
@@ -5162,6 +5329,8 @@ export interface components {
             page: number;
             /** Page Size */
             page_size: number;
+            /** Next Cursor */
+            next_cursor?: string | null;
         };
         /** Page[RowRead] */
         Page_RowRead_: {
@@ -5173,6 +5342,8 @@ export interface components {
             page: number;
             /** Page Size */
             page_size: number;
+            /** Next Cursor */
+            next_cursor?: string | null;
         };
         /** Page[SalesReturnListItem] */
         Page_SalesReturnListItem_: {
@@ -5184,6 +5355,8 @@ export interface components {
             page: number;
             /** Page Size */
             page_size: number;
+            /** Next Cursor */
+            next_cursor?: string | null;
         };
         /** Page[StockRow] */
         Page_StockRow_: {
@@ -5195,6 +5368,8 @@ export interface components {
             page: number;
             /** Page Size */
             page_size: number;
+            /** Next Cursor */
+            next_cursor?: string | null;
         };
         /** Page[SupplierPaymentRead] */
         Page_SupplierPaymentRead_: {
@@ -5206,6 +5381,21 @@ export interface components {
             page: number;
             /** Page Size */
             page_size: number;
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
+        /** Page[SupplierProductRead] */
+        Page_SupplierProductRead_: {
+            /** Items */
+            items: components["schemas"]["SupplierProductRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Next Cursor */
+            next_cursor?: string | null;
         };
         /** Page[SupplierRead] */
         Page_SupplierRead_: {
@@ -5217,6 +5407,8 @@ export interface components {
             page: number;
             /** Page Size */
             page_size: number;
+            /** Next Cursor */
+            next_cursor?: string | null;
         };
         /** Page[TransferRead] */
         Page_TransferRead_: {
@@ -5228,6 +5420,8 @@ export interface components {
             page: number;
             /** Page Size */
             page_size: number;
+            /** Next Cursor */
+            next_cursor?: string | null;
         };
         /** Page[UserRead] */
         Page_UserRead_: {
@@ -5239,6 +5433,8 @@ export interface components {
             page: number;
             /** Page Size */
             page_size: number;
+            /** Next Cursor */
+            next_cursor?: string | null;
         };
         /** PasswordChange */
         PasswordChange: {
@@ -5533,6 +5729,20 @@ export interface components {
              * @default 30
              */
             near_expiry_days?: number;
+        };
+        /** PriceRead */
+        PriceRead: {
+            /** Price */
+            price: string;
+            /** Valid From */
+            valid_from: string | null;
+            /** Source */
+            source: string;
+            /**
+             * Recorded At
+             * Format: date-time
+             */
+            recorded_at: string;
         };
         /** ProductCreate */
         ProductCreate: {
@@ -6463,6 +6673,36 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+        };
+        /** SupplierProductRead */
+        SupplierProductRead: {
+            /** Id */
+            id: number;
+            /** Supplier Id */
+            supplier_id: number;
+            /** Supplier Name */
+            supplier_name: string;
+            /** Supplier Sku */
+            supplier_sku: string;
+            /** Description */
+            description: string;
+            /** Product Id */
+            product_id: number | null;
+            /** Pack Factor */
+            pack_factor: string;
+            /** Price */
+            price: string | null;
+            /** Min Order Qty */
+            min_order_qty: string | null;
+            /** Valid From */
+            valid_from: string | null;
+            /** Source */
+            source: string;
+            /**
+             * Last Seen At
+             * Format: date-time
+             */
+            last_seen_at: string;
         };
         /** SupplierRead */
         SupplierRead: {
@@ -9801,6 +10041,7 @@ export interface operations {
                 customer_id?: number | null;
                 date_from?: string | null;
                 date_to?: string | null;
+                cursor?: string | null;
                 page?: number;
                 page_size?: number;
             };
@@ -12352,6 +12593,7 @@ export interface operations {
                 date_to?: string | null;
                 source_doc_type?: string | null;
                 q?: string | null;
+                cursor?: string | null;
                 page?: number;
                 page_size?: number;
             };
@@ -13033,6 +13275,170 @@ export interface operations {
             };
         };
     };
+    global_search: {
+        parameters: {
+            query: {
+                q: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    discover: {
+        parameters: {
+            query: {
+                q: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CandidateRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_supplier_products: {
+        parameters: {
+            query?: {
+                supplier_id?: number | null;
+                product_id?: number | null;
+                unlinked?: boolean;
+                q?: string | null;
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_SupplierProductRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    price_history: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                supplier_product_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PriceRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    link_supplier_product: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                supplier_product_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LinkRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplierProductRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_settings: {
         parameters: {
             query?: never;
@@ -13159,6 +13565,7 @@ export interface operations {
                 entity_id?: string | null;
                 actor_id?: number | null;
                 action?: string | null;
+                cursor?: string | null;
                 page?: number;
                 page_size?: number;
             };
