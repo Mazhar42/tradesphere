@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Query, status
 
 from app.core.db import DbSession
-from app.core.permissions import CurrentUser, require
+from app.core.permissions import STEP_UP, CurrentUser, require
 from app.modules.users import service
 from app.modules.users.schemas import PasswordReset, RoleRead, UserCreate, UserRead, UserUpdate
 from app.shared.pagination import PageParamsDep
@@ -37,7 +37,9 @@ def list_users(
     )
 
 
-@router.post("/users", response_model=UserRead, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/users", response_model=UserRead, status_code=status.HTTP_201_CREATED, dependencies=STEP_UP
+)
 def create_user(db: DbSession, actor: CanWrite, data: UserCreate) -> UserRead:
     user = service.create_user(db, data, actor)
     db.commit()
@@ -49,14 +51,16 @@ def get_user(db: DbSession, _: CanRead, user_id: int) -> UserRead:
     return service.to_read(db, service.get_user(db, user_id))
 
 
-@router.patch("/users/{user_id}", response_model=UserRead)
+@router.patch("/users/{user_id}", response_model=UserRead, dependencies=STEP_UP)
 def update_user(db: DbSession, actor: CanWrite, user_id: int, data: UserUpdate) -> UserRead:
     user = service.update_user(db, user_id, data, actor)
     db.commit()
     return service.to_read(db, user)
 
 
-@router.post("/users/{user_id}/reset-password", status_code=status.HTTP_204_NO_CONTENT)
+@router.post(
+    "/users/{user_id}/reset-password", status_code=status.HTTP_204_NO_CONTENT, dependencies=STEP_UP
+)
 def reset_password(db: DbSession, actor: CanWrite, user_id: int, data: PasswordReset) -> None:
     service.reset_password(db, user_id, data.new_password, actor)
     db.commit()

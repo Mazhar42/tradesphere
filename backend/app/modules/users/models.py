@@ -122,3 +122,29 @@ class UserToken(IdMixin, Base):
     __table_args__ = (
         CheckConstraint("purpose IN ('verify_email','reset_password')", name="purpose_valid"),
     )
+
+
+class MfaFactor(Base):
+    """One authenticator per person. Unused until `confirmed_at`."""
+
+    __tablename__ = "mfa_factors"
+
+    user_id: Mapped[int] = mapped_column(
+        BigInteger,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        primary_key=True,
+        autoincrement=False,
+    )
+    secret_encrypted: Mapped[str] = mapped_column(String(300))
+    confirmed_at: Mapped[datetime | None]
+    last_step: Mapped[int] = mapped_column(BigInteger, server_default="0")
+
+
+class MfaRecoveryCode(IdMixin, Base):
+    __tablename__ = "mfa_recovery_codes"
+
+    user_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    code_hash: Mapped[str] = mapped_column(String(64))
+    used_at: Mapped[datetime | None]

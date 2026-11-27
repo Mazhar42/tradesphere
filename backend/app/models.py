@@ -51,7 +51,15 @@ from app.modules.sales.models import (
 )
 from app.modules.settings.models import AppSetting
 from app.modules.tenancy.models import AuthEvent, Tenant, TenantInvitation, TenantMembership
-from app.modules.users.models import Permission, RefreshToken, Role, User, UserToken
+from app.modules.users.models import (
+    MfaFactor,
+    MfaRecoveryCode,
+    Permission,
+    RefreshToken,
+    Role,
+    User,
+    UserToken,
+)
 from app.shared.audit import AuditLog
 from app.shared.idempotency import IdempotencyKey
 from app.shared.models import Base
@@ -85,6 +93,8 @@ __all__ = [
     "JournalEntry",
     "JournalLine",
     "Location",
+    "MfaFactor",
+    "MfaRecoveryCode",
     "OpeningBalance",
     "OwnerTransaction",
     "PaymentAccount",

@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 
 from app.core.db import DbSession
-from app.core.permissions import CurrentUser, require
+from app.core.permissions import STEP_UP, CurrentUser, require
 from app.modules.settings import service
 from app.modules.settings.schemas import BusinessProfile, PeriodLock, Preferences, SettingsRead
 
@@ -32,7 +32,7 @@ def put_preferences(db: DbSession, actor: CanWrite, data: Preferences) -> Settin
     return service.get_all(db)
 
 
-@router.put("/period-lock", response_model=SettingsRead)
+@router.put("/period-lock", response_model=SettingsRead, dependencies=STEP_UP)
 def put_period_lock(db: DbSession, actor: CanWrite, data: PeriodLock) -> SettingsRead:
     service.set_period_lock(db, data, actor)
     db.commit()

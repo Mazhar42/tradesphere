@@ -134,6 +134,33 @@
       "expired": "Expired"
     }
   },
+  "security": {
+    "title": "Account and security",
+    "twoStep": "Two-step sign-in",
+    "twoStepHelp": "Ask for a code from your phone as well as your password.",
+    "start": "Set up",
+    "addToApp": "Add this key to an authenticator app, then enter the code it shows.",
+    "openApp": "Open in authenticator app",
+    "code": "Authenticator code",
+    "codeHint": "Six digits from your app, or a recovery code",
+    "turnOn": "Turn on",
+    "turnOff": "Turn off",
+    "on": "On",
+    "recoveryHelp": "Keep these codes somewhere safe. Each works once if you lose your phone. They are shown only now.",
+    "savedThem": "I have saved them",
+    "mustEnrol": "Owners must use two-step sign-in. Set it up to continue.",
+    "confirmTitle": "Confirm it is you",
+    "confirm": "Confirm",
+    "password": "Password",
+    "currentPassword": "Current password",
+    "passwordChanged": "Password changed. Sign in again.",
+    "email": "Recovery email",
+    "emailHelp": "Used only to recover your password, after you open the link we send.",
+    "checkInbox": "Check your inbox",
+    "sessions": "Signed-in devices",
+    "thisDevice": "This device",
+    "signOut": "Sign out"
+  },
   "forbidden": {
     "title": "No access",
     "body": "Your role does not allow access to this page. Ask the owner if you need it."

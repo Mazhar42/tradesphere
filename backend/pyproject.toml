@@ -5,6 +5,7 @@ description = "TradeSphere dealership management API"
 requires-python = ">=3.13,<3.14"
 dependencies = [
     "alembic>=1.20.1",
+    "cryptography>=50.0.2",
     "fastapi[standard]>=0.165.0",
     "psycopg[binary]>=3.3.9",
     "pwdlib[argon2]>=0.4.2",

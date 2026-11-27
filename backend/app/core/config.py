@@ -29,6 +29,12 @@ class Settings(BaseSettings):
     access_token_minutes: int = 15
     refresh_token_days: int = 14
     refresh_reuse_grace_seconds: int = 30
+    session_absolute_days: int = 90  # a sign-in never lasts longer than this
+    # Encrypts authenticator secrets. Required in production.
+    mfa_encryption_key: SecretStr | None = None
+    # Owners must use two-step sign-in. Unset: on in production.
+    require_owner_mfa: bool | None = None
+    step_up_minutes: int = 10
 
     # Failed logins are counted in the audit log (shared by all workers). Past the limit
     # for one username, or a larger one per client IP, sign-in is refused for the window.
@@ -62,6 +68,10 @@ class Settings(BaseSettings):
 
     business_timezone: str = "Asia/Dhaka"
     fiscal_year_start_month: int = 7  # Bangladesh fiscal year: 1 July - 30 June
+
+    @property
+    def owner_mfa_required(self) -> bool:
+        return self.is_production if self.require_owner_mfa is None else self.require_owner_mfa
 
     @property
     def is_production(self) -> bool:
@@ -113,6 +123,9 @@ class Settings(BaseSettings):
             )
         if "*" in self.cors_origins:
             raise ValueError("CORS_ORIGINS must list the app origin, not '*'.")
+        key = self.mfa_encryption_key
+        if key is None or len(key.get_secret_value()) < 32 or key == self.jwt_secret:
+            raise ValueError("MFA_ENCRYPTION_KEY must be a separate secret of 32+ characters.")
         return self
 
 

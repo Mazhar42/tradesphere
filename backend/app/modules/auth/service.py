@@ -15,9 +15,16 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.context import client_ip_var, request_id_var
-from app.core.errors import ForbiddenError, RateLimitedError, UnauthorizedError
+from app.core.errors import (
+    BusinessRuleError,
+    ForbiddenError,
+    NotFoundError,
+    RateLimitedError,
+    UnauthorizedError,
+)
 from app.core.security import create_access_token, hash_token, new_refresh_token, verify_password
-from app.modules.auth.schemas import MeRead, TenantSummary, TokenResponse
+from app.modules.auth import mfa
+from app.modules.auth.schemas import MeRead, SessionRead, TenantSummary, TokenResponse
 from app.modules.tenancy import service as tenancy
 from app.modules.tenancy.models import AuthEvent
 from app.modules.users.models import RefreshToken, User
@@ -71,6 +78,7 @@ class AuthResult:
 
 
 def me_from_user(session: Session, user: User, tenant_id: int) -> MeRead:
+    enrolled = mfa.is_enrolled(session, user.id)
     # Read the roles of the current dealership before listing the others.
     roles, permissions = user.role_codes, sorted(user.permission_codes)
     tenants = [
@@ -85,14 +93,18 @@ def me_from_user(session: Session, user: User, tenant_id: int) -> MeRead:
         permissions=permissions,
         tenant=next((t for t in tenants if t.id == tenant_id), None),
         tenants=tenants,
+        mfa_enrolled=enrolled,
+        mfa_enrolment_required=settings.owner_mfa_required and "owner" in roles and not enrolled,
     )
 
 
-def _token_response(session: Session, user: User, tenant_id: int) -> TokenResponse:
+def _token_response(
+    session: Session, user: User, tenant_id: int, *, mfa_checked: bool = False
+) -> TokenResponse:
     tenancy.enter(session, user.id, tenant_id)
     session.expire(user, ["roles"])
     return TokenResponse(
-        access_token=create_access_token(user.id, tenant_id),
+        access_token=create_access_token(user.id, tenant_id, mfa=mfa_checked),
         expires_in=settings.access_token_minutes * 60,
         user=me_from_user(session, user, tenant_id),
     )
@@ -127,8 +139,20 @@ def _issue_refresh_token(
     return token, raw
 
 
+def _failed(session: Session, user: User | None, username: str) -> None:
+    record_event(
+        session, "login_failed", user_id=user.id if user else None, identifier=username.lower()
+    )
+    session.commit()  # keep the failed-attempt record even though we raise
+
+
 def login(
-    session: Session, username: str, password: str, user_agent: str | None, ip: str | None
+    session: Session,
+    username: str,
+    password: str,
+    user_agent: str | None,
+    ip: str | None,
+    code: str | None = None,
 ) -> AuthResult:
     if _sign_in_blocked(session, username, ip):
         raise RateLimitedError(TOO_MANY_ATTEMPTS, code="login_rate_limited")
@@ -138,19 +162,75 @@ def login(
     if user is not None and valid and user.is_active:
         tenant_id = _choose_tenant(session, user)
     if user is None or tenant_id is None:
-        record_event(
-            session,
-            "login_failed",
-            user_id=user.id if user else None,
-            identifier=username.lower(),
-        )
-        session.commit()  # keep the failed-attempt record even though we raise
+        _failed(session, user, username)
         raise UnauthorizedError(INVALID_CREDENTIALS, code="invalid_credentials")
+
+    second_factor = mfa.is_enrolled(session, user.id)
+    if second_factor:
+        if not code:
+            # The password was right: ask for the code, without counting a failure.
+            raise UnauthorizedError("Enter your authenticator code.", code="mfa_required")
+        if not mfa.verify(session, user.id, code):
+            _failed(session, user, username)
+            raise UnauthorizedError("That code is not right.", code="invalid_code")
 
     user.last_login_at = now_utc()
     _, raw = _issue_refresh_token(session, user, str(uuid.uuid4()), user_agent, ip)
     record_event(session, "login", user_id=user.id, identifier=user.username)
-    return AuthResult(_token_response(session, user, tenant_id), raw)
+    return AuthResult(_token_response(session, user, tenant_id, mfa_checked=second_factor), raw)
+
+
+def step_up(session: Session, user_id: int, tenant_id: int, code: str) -> TokenResponse:
+    """A new access token that records a fresh second factor."""
+    user = session.get(User, user_id)
+    assert user is not None
+    if _sign_in_blocked(session, user.username, None):
+        raise RateLimitedError(TOO_MANY_ATTEMPTS, code="login_rate_limited")
+    if not mfa.verify(session, user.id, code):
+        _failed(session, user, user.username)
+        raise BusinessRuleError(
+            "That code is not right.",
+            code="invalid_code",
+            errors=[{"field": "code", "message": "Wrong code"}],
+        )
+    return _token_response(session, user, tenant_id, mfa_checked=True)
+
+
+def list_sessions(session: Session, user_id: int, raw_token: str | None) -> list[SessionRead]:
+    """One entry per sign-in that can still be refreshed."""
+    tokens = session.scalars(
+        select(RefreshToken).where(RefreshToken.user_id == user_id).order_by(RefreshToken.id)
+    ).all()
+    current = hash_token(raw_token) if raw_token else None
+    families: dict[str, list[RefreshToken]] = {}
+    for token in tokens:
+        families.setdefault(token.family_id, []).append(token)
+    now = now_utc()
+    return [
+        SessionRead(
+            id=family,
+            signed_in_at=rows[0].created_at,
+            last_used_at=rows[-1].created_at,
+            user_agent=rows[-1].user_agent,
+            ip=rows[-1].ip,
+            current=any(r.token_hash == current for r in rows),
+        )
+        for family, rows in families.items()
+        if any(r.revoked_at is None and r.expires_at > now for r in rows)
+    ]
+
+
+def end_session(session: Session, user_id: int, family_id: str) -> None:
+    lock_sessions(session, user_id, ending=True)
+    owned = session.scalar(
+        select(RefreshToken.id)
+        .where(RefreshToken.family_id == family_id, RefreshToken.user_id == user_id)
+        .limit(1)
+    )
+    if owned is None:
+        raise NotFoundError("Session not found.")
+    _revoke_family(session, family_id, now_utc())
+    record_event(session, "session_ended", user_id=user_id)
 
 
 def refresh(
@@ -177,6 +257,12 @@ def refresh(
         _choose_tenant(session, user, tenant) if user is not None and user.is_active else None
     )
     if user is None or tenant_id is None:
+        raise UnauthorizedError("Session expired. Please log in again.", code="session_expired")
+
+    started = session.scalar(
+        select(func.min(RefreshToken.created_at)).where(RefreshToken.family_id == token.family_id)
+    )
+    if started is not None and now - started > timedelta(days=settings.session_absolute_days):
         raise UnauthorizedError("Session expired. Please log in again.", code="session_expired")
 
     if token.revoked_at is not None:

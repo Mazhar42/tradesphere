@@ -45,8 +45,19 @@ def test_production_accepts_a_strong_secret_and_a_named_origin() -> None:
         environment="production",
         jwt_secret="0123456789abcdef0123456789abcdef",
         cors_origins=["https://tradesphere.example"],
+        mfa_encryption_key="fedcba9876543210fedcba9876543210",
     )
     assert config.is_production
+    assert config.owner_mfa_required
+
+
+def test_production_requires_its_own_mfa_key() -> None:
+    with pytest.raises(ValidationError, match="MFA_ENCRYPTION_KEY"):
+        _settings(
+            environment="production",
+            jwt_secret="0123456789abcdef0123456789abcdef",
+            cors_origins=["https://tradesphere.example"],
+        )
 
 
 def test_development_keeps_the_convenient_defaults() -> None:

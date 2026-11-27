@@ -38,9 +38,10 @@ AUDIENCE = "tradesphere-api"
 class AccessClaims:
     user_id: int
     tenant_id: int
+    mfa_at: float | None = None  # when the second factor was last checked for this token
 
 
-def create_access_token(user_id: int, tenant_id: int) -> str:
+def create_access_token(user_id: int, tenant_id: int, *, mfa: bool = False) -> str:
     now = now_utc()
     payload: dict[str, Any] = {
         "sub": str(user_id),
@@ -52,6 +53,8 @@ def create_access_token(user_id: int, tenant_id: int) -> str:
         "exp": now + timedelta(minutes=settings.access_token_minutes),
         "jti": uuid.uuid4().hex,
     }
+    if mfa:
+        payload["mfa"] = now.timestamp()
     return jwt.encode(payload, settings.jwt_secret.get_secret_value(), settings.jwt_algorithm)
 
 
@@ -71,7 +74,9 @@ def decode_access_token(token: str) -> AccessClaims:
         raise UnauthorizedError("Invalid access token.", code="invalid_token") from exc
     if payload.get("type") != "access":
         raise UnauthorizedError("Invalid access token.", code="invalid_token")
-    return AccessClaims(user_id=int(payload["sub"]), tenant_id=int(payload["tid"]))
+    return AccessClaims(
+        user_id=int(payload["sub"]), tenant_id=int(payload["tid"]), mfa_at=payload.get("mfa")
+    )
 
 
 def new_refresh_token() -> str:

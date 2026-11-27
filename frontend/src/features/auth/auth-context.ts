@@ -7,9 +7,10 @@ export type AuthStatus = 'loading' | 'authenticated' | 'anonymous'
 export interface AuthContextValue {
   status: AuthStatus
   user: Me | null
-  login: (username: string, password: string) => Promise<void>
+  login: (username: string, password: string, code?: string) => Promise<void>
   logout: () => Promise<void>
   switchTenant: (tenantId: number) => Promise<void>
+  reload: () => Promise<void>
   can: (permission: string) => boolean
 }
 

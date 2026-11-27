@@ -31,7 +31,9 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
+import { TwoStep } from '@/features/auth/AccountPage'
 import { useAuth } from '@/features/auth/auth-context'
+import { StepUpDialog } from '@/features/auth/StepUpDialog'
 import { cn, safeStorage } from '@/lib/utils'
 
 import { LanguageSwitch } from './LanguageSwitch'
@@ -218,6 +220,12 @@ function UserMenu() {
           )}
           <DropdownMenu.Separator className="my-1 h-px bg-border" />
           <DropdownMenu.Item
+            onSelect={() => void navigate({ to: '/account' })}
+            className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm outline-none data-[highlighted]:bg-surface-muted"
+          >
+            <UserCog className="size-4" /> {t('security.title')}
+          </DropdownMenu.Item>
+          <DropdownMenu.Item
             onSelect={() => void logout()}
             className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm outline-none data-[highlighted]:bg-surface-muted"
           >
@@ -231,6 +239,7 @@ function UserMenu() {
 
 export function AppLayout() {
   const { t } = useTranslation()
+  const { user } = useAuth()
   const [collapsed, setCollapsed] = useState(() => safeStorage.get(COLLAPSE_KEY) === '1')
   const [mobileOpen, setMobileOpen] = useState(false)
   const [theme, setTheme] = useState<Theme>(initialTheme)
@@ -247,8 +256,19 @@ export function AppLayout() {
     setTheme(next)
   }
 
+  // Nothing else works until a required second factor is set up.
+  if (user?.mfa_enrolment_required) {
+    return (
+      <main className="mx-auto max-w-2xl space-y-4 p-4">
+        <p className="rounded-lg bg-primary-soft p-3 text-sm">{t('security.mustEnrol')}</p>
+        <TwoStep />
+      </main>
+    )
+  }
+
   return (
     <div className="flex min-h-screen">
+      <StepUpDialog />
       {/* Desktop sidebar */}
       <aside
         className={cn(

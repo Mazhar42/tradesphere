@@ -9,5 +9,6 @@ description = "Fake credentials used by the test suite"
 regexTarget = "secret"
 regexes = [
   '''^0123456789abcdef0123456789abcdef$''',
+  '''^fedcba9876543210fedcba9876543210$''',
   '''^(Str0ng|An0ther|Second)-Passw0rd$''',
 ]

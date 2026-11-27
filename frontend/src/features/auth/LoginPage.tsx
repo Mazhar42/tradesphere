@@ -17,6 +17,7 @@ import { useAuth } from './auth-context'
 const schema = z.object({
   username: z.string().trim().min(1),
   password: z.string().min(1),
+  code: z.string().trim().optional(),
 })
 type FormValues = z.infer<typeof schema>
 
@@ -24,17 +25,22 @@ export function LoginPage() {
   const { t } = useTranslation()
   const { login } = useAuth()
   const [error, setError] = useState<string | null>(null)
+  const [needsCode, setNeedsCode] = useState(false)
   const {
     register,
     handleSubmit,
     formState: { isSubmitting, errors },
   } = useForm<FormValues>({ resolver: zodResolver(schema) })
 
-  const onSubmit = handleSubmit(async ({ username, password }) => {
+  const onSubmit = handleSubmit(async ({ username, password, code }) => {
     setError(null)
     try {
-      await login(username, password)
+      await login(username, password, code)
     } catch (err) {
+      if (err instanceof ApiError && err.code === 'mfa_required') {
+        setNeedsCode(true)
+        return
+      }
       setError(err instanceof ApiError ? err.message : t('common.somethingWrong'))
     }
   })
@@ -90,6 +96,11 @@ export function LoginPage() {
                 {...register('password')}
               />
             </Field>
+            {needsCode && (
+              <Field label={t('security.code')} htmlFor="code" hint={t('security.codeHint')}>
+                <Input id="code" autoComplete="one-time-code" autoFocus {...register('code')} />
+              </Field>
+            )}
             <Button type="submit" className="w-full justify-center" loading={isSubmitting}>
               {isSubmitting ? t('auth.signingIn') : t('auth.signIn')}
             </Button>

@@ -37,6 +37,7 @@ services:
       PLATFORM_DB_PASSWORD: ${PLATFORM_DB_PASSWORD:?set PLATFORM_DB_PASSWORD in .env}
       BACKUP_DB_PASSWORD: ${BACKUP_DB_PASSWORD:?set BACKUP_DB_PASSWORD in .env}
       DATABASE_URL: postgresql+psycopg://unused:unused@db:5432/tradesphere
+      MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY:?set MFA_ENCRYPTION_KEY in .env}
       JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
     depends_on:
       db:
@@ -54,6 +55,7 @@ services:
       ENVIRONMENT: production
       LOG_FORMAT: json
       SENTRY_DSN: ${SENTRY_DSN:-}
+      MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY:?set MFA_ENCRYPTION_KEY in .env}
       PUBLIC_URL: ${SITE_URL}
       EMAIL_BACKEND: ${EMAIL_BACKEND:-}
       SMTP_HOST: ${SMTP_HOST:-}

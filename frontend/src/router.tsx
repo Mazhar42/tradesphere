@@ -16,6 +16,7 @@ import { LoginPage } from '@/features/auth/LoginPage'
 import { RequirePermission } from '@/features/auth/RequirePermission'
 
 // Pages are code-split: each route downloads its own chunk on first visit.
+const AccountPage = lazyRouteComponent(() => import('@/features/auth/AccountPage'), 'AccountPage')
 const DashboardPage = lazyRouteComponent(() => import('@/features/dashboard/DashboardPage'), 'DashboardPage')
 const ProductsPage = lazyRouteComponent(() => import('@/features/products/ProductsPage'), 'ProductsPage')
 const CatalogPage = lazyRouteComponent(() => import('@/features/catalog/CatalogPage'), 'CatalogPage')
@@ -109,6 +110,7 @@ const routeTree = rootRoute.addChildren([
   ...publicRoutes,
   appRoute.addChildren([
     guarded('/', null, DashboardPage),
+    guarded('/account', null, AccountPage),
     guarded('/products', 'catalog:read', ProductsPage),
     guarded('/catalog', 'catalog:read', CatalogPage),
     guarded('/customers', 'customers:read', CustomersPage),

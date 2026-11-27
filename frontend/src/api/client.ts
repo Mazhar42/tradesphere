@@ -38,6 +38,27 @@ export function setTabTenant(id: number | null): void {
   }
 }
 
+let stepUpHandler: (() => Promise<string | null>) | null = null
+
+/** Asks the person for an authenticator code; resolves null if they give up. */
+export function setStepUpHandler(handler: (() => Promise<string | null>) | null): void {
+  stepUpHandler = handler
+}
+
+async function stepUp(): Promise<boolean> {
+  const code = await stepUpHandler?.()
+  if (!code) return false
+  const response = await fetch('/api/v1/auth/step-up', {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify({ code }),
+  })
+  if (!response.ok) return false
+  accessToken = ((await response.json()) as Schemas['TokenResponse']).access_token
+  return true
+}
+
 export function setAccessToken(token: string | null): void {
   accessToken = token
 }
@@ -93,7 +114,11 @@ async function problemCode(response: Response): Promise<string | undefined> {
 
 async function authFetch(input: Request): Promise<Response> {
   const retry = input.clone()
+  const again = input.clone()
   const response = await fetch(withAuth(input))
+  if (response.status === 403 && (await problemCode(response.clone())) === 'step_up_required') {
+    return (await stepUp()) ? fetch(withAuth(again)) : response
+  }
   const expired =
     response.status === 401 ||
     (response.status === 403 && (await problemCode(response.clone())) === 'membership_inactive')

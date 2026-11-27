@@ -45,8 +45,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => setSessionExpiredHandler(null)
   }, [queryClient, t])
 
-  const login = useCallback(async (username: string, password: string) => {
-    const session = await unwrap(api.POST('/api/v1/auth/login', { body: { username, password } }))
+  const reload = useCallback(async () => {
+    const session = await refreshSession()
+    if (session) setUser(session.user)
+  }, [])
+
+  const login = useCallback(async (username: string, password: string, code?: string) => {
+    const session = await unwrap(
+      api.POST('/api/v1/auth/login', { body: { username, password, code: code || null } }),
+    )
     setAccessToken(session.access_token)
     setTabTenant(session.user.tenant?.id ?? null)
     setUser(session.user)
@@ -82,9 +89,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       logout,
       switchTenant,
+      reload,
       can: (permission) => user?.permissions.includes(permission) ?? false,
     }),
-    [status, user, login, logout, switchTenant],
+    [status, user, login, logout, switchTenant, reload],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

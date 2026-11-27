@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, status
 
 from app.core.db import DbSession
-from app.core.permissions import CurrentUser, require
+from app.core.permissions import STEP_UP, CurrentUser, require
 from app.modules.auth import accounts
 from app.modules.users.schemas import InvitationCreate, InvitationCreated, InvitationRead
 
@@ -18,7 +18,9 @@ def list_invitations(db: DbSession, _: CanRead) -> list[InvitationRead]:
     return [InvitationRead.model_validate(i) for i in accounts.list_invitations(db)]
 
 
-@router.post("", response_model=InvitationCreated, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "", response_model=InvitationCreated, status_code=status.HTTP_201_CREATED, dependencies=STEP_UP
+)
 def create_invitation(db: DbSession, actor: CanWrite, data: InvitationCreate) -> InvitationCreated:
     invitation, link = accounts.invite(
         db, email_address=data.email, note=data.note, roles=data.roles, actor=actor
