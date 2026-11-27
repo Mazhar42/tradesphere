@@ -1,6 +1,6 @@
 # Architecture decision records
 
-All records are **Proposed** (2026-11-27) and become **Accepted** when this batch is approved. An implementer must not depart from an accepted record without raising it first.
+All records are **Accepted** (2026-11-27, with the recommended defaults). ADR-008 was amended afterwards on measured evidence. An implementer must not depart from an accepted record without raising it first.
 
 ## ADR-001 · Keep the modular monolith
 **Context.** One FastAPI application, one database, domain packages, 235 passing tests.
@@ -57,10 +57,11 @@ Each layer is tested with the others switched off, so one cannot hide another's 
 **Alternatives.** SQL `COPY` into live tables: bypasses validation, numbering, journals and audit.
 **Consequences.** Slower than bulk load, but every imported fact obeys the same rules as typed data.
 
-## ADR-008 · Search stays in PostgreSQL
-**Decision.** `pg_trgm` GIN indexes for partial and fuzzy matching, exact indexes for SKU, barcode and document number, and full-text search with the `simple` configuration (no language stemmer is assumed for Bangla). Keyset pagination for large transaction lists.
-**Alternatives.** A search engine: another copy of tenant data to isolate and keep in sync.
-**Revisit when** measured budgets fail on the medium dataset.
+## ADR-008 · Search stays in PostgreSQL, fully under RLS
+**Context (measured).** Under forced RLS, PostgreSQL does not use trigram indexes for `ILIKE` or similarity, because those operators are not leakproof. For a tenant with 25,000 products, partial matching took 19 ms and fuzzy ranking 114 ms without them.
+**Decision.** Exact indexes for SKU, barcode and document number; other matching filters the tenant's rows through the `tenant_id` index; fuzzy only when nothing else matches; Unicode NFC normalisation; keyset pagination. No trigram indexes and no role that bypasses RLS for search.
+**Alternatives.** A `SECURITY DEFINER` search function that bypasses RLS: faster, but adds a privileged path. A search engine: another copy of tenant data to isolate.
+**Revisit when** a measured budget fails; see `search-and-discovery.md` §1.
 
 ## ADR-009 · Billing behind a provider port, manual first
 **Decision.** Subscription state lives in TradeSphere. A `PaymentProvider` interface handles collection. The first provider is **manual**: an operator records a bank or mobile-money payment against an invoice. A Bangladeshi gateway follows, with signature-verified, idempotent webhooks. Plan limits are checked only through one `entitlements` service; no business code names a plan.

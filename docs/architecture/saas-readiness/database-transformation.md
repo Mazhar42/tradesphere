@@ -60,7 +60,9 @@ Moves the single-business schema (56 tables, introspected from a migrated databa
 | `jobs`, `outbox_events` | tenant_id null, kind, payload, status, run_at, attempts, locked_by, dedupe_key | Jobs |
 
 ### Tenant tables added by later phases
-`import_jobs`, `import_files`, `import_rows`, `import_mappings`, `external_refs`, `supplier_products`, `supplier_price_history`, `integration_connections`, `sync_runs`, `export_files`. Columns are specified in the batch 2 documents; all follow the rules in §1.
+`import_jobs`, `import_files`, `import_rows`, `import_mappings`, `external_refs`, `supplier_products`, `supplier_price_history`, `integration_connections`, `sync_runs`, `export_files`. Columns are specified in the import, search and billing documents; all follow the rules in §1.
+
+Those documents also add `imported_documents`, opening-load lines, external stock and balance snapshots, `support_requests` and `tenant_usage`. Classify each when created.
 
 ## 4. Foreign keys
 
@@ -117,7 +119,7 @@ Every referenced tenant table gets `UNIQUE (tenant_id, id)`.
 
 ## 6. Tenant context and RLS
 
-Checked on PostgreSQL 17 on 2026-11-27: adding `tenant_id` by constant default to a table with an append-only trigger, the generated party column with its composite key, fail-closed reads and inserts under forced RLS, superuser bypass, and a single-column foreign key accepting a cross-tenant reference. **Not yet tested:** the session hook and the `pg_dump` behaviour under forced RLS.
+Checked on PostgreSQL 17 on 2026-11-27: adding `tenant_id` by constant default to a table with an append-only trigger, the generated party column with its composite key, fail-closed reads and inserts under forced RLS, superuser bypass, and a single-column foreign key accepting a cross-tenant reference. Also checked: the session hook keeps the setting across commit, rollback and savepoint and leaves nothing on the pooled connection; `pg_dump` fails on a forced-RLS table without bypass.
 
 ```sql
 CREATE FUNCTION app_current_tenant() RETURNS bigint
@@ -167,7 +169,7 @@ def _apply_context(session, transaction, connection):
 - Platform tables with a `tenant_id` (billing, subscriptions): the app role sees its own tenant by policy; the platform role has an allow-all policy.
 - **Backups:** `pg_dump` fails on forced-RLS tables unless the role can bypass RLS, hence the separate backup role. Physical backups are unaffected.
 - **Data migrations** run as the owner, which forced RLS also restricts: any later backfill must loop over tenants and set the context, or it will silently update nothing.
-- **Managed hosts** (Render) may not allow creating these roles. This is to be verified for the batch 2 deployment guide. If only the owner exists, `FORCE ROW LEVEL SECURITY` still isolates tenants.
+- **Managed hosts** (Render) may not allow creating these roles. Verify as described in `deployment-render-free.md` §6. If only the owner exists, `FORCE ROW LEVEL SECURITY` still isolates tenants.
 - Roles are created by a provisioning script, not Alembic. Moving ownership from the current superuser needs a one-time superuser step.
 
 ## 7. Indexes
@@ -181,7 +183,7 @@ RLS adds `tenant_id = ?` to every query, so existing secondary indexes get `tena
 | `inventory_movements` | `(tenant_id, business_date)`, `(tenant_id, source_doc_type, source_doc_id)`; keep `(product_id, id)` |
 | `sales_invoices` | `(tenant_id, business_date, id)`, `(tenant_id, customer_id, business_date)` |
 | `supplier_payments`, `purchase_orders` | prefix existing indexes |
-| `customers`, `suppliers`, `products` | `(tenant_id, lower(name…))`; trigram indexes come with search |
+| `customers`, `suppliers`, `products` | `(tenant_id, lower(name…))`. **No trigram indexes:** under RLS they are not used (measured, `search-and-discovery.md` §1) |
 | `audit_logs` | `(tenant_id, occurred_at)`, `(tenant_id, entity_type, entity_id)` |
 | `batches` | `(tenant_id, expiry_date)` |
 

@@ -23,6 +23,7 @@ The financial core is the strongest part: append-only ledgers, balanced-journal 
 4. **Wrong entries often cannot be corrected** (TS-03).
 5. **The current database roles would silently defeat row-level security** (TS-05).
 6. **Gradual onboarding is blocked** by the one-time opening balance design (TS-08).
+7. **Reconciliation will not scale** (TS-24): 117 s on 200,000 invoices, run inside a web request.
 
 ## Recommended order
 
@@ -36,7 +37,7 @@ The financial core is the strongest part: append-only ledgers, balanced-journal 
 8. **Performance, security hardening, production operations**, restore drills.
 9. **Pilot**, then launch decision.
 
-This is the outline; `implementation-roadmap.md` (batch 2) will be authoritative and may move TS-03 earlier if a single-dealer pilot comes first.
+This is the outline; `implementation-roadmap.md` is authoritative and includes a faster route if a single-dealer pilot must come first.
 
 ## Scorecard
 
@@ -49,7 +50,7 @@ Scores are judgement against a commercial multi-tenant SaaS, supported by the au
 | 3 | Business and financial integrity | 7 | 10 | Deadlock, missing reversals, partial reconciliation (TS-02, 03, 14) | Every document correctable; every invariant has a failing-on-corruption check; no deadlock in race tests | Test run, nightly reconcile history |
 | 4 | Authentication and authorisation | 5 | 10 | No memberships, recovery, MFA (TS-09, 15) | MFA enforced for owners and operators; no token after logout; role matrix tested | Tests, review |
 | 5 | Frontend architecture | 6 | 10 | No SaaS journeys, tenant context or error boundary | All journeys covered by Playwright in English and Bangla; automated accessibility check clean | E2E report |
-| 6 | Performance engineering | 3 | 9–10 | No budgets or realistic data; not measured in this audit | Budgets met in the three load scenarios on the stated hardware | Load-test reports, query plans |
+| 6 | Performance engineering | 3 | 9–10 | Only a local baseline; reconcile fails its likely budget (TS-24) | Budgets met in the three load scenarios on the stated hardware | Load-test reports, query plans |
 | 7 | Automated testing | 6 | 10 | No E2E, few frontend tests, CI gaps (TS-17) | Required PR checks defined and enforced; critical journeys and isolation automated | CI history |
 | 8 | Multi-tenancy | 0 | 10 | Does not exist | Negative tests for every route, report, export, job and import pass as the runtime role | Isolation suite; external review |
 | 9 | Subscription and billing | 0 | 10 | Does not exist | Every lifecycle transition and entitlement tested; invoices match payments | Tests, pilot billing cycle |
@@ -76,34 +77,59 @@ All must be evidenced, not asserted:
 - [ ] Load results recorded for the supported scale.
 - [ ] A pilot dealership has run a full month, including period lock and reconciliation.
 
-## Open decisions
+## Decisions taken (2026-11-27)
 
-Please settle these before the batch 2 documents; the recommendation applies if you have no preference.
+| Topic | Decision |
+|---|---|
+| RPO / RTO | 15 minutes / 4 hours |
+| Trial, grace, read-only | 14 days, 7 days, 90 days |
+| Staff without email | Owner-created username; invitation as a link |
+| Messaging | Email first |
+| Branches and warehouses | Not in the first release |
+| Currency | BDT; code stored per tenant |
+| Billing | Manual first, gateway later |
 
-| # | Decision | Recommendation |
+## Still open
+
+| Decision | Blocks | Needed from |
 |---|---|---|
-| 1 | RPO and RTO | RPO 15 minutes, RTO 4 hours |
-| 2 | Trial and grace lengths | 14-day trial, 7-day grace, 90 days read-only before suspension |
-| 3 | Login for staff without email | Owner-created username; invitations shared as a link, to avoid SMS cost |
-| 4 | SMS or email provider | Email first; add SMS only if pilots need it |
-| 5 | Branches and multiple warehouses | Not in the first release. Locations stay stock buckets per tenant |
-| 6 | Currency | BDT only at launch; store the code per tenant |
-| 7 | Plan limits and prices | Needed from you before billing is built |
-| 8 | Data retention after cancellation or deletion, and any Bangladesh legal requirements for financial records | Needs legal advice; not assessed |
-| 9 | VPS provider and region | Compare in `deployment-vps-production.md` |
+| Plan names, limits, prices; tax or VAT treatment | Phase 5 | Business, accountant |
+| Data protection law, hosting location, retention and deletion duties | Pilot | Lawyer. Current law **not confirmed** from an official source |
+| VPS provider and region | Phase 15 | Business, after legal advice; compare current prices |
+| Payment gateway and fees | Milestone 5.6 | Merchant applications |
+| External product data | Milestone 8.6 | Legal review of licences |
+| Opening receivable items change how receipts allocate | Milestone 7.6 | Your approval of the impact note |
+| Change cost rounding to match money rounding (TS-19) | Milestone 6.6 | Accountant |
+| On-call person | Pilot | Business |
+
+## Self-review
+
+Rechecked against the repository and the brief.
+
+| Question | Result |
+|---|---|
+| Tenant isolation enforceable? | Core mechanisms tested on PostgreSQL 17. Not yet tested inside the application |
+| Anything found to be wrong? | Batch 1 assumed trigram indexes; under RLS they are not used. ADR-008 and the database document are corrected |
+| Anything newly found? | Reconcile scaling (TS-24); composed and decomposed Bangla text compare unequal; a Debian database image must not reuse an Alpine volume |
+| Migration order safe? | Constant-default column addition leaves append-only ledgers untouched (tested). The full migration is unwritten |
+| Import and coexistence covered? | Yes, including external snapshots so partial adoption never invents movements |
+| Both deployment profiles independent? | Yes. Neither new runbook has been executed |
+| Financial semantics preserved? | No posting rule changes, except the flagged opening receivable items |
+| Overengineering? | No microservices, Redis, search engine, partitioning, two-way sync or branches |
+| Weakest areas | Gateway and GS1 facts, VPS pricing and Bangladeshi law are incomplete; budgets are targets, not measurements; Render role privileges unverified |
 
 ## Assumptions that could invalidate the roadmap
 
 - Only test data exists. If real data appears, the migration needs rehearsal on a copy and a cutover plan.
-- One database serves the planned load. This is unproven until the load tests.
-- The demo host allows the database setup RLS needs. To be checked against current Render documentation.
-- A Bangladeshi gateway offers the needed recurring or invoice-payment flow. Not yet researched.
+- One database serves the planned load. Unproven until the load tests.
+- The demo host allows a non-superuser application role. To be checked on the demo database.
+- Pay-per-invoice is acceptable: no gateway recurring debit has been confirmed.
 
-## Delivery status
+## Documents
 
-| Batch | Documents | State |
-|---|---|---|
-| 1 | This one, `current-state-audit.md`, `target-architecture.md`, `database-transformation.md`, `architecture-decision-records.md` | Ready for review |
-| 2 | Import and coexistence, search and discovery, subscription and billing, security and compliance, performance, Render deployment, VPS deployment, testing and acceptance, implementation roadmap | After approval |
+| Batch | Documents |
+|---|---|
+| 1 | This one, `current-state-audit.md`, `target-architecture.md`, `database-transformation.md`, `architecture-decision-records.md` |
+| 2 | `data-import-and-coexistence.md`, `search-and-discovery.md`, `subscription-and-billing.md`, `security-and-compliance.md`, `performance-and-scalability.md`, `deployment-render-free.md`, `deployment-vps-production.md`, `testing-and-acceptance.md`, `implementation-roadmap.md` |
 
-No external provider facts (pricing, limits, gateway APIs) are asserted in batch 1.
+External provider facts carry source links and were checked on 2026-11-27.

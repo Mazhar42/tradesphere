@@ -221,7 +221,7 @@ flowchart TB
   BK -.-> MON
 ```
 
-Migrations run as a single release step before new application containers start, never from API workers. Running several API instances is safe because sessions, locks, idempotency and numbering all live in PostgreSQL; the login limiter already does. Sizing, runbooks and the separate Render profile are batch 2 documents.
+Migrations run as a single release step before new application containers start, never from API workers. Running several API instances is safe because sessions, locks, idempotency and numbering all live in PostgreSQL; the login limiter already does. Sizing and runbooks: `deployment-vps-production.md`. The separate demo profile: `deployment-render-free.md`.
 
 ## 9. Frontend
 

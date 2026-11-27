@@ -93,6 +93,7 @@ Severity is judged against the goal of a commercial multi-tenant SaaS.
 | TS-21 | Low | Module boundaries not enforced |
 | TS-22 | Low | Frontend resilience |
 | TS-23 | Low | Documentation and configuration drift |
+| TS-24 | Medium | Reconcile loads every sale into memory (measured, added in batch 2) |
 
 ### TS-01 · Critical · No tenant concept or isolation — Missing
 - **Files:** all 56 tables; `app/core/db.py`, `app/core/permissions.py`, `app/seed.py`, `app/shared/sequences.py`.
@@ -147,7 +148,7 @@ Severity is judged against the goal of a commercial multi-tenant SaaS.
 - **Files:** `deploy/backup/backup.sh`, `deploy/backup/Dockerfile`, `deploy/docker-compose.prod.yml`, `deploy/scripts/restore-drill.sh`.
 - **Current:** unencrypted `pg_dump`; off-site copy optional and off by default; no WAL archiving or point-in-time recovery; a `sleep 86400` loop rather than a schedule; failures print to a log nobody watches; backup container runs as root. `pg_dump` omits roles, and the drill uses `--no-privileges`, so a rebuilt server's grants are never tested.
 - **Consequences:** up to 24 hours of lost sales and money records, silent backup failure, readable dumps if the disk or bucket is exposed.
-- **Recommendation:** encrypted physical backups with WAL archiving, mandatory off-site storage, scheduled restore tests, failure alerts. Detail in `deployment-vps-production.md` (batch 2).
+- **Recommendation:** encrypted physical backups with WAL archiving, mandatory off-site storage, scheduled restore tests, failure alerts. Detail in `deployment-vps-production.md`.
 - **Tests:** timed restore to a clean host, including roles and grants; reconcile on the restored data.
 - **Accept when:** a drill demonstrates the agreed RPO and RTO.
 
@@ -162,7 +163,7 @@ Severity is judged against the goal of a commercial multi-tenant SaaS.
 - **Files:** `app/modules/accounting/opening.py:64-305`, `app/modules/sales/reports.py:55-133`.
 - **Current:** stock, customer dues, supplier balances, claims and cash post as **one** document; only one may be active; it must be dated before today; reversal is refused once any later stock movement exists. Customer dues are a single figure per customer, shown in ageing as `on_account` with no invoice date.
 - **Problem:** the product goal is "catalog first, stock later, accounting later". Today the dealer must have every figure at once and cannot add a forgotten part after trading starts. Outstanding purchase orders cannot be opened at all with their part-received state.
-- **Recommendation:** opening loads per domain (stock, receivables, payables, claims, cash), one active per domain and item, with a tenant cutover date and optional dated open items. Postings still go through the existing journal and stock engines. Design in `data-import-and-coexistence.md` (batch 2).
+- **Recommendation:** opening loads per domain (stock, receivables, payables, claims, cash), one active per domain and item, with a tenant cutover date and optional dated open items. Postings still go through the existing journal and stock engines. Design in `data-import-and-coexistence.md`.
 - **Accept when:** a tenant can load stock today and receivables next week, without double counting.
 
 ### TS-09 · High · Global user model cannot be safely shared — P
@@ -173,7 +174,7 @@ Severity is judged against the goal of a commercial multi-tenant SaaS.
 - **Accept when:** tests show tenant A's owner cannot change the credentials or sessions of a shared user.
 
 ### TS-10 · High · SaaS capabilities missing — Missing
-Registration, verification, recovery, MFA, invitations, subscriptions, entitlements, billing, platform administration, support access, import, external references, integrations, background jobs, notifications, global search and product discovery. Each is designed in the target architecture and the batch 2 documents. **Accept when:** the roadmap's per-phase criteria pass.
+Registration, verification, recovery, MFA, invitations, subscriptions, entitlements, billing, platform administration, support access, import, external references, integrations, background jobs, notifications, global search and product discovery. Each is designed in the target architecture and its companion documents. **Accept when:** the roadmap's per-phase criteria pass.
 
 ### TS-11 · Medium · All postings serialise on one counter row — U
 - **Files:** `app/shared/sequences.py:29-39`, `app/modules/accounting/journal.py:101`, `app/modules/sales/invoices.py:553`.
@@ -191,7 +192,7 @@ Registration, verification, recovery, MFA, invitations, subscriptions, entitleme
 ### TS-13 · Medium · Search and pagination will not scale — P
 - **Files:** `ILIKE '%q%'` in the catalog, parties, inventory, purchasing, sales, accounting and users services; `app/shared/pagination.py`.
 - **Current:** leading-wildcard search with no trigram index; offset pagination with a full `COUNT(*)`; one keyset endpoint (product movements). `post_journal` loads the whole `accounts` table on every posting (`journal.py:64`).
-- **Recommendation:** `search-and-discovery.md` and `performance-and-scalability.md` (batch 2). No measurement was made here.
+- **Recommendation:** `search-and-discovery.md` and `performance-and-scalability.md`, which record measurements taken afterwards.
 - **Accept when:** query plans and latency budgets pass on the medium-dealership dataset.
 
 ### TS-14 · Medium · Reconciliation is incomplete — P
@@ -243,6 +244,14 @@ No error boundary or not-found page; permission checks run at render, not in `be
 | `docs/deploy-render.md` mentions an unpushed branch | Merged in PR #5 |
 | `render.yaml` rewrites to a suffixed API host while CORS assumes an unsuffixed web host | Confirm actual service names |
 | `loadtest_sales.py` docstring says opening stock | Uses a purchase order and goods receipt |
+
+### TS-24 · Medium · Reconcile does not scale — U
+- **Files:** `app/modules/sales/rebuild.py:25-67`, `app/modules/inventory/reconcile.py:19`, `GET /api/v1/inventory/reconcile`.
+- **Current:** the daily-sales check loads every posted invoice and return, with their lines and joined records, as ORM objects.
+- **Evidence:** on 200,900 synthetic invoices `app.cli reconcile` took **117 s** (it ended with expected drift, because the synthetic rows have no projections). Local Docker, not a VPS.
+- **Consequences:** the API route holds a worker thread and much memory for minutes; with many tenants it is a self-inflicted denial of service.
+- **Recommendation:** compare grouped sums in SQL; run as a job; the endpoint returns the last result (roadmap 6.4).
+- **Accept when:** a medium tenant reconciles within 60 s with bounded memory.
 
 ## 5. What to keep
 
