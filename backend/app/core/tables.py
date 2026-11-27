@@ -136,6 +136,11 @@ TENANT_TABLES = frozenset(
         "cutover_signoffs",
         "supplier_products",
         "supplier_price_history",
+        "domain_ownership",
+        "external_snapshots",
+        "integration_connections",
+        "sync_runs",
+        "api_keys",
     }
 )
 

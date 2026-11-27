@@ -2785,6 +2785,250 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/integrations/domains": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Domains */
+        get: operations["list_domains"];
+        /** Set Domain */
+        put: operations["set_domain"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/integrations/feed-kinds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Feed Kinds */
+        get: operations["list_feed_kinds"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/integrations/connections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Connections */
+        get: operations["list_connections"];
+        put?: never;
+        /** Create Connection */
+        post: operations["create_connection"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/integrations/connections/{connection_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Connection */
+        put: operations["update_connection"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/integrations/connections/{connection_id}/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sync Now */
+        post: operations["sync_now"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/integrations/connections/{connection_id}/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Runs */
+        get: operations["list_runs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/integrations/api-keys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Keys */
+        get: operations["list_keys"];
+        put?: never;
+        /** Create Key */
+        post: operations["create_key"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/integrations/api-keys/{api_key_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Revoke Key */
+        delete: operations["revoke_key"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/integrations/snapshots/stock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stock Snapshots */
+        get: operations["stock_snapshots"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/integrations/snapshots/balances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Balance Snapshots */
+        get: operations["balance_snapshots"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/exports/journal.csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Journal */
+        get: operations["export_journal"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/exports/stock.csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Stock */
+        get: operations["export_stock"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ingest/files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Push File
+         * @description A CSV or XLSX file. Records wait for a person to approve them.
+         */
+        post: operations["push_file"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ingest/snapshots": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Push Snapshot */
+        post: operations["push_snapshot"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/settings": {
         parameters: {
             query?: never;
@@ -3194,6 +3438,13 @@ export interface components {
             payment_instructions: string;
             /** Invoices */
             invoices: components["schemas"]["InvoiceRow"][];
+        };
+        /** Body_push_file */
+        Body_push_file: {
+            /** File */
+            file: string;
+            /** Data */
+            data: string;
         };
         /** Body_upload */
         Body_upload: {
@@ -3660,6 +3911,53 @@ export interface components {
             /** Company Ref */
             company_ref?: string | null;
         };
+        /** ConnectionRead */
+        ConnectionRead: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Source System */
+            source_system: string;
+            /** Feeds */
+            feeds: {
+                [key: string]: string;
+            }[];
+            /** Every Minutes */
+            every_minutes: number | null;
+            /** Enabled */
+            enabled: boolean;
+            /** Has Credentials */
+            has_credentials: boolean;
+            /** Next Run At */
+            next_run_at: string | null;
+            /** Last Attempt At */
+            last_attempt_at: string | null;
+            /** Last Success At */
+            last_success_at: string | null;
+            /** Failures */
+            failures: number;
+        };
+        /** ConnectionWrite */
+        ConnectionWrite: {
+            /** Name */
+            name: string;
+            /** Source System */
+            source_system: string;
+            /** Feeds */
+            feeds: components["schemas"]["Feed"][];
+            /** Every Minutes */
+            every_minutes?: number | null;
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled?: boolean;
+            /** Header Name */
+            header_name?: string | null;
+            /** Header Value */
+            header_value?: string | null;
+        };
         /** CustomerCreate */
         CustomerCreate: {
             /** Code */
@@ -3808,6 +4106,23 @@ export interface components {
             /** Sales Last 30 Days */
             sales_last_30_days: components["schemas"]["SalesDay"][];
         };
+        /** DomainRead */
+        DomainRead: {
+            /** Domain */
+            domain: string;
+            /** Owner */
+            owner: string;
+        };
+        /** DomainWrite */
+        DomainWrite: {
+            /** Domain */
+            domain: string;
+            /**
+             * Owner
+             * @enum {string}
+             */
+            owner: "external" | "tradesphere";
+        };
         /** EmailChange */
         EmailChange: {
             /** Email */
@@ -3864,6 +4179,18 @@ export interface components {
             payee: string | null;
             /** Notes */
             notes: string | null;
+        };
+        /** Feed */
+        Feed: {
+            /** Data */
+            data: string;
+            /** Url */
+            url: string;
+        };
+        /** FeedKinds */
+        FeedKinds: {
+            /** Kinds */
+            kinds: string[];
         };
         /** FundTransferCreate */
         FundTransferCreate: {
@@ -4484,6 +4811,61 @@ export interface components {
             payment_account_id: number | null;
             /** Memo */
             memo: string | null;
+        };
+        /** KeyCreated */
+        KeyCreated: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Source System */
+            source_system: string;
+            /** Hint */
+            hint: string;
+            /** Scopes */
+            scopes: string[];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Last Used At */
+            last_used_at: string | null;
+            /** Revoked At */
+            revoked_at: string | null;
+            /** Key */
+            key: string;
+        };
+        /** KeyRead */
+        KeyRead: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Source System */
+            source_system: string;
+            /** Hint */
+            hint: string;
+            /** Scopes */
+            scopes: string[];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Last Used At */
+            last_used_at: string | null;
+            /** Revoked At */
+            revoked_at: string | null;
+        };
+        /** KeyWrite */
+        KeyWrite: {
+            /** Name */
+            name: string;
+            /** Source System */
+            source_system: string;
+            /** Scopes */
+            scopes: ("files:write" | "snapshots:write")[];
         };
         /** LedgerEntryRead */
         LedgerEntryRead: {
@@ -5358,6 +5740,19 @@ export interface components {
             /** Next Cursor */
             next_cursor?: string | null;
         };
+        /** Page[SnapshotRead] */
+        Page_SnapshotRead_: {
+            /** Items */
+            items: components["schemas"]["SnapshotRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
         /** Page[StockRow] */
         Page_StockRow_: {
             /** Items */
@@ -6051,6 +6446,13 @@ export interface components {
             /** Items */
             items: components["schemas"]["PurchaseReturnItemRead"][];
         };
+        /** PushResult */
+        PushResult: {
+            /** Result */
+            result: {
+                [key: string]: unknown;
+            };
+        };
         /** ReceiptAllocationRead */
         ReceiptAllocationRead: {
             /** Invoice Id */
@@ -6358,6 +6760,27 @@ export interface components {
                 [key: string]: string;
             };
         };
+        /** RunRead */
+        RunRead: {
+            /** Id */
+            id: number;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /**
+             * Finished At
+             * Format: date-time
+             */
+            finished_at: string;
+            /** Status */
+            status: string;
+            /** Results */
+            results: {
+                [key: string]: unknown;
+            }[];
+        };
         /** SalesDay */
         SalesDay: {
             /**
@@ -6532,6 +6955,40 @@ export interface components {
             reasons?: {
                 [key: string]: string;
             };
+        };
+        /** SnapshotPush */
+        SnapshotPush: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "stock" | "balance";
+            /** Rows */
+            rows: {
+                [key: string]: string;
+            }[];
+        };
+        /** SnapshotRead */
+        SnapshotRead: {
+            /** Id */
+            id: number;
+            /** Source System */
+            source_system: string;
+            /** Code */
+            code: string;
+            /** Detail */
+            detail: string;
+            /** Value */
+            value: string;
+            /** Ours */
+            ours: string | null;
+            /** Matched */
+            matched: boolean;
+            /**
+             * As Of
+             * Format: date-time
+             */
+            as_of: string;
         };
         /** StockRow */
         StockRow: {
@@ -13426,6 +13883,493 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SupplierProductRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_domains: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainRead"][];
+                };
+            };
+        };
+    };
+    set_domain: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DomainWrite"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_feed_kinds: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedKinds"];
+                };
+            };
+        };
+    };
+    list_connections: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConnectionRead"][];
+                };
+            };
+        };
+    };
+    create_connection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConnectionWrite"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConnectionRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_connection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                connection_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConnectionWrite"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConnectionRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sync_now: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                connection_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_runs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                connection_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_keys: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KeyRead"][];
+                };
+            };
+        };
+    };
+    create_key: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KeyWrite"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KeyCreated"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revoke_key: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                api_key_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stock_snapshots: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_SnapshotRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    balance_snapshots: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_SnapshotRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_journal: {
+        parameters: {
+            query: {
+                date_from: string;
+                date_to: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_stock: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    push_file: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_push_file"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PushResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    push_snapshot: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SnapshotPush"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PushResult"];
                 };
             };
             /** @description Validation Error */

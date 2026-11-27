@@ -245,7 +245,8 @@ def _every_write_route() -> list[tuple[str, str]]:
     found = []
     for path, operations in app.openapi()["paths"].items():
         if not path.startswith("/api/v1/") or path.startswith(
-            ("/api/v1/auth/", "/api/v1/billing", "/api/v1/platform/")
+            # ingest takes API keys, not sessions: tested in test_integrations.
+            ("/api/v1/auth/", "/api/v1/billing", "/api/v1/platform/", "/api/v1/ingest/")
         ):
             continue
         for method in operations:

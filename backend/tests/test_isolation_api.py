@@ -280,6 +280,18 @@ def _build_other(client: TestClient, db: Session) -> Other:
         ),
         {"s": ids["supplier_id"]},
     )
+    ids["connection_id"] = db.scalar(
+        text(
+            "INSERT INTO integration_connections (name, source_system, feeds, state) "
+            "VALUES ('ZZB link', 'zzb-erp', '[]', '{}') RETURNING id"
+        )
+    )
+    ids["api_key_id"] = db.scalar(
+        text(
+            "INSERT INTO api_keys (name, source_system, hint, key_hash, scopes) "
+            "VALUES ('ZZB key', 'zzb-erp', '7777', 'x', '[]') RETURNING id"
+        )
+    )
     ids["invitation_id"] = post(
         "/api/v1/invitations", {"note": f"{MARK} invitee", "roles": ["cashier"]}
     )["invitation"]["id"]
@@ -420,6 +432,11 @@ BODIES: dict[tuple[str, str], Body] = {
     ("POST", "/imports/cutover/sign-off"): lambda i: {"declared": {}},
     ("POST", "/supplier-products/{supplier_product_id}/link"): lambda i: {
         "product_id": i["product_id"]
+    },
+    ("PUT", "/integrations/connections/{connection_id}"): lambda i: {
+        "name": "mine",
+        "source_system": "erp",
+        "feeds": [{"data": "products", "url": "https://example.com/p.csv"}],
     },
     ("POST", "/opening-balances"): lambda i: {
         "business_date": (business_date() - timedelta(days=1)).isoformat(),

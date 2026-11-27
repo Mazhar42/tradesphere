@@ -313,7 +313,9 @@
       "opening_cash": "Cash and bank",
       "purchase_orders": "Open purchase orders",
       "history": "Old transactions (reference only)",
-      "supplier_products": "Company price list"
+      "supplier_products": "Company price list",
+      "stock_snapshot": "Stock figures",
+      "balance_snapshot": "Balance figures"
     }
   },
   "forbidden": {
@@ -1223,5 +1225,71 @@
     "link": "Match",
     "linked": "Matched",
     "listPrice": "company list ৳{{price}} (pack of {{pack}}, {{date}})"
+  },
+  "integrations": {
+    "title": "Integrations",
+    "subtitle": "Work beside another system until you are ready to move.",
+    "ownership": "Who runs what",
+    "ownershipHint": "While another system runs something, new documents for it are refused here, so nothing is counted twice.",
+    "external": "Another system",
+    "notInUse": "{{domain}} is run in another system for now: you can look, but not enter new documents.",
+    "domains": {
+      "catalog": "Catalog",
+      "parties": "Customers and suppliers",
+      "purchasing": "Purchasing",
+      "stock": "Stock",
+      "sales": "Sales",
+      "receivables": "Money from customers",
+      "accounting": "Accounting"
+    },
+    "connections": "Connections",
+    "connectionsHint": "Files fetched over https. Records wait in Import data for your approval; nothing posts stock or money.",
+    "name": "Name",
+    "url": "File address",
+    "every": "Every (minutes)",
+    "everyHint": "Leave empty to fetch only when asked",
+    "secret": "Authorization header",
+    "secretHint": "Stored encrypted; never shown again",
+    "add": "Add connection",
+    "on": "On",
+    "off": "Off",
+    "failing": "Failed {{count}} times",
+    "lastSuccess": "Last success {{when}}",
+    "never": "Never succeeded",
+    "syncNow": "Fetch now",
+    "queued": "Queued",
+    "history": "History",
+    "switchOff": "Switch off",
+    "switchOn": "Switch on",
+    "noRuns": "No runs yet.",
+    "run": {
+      "ok": "OK",
+      "failed": "Failed"
+    },
+    "unchanged": "unchanged",
+    "staged": "waiting for approval (import {{job}})",
+    "stored": "{{rows}} figures stored, {{unmatched}} unmatched",
+    "keys": "API keys",
+    "keysHint": "Lets another system send files to you.",
+    "copyNow": "Copy this key now; it will not be shown again:",
+    "revoke": "Revoke",
+    "revoked": "Revoked",
+    "createKey": "Create key",
+    "allowSnapshots": "Also allow stock and balance figures",
+    "snapshots": {
+      "stock": "Stock in the other system",
+      "balances": "Balances in the other system"
+    },
+    "snapshotsHint": "For comparison only. These are not part of your books or stock.",
+    "code": "Code",
+    "theirs": "Theirs",
+    "ours": "Ours",
+    "asOf": "As of",
+    "unmatched": "Unmatched",
+    "exports": "Export for another system",
+    "from": "From",
+    "to": "To",
+    "journalCsv": "Journal CSV",
+    "stockCsv": "Stock CSV"
   }
 }

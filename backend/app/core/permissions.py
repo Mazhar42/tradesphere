@@ -16,6 +16,7 @@ from app.core.errors import ForbiddenError, UnauthorizedError
 from app.core.security import AccessClaims, decode_access_token
 from app.core.tenant_context import read_only, set_context
 from app.modules.billing.entitlements import check_access
+from app.modules.integrations.ownership import check_ownership
 from app.modules.platform.models import SupportGrant
 from app.modules.tenancy.models import Tenant
 from app.modules.tenancy.service import business_config, enter
@@ -145,6 +146,7 @@ def get_current_user(user: IdentityDep, db: DbSession, request: Request) -> Curr
         raise ForbiddenError("Set up two-step sign-in to continue.", code="mfa_enrolment_required")
     if SUPPORT_ROLE not in user.roles:
         check_access(db, request.method, request.url.path)
+        check_ownership(db, request.method, request.url.path)
     return user
 
 

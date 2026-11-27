@@ -38,6 +38,13 @@ from app.modules.imports.models import (
     OpeningLine,
     OpeningLoad,
 )
+from app.modules.integrations.models import (
+    ApiKey,
+    DomainOwnership,
+    ExternalSnapshot,
+    IntegrationConnection,
+    SyncRun,
+)
 from app.modules.integrity.models import ReconcileRun
 from app.modules.inventory.models import (
     Batch,
@@ -93,6 +100,7 @@ from app.shared.sequences import DocumentSequence
 
 __all__ = [
     "Account",
+    "ApiKey",
     "AppSetting",
     "AuditLog",
     "AuthEvent",
@@ -113,9 +121,11 @@ __all__ = [
     "CutoverSignoff",
     "DailySalesSummary",
     "DocumentSequence",
+    "DomainOwnership",
     "EntitlementOverride",
     "Expense",
     "ExternalRef",
+    "ExternalSnapshot",
     "FundTransfer",
     "GoodsReceipt",
     "GoodsReceiptItem",
@@ -125,6 +135,7 @@ __all__ = [
     "ImportMapping",
     "ImportRow",
     "ImportedDocument",
+    "IntegrationConnection",
     "InventoryMovement",
     "Job",
     "JournalEntry",
@@ -173,6 +184,7 @@ __all__ = [
     "SupplierPrice",
     "SupplierProduct",
     "SupportGrant",
+    "SyncRun",
     "Tenant",
     "TenantInvitation",
     "TenantMembership",

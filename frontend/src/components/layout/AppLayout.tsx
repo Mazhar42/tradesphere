@@ -1,5 +1,5 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { Link, Outlet, useNavigate } from '@tanstack/react-router'
+import { Link, Outlet, useNavigate, useRouterState } from '@tanstack/react-router'
 import {
   BarChart3,
   Boxes,
@@ -34,6 +34,7 @@ import { Button } from '@/components/ui/button'
 import { TwoStep } from '@/features/auth/AccountPage'
 import { useAuth } from '@/features/auth/auth-context'
 import { StepUpDialog } from '@/features/auth/StepUpDialog'
+import { SCREEN_DOMAINS, useDomains } from '@/features/integrations/domains'
 import { GlobalSearch } from '@/features/search/GlobalSearch'
 import { cn, safeStorage } from '@/lib/utils'
 
@@ -86,6 +87,7 @@ const SECTIONS: NavSection[] = [
       { to: '/opening-balances', label: 'nav.opening', icon: Flag, permission: 'finance:opening' },
       { to: '/imports', label: 'imports.title', icon: Flag, permission: 'imports:write' },
       { to: '/settings', label: 'nav.settings', icon: Settings, permission: 'settings:read' },
+      { to: '/integrations', label: 'integrations.title', icon: Boxes, permission: 'settings:read' },
       { to: '/billing', label: 'billing.title', icon: Wallet, permission: 'settings:write' },
       { to: '/audit', label: 'nav.audit', icon: ScrollText, permission: 'audit:read' },
     ],
@@ -241,6 +243,20 @@ function UserMenu() {
   )
 }
 
+/** Says so when this screen's documents are being entered in another system. */
+function ExternalNotice() {
+  const { t } = useTranslation()
+  const path = useRouterState({ select: (s) => s.location.pathname })
+  const domains = useDomains()
+  const domain = SCREEN_DOMAINS.find(([prefix]) => path.startsWith(prefix))?.[1]
+  if (!domain || !domains.data?.some((d) => d.domain === domain && d.owner === 'external')) return null
+  return (
+    <p role="status" className="mb-4 rounded-lg bg-warning-soft px-3 py-2 text-sm text-warning">
+      {t('integrations.notInUse', { domain: t(`integrations.domains.${domain}`) })}
+    </p>
+  )
+}
+
 export function AppLayout() {
   const { t } = useTranslation()
   const { user } = useAuth()
@@ -332,6 +348,7 @@ export function AppLayout() {
               {t(`billing.banner.${user.subscription_status}`)}
             </p>
           )}
+          <ExternalNotice />
           <Outlet />
         </main>
       </div>

@@ -42,6 +42,7 @@ PERMISSIONS: dict[str, str] = {
     "finance:reverse": "Reverse expenses, fund transfers and owner transactions",
     "claims:reverse": "Reverse claim settlements and commission payments",
     "finance:opening": "Post or reverse opening balances (go-live data load)",
+    "integrations:manage": "Connect other systems: addresses, passwords and API keys",
     "reports:read": "View operational reports",
     "reports:profit": "View cost, profit and margin figures",
 }
@@ -51,7 +52,8 @@ ROLES: dict[str, tuple[str, str, frozenset[str]]] = {
     "manager": (
         "Manager",
         "Runs daily operations; cannot manage users or lock periods",
-        frozenset(PERMISSIONS) - {"users:write", "settings:write", "finance:opening"},
+        frozenset(PERMISSIONS)
+        - {"users:write", "settings:write", "finance:opening", "integrations:manage"},
     ),
     "cashier": (
         "Cashier",

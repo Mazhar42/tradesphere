@@ -229,6 +229,8 @@ Differences from the brief's list: jobs are a phase of their own; financial corr
 
 ## Phase 9 — Integration and coexistence
 
+**Status 2026-11-27:** 9.1 to 9.5 implemented on branch `p9/9.1-integrations`. Scheduled file import (9.2) and the pull connector (9.4) are one mechanism: files fetched over HTTPS. Everything received is staged for approval; **no scope for automatic posting exists**. Not built: a connector for any particular vendor API, flags on local edits of synced records, and metrics for lag or rejected rows. Scenario C was rehearsed against a simulated server only, with no real external system.
+
 **Objective:** §11–12 of the import document. **Prerequisites:** 7.
 
 - **Milestones:** 9.1 domain ownership and snapshots; 9.2 scheduled file import; 9.3 API keys and push; 9.4 pull connector and health; 9.5 CSV exports of journals and stock.

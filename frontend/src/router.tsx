@@ -19,6 +19,7 @@ import { RequirePermission } from '@/features/auth/RequirePermission'
 const AccountPage = lazyRouteComponent(() => import('@/features/auth/AccountPage'), 'AccountPage')
 const BillingPage = lazyRouteComponent(() => import('@/features/billing/BillingPage'), 'BillingPage')
 const SupplierLinesPage = lazyRouteComponent(() => import('@/features/search/SupplierLinesPage'), 'SupplierLinesPage')
+const IntegrationsPage = lazyRouteComponent(() => import('@/features/integrations/IntegrationsPage'), 'IntegrationsPage')
 const ImportsPage = lazyRouteComponent(() => import('@/features/imports/ImportsPage'), 'ImportsPage')
 const DashboardPage = lazyRouteComponent(() => import('@/features/dashboard/DashboardPage'), 'DashboardPage')
 const ProductsPage = lazyRouteComponent(() => import('@/features/products/ProductsPage'), 'ProductsPage')
@@ -123,6 +124,7 @@ const routeTree = rootRoute.addChildren([
     guarded('/account', null, AccountPage),
     guarded('/imports', 'imports:write', ImportsPage),
     guarded('/supplier-lines', 'purchasing:read', SupplierLinesPage),
+    guarded('/integrations', 'settings:read', IntegrationsPage),
     guarded('/billing', 'settings:write', BillingPage),
     guarded('/products', 'catalog:read', ProductsPage),
     guarded('/catalog', 'catalog:read', CatalogPage),
