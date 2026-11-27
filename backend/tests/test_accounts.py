@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.modules.auth import accounts
 from app.modules.users.models import User
 from app.shared import email
 from app.shared.dates import now_utc
@@ -21,7 +22,7 @@ NEW_PASSWORD = "Fresh-Passw0rd-1"
 def outbox(monkeypatch: pytest.MonkeyPatch) -> list[email.Message]:
     sent: list[email.Message] = []
     monkeypatch.setattr(settings, "email_backend", "log")
-    monkeypatch.setattr(email, "deliver", sent.append)
+    monkeypatch.setattr(accounts, "queue_email", lambda _, message: sent.append(message))
     return sent
 
 

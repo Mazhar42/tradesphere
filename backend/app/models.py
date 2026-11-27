@@ -28,6 +28,7 @@ from app.modules.inventory.models import (
     StockTransfer,
     StockTransferItem,
 )
+from app.modules.jobs.models import Job, OutboxEvent
 from app.modules.parties.models import Customer, Supplier
 from app.modules.platform.models import PlatformAuditLog, PlatformOperator, SupportGrant
 from app.modules.purchasing.models import (
@@ -91,12 +92,14 @@ __all__ = [
     "GoodsReceiptItem",
     "IdempotencyKey",
     "InventoryMovement",
+    "Job",
     "JournalEntry",
     "JournalLine",
     "Location",
     "MfaFactor",
     "MfaRecoveryCode",
     "OpeningBalance",
+    "OutboxEvent",
     "OwnerTransaction",
     "PaymentAccount",
     "PaymentPoAllocation",

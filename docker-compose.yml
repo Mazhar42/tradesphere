@@ -71,6 +71,7 @@ services:
       TEST_DATABASE_URL: postgresql+psycopg://tradesphere:tradesphere@db-test:5432/tradesphere_test
       JWT_SECRET: dev-only-secret-change-me-in-production-0123456789
       CORS_ORIGINS: '["http://localhost:5173"]'
+      EMAIL_BACKEND: log
       ENVIRONMENT: development
       WATCHFILES_FORCE_POLLING: "true"
     ports:
@@ -82,6 +83,21 @@ services:
         condition: service_completed_successfully
       db-test:
         condition: service_healthy
+
+  worker:
+    image: tradesphere-api
+    command: ["python", "-m", "app.cli", "worker"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://tradesphere_app:dev-app@db:5432/tradesphere
+      PLATFORM_DATABASE_URL: postgresql+psycopg://tradesphere_platform:dev-platform@db:5432/tradesphere
+      JWT_SECRET: dev-only-secret-change-me-in-production-0123456789
+      ENVIRONMENT: development
+      EMAIL_BACKEND: log
+    volumes:
+      - ./backend:/app
+    depends_on:
+      setup:
+        condition: service_completed_successfully
 
 volumes:
   pgdata:

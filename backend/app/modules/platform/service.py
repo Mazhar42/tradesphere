@@ -23,6 +23,7 @@ from app.core.errors import (
 from app.core.security import create_platform_token, create_support_token, verify_password
 from app.modules.auth import mfa
 from app.modules.auth.service import TOO_MANY_ATTEMPTS, record_event, sign_in_blocked
+from app.modules.jobs.models import Job
 from app.modules.platform.models import PlatformAuditLog, PlatformOperator, SupportGrant
 from app.modules.tenancy.models import Tenant, TenantMembership
 from app.modules.users.models import MfaFactor, MfaRecoveryCode, User
@@ -194,3 +195,23 @@ def validate_reason(reason: str) -> str:
     if len(reason.strip()) < 5:
         raise BusinessRuleError("Say why.", errors=[{"field": "reason", "message": "Too short"}])
     return reason.strip()
+
+
+def job_health(session: Session) -> dict[str, Any]:
+    counts = dict(session.execute(select(Job.status, func.count()).group_by(Job.status)).all())
+    oldest = session.scalar(
+        select(func.min(Job.run_at)).where(Job.status == "queued", Job.run_at <= now_utc())
+    )
+    failures = session.execute(
+        select(Job.id, Job.kind, Job.last_error)
+        .where(Job.status == "failed")
+        .order_by(Job.id.desc())
+        .limit(10)
+    ).all()
+    return {
+        "queued": counts.get("queued", 0),
+        "running": counts.get("running", 0),
+        "failed": counts.get("failed", 0),
+        "oldest_queued_seconds": int((now_utc() - oldest).total_seconds()) if oldest else 0,
+        "recent_failures": [f"#{i} {kind}: {error}" for i, kind, error in failures],
+    }

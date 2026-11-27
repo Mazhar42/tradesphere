@@ -39,6 +39,9 @@ services:
         value: '["10.0.0.0/8","172.16.0.0/12","192.168.0.0/16","127.0.0.1"]'
       - key: MFA_ENCRYPTION_KEY
         generateValue: true
+      # One process on this plan, so the job worker runs inside it.
+      - key: RUN_WORKER_IN_PROCESS
+        value: "true"
       # Links in invitations start with this address.
       - key: PUBLIC_URL
         value: https://tradesphere-web.onrender.com

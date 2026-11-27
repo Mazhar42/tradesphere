@@ -126,6 +126,19 @@ def platform_audit(db: PlatformDb, _: Operator) -> list[PlatformAuditRow]:
     return [PlatformAuditRow.model_validate(r) for r in service.audit_log(db)]
 
 
+class JobHealth(ReadSchema):
+    queued: int
+    running: int
+    failed: int
+    oldest_queued_seconds: int
+    recent_failures: list[str]
+
+
+@router.get("/jobs", response_model=JobHealth)
+def job_health(db: PlatformDb, _: Operator) -> JobHealth:
+    return JobHealth(**service.job_health(db))
+
+
 @router.get("/support-grants", response_model=list[GrantRow])
 def my_support_grants(db: PlatformDb, operator: Operator) -> list[GrantRow]:
     return [GrantRow.model_validate(g) for g in service.my_grants(db, operator)]

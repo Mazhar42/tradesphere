@@ -1,6 +1,8 @@
 """Operational commands: `python -m app.cli --help`."""
 
 import os
+import signal
+import threading
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import datetime
@@ -14,7 +16,8 @@ import app.models as _models  # noqa: F401  (register all tables)
 from app.bootstrap import ensure_owner, ensure_tenant
 from app.core import provision
 from app.core.config import settings
-from app.core.db import SessionLocal
+from app.core.db import SessionLocal, check_database_role
+from app.core.observability import configure_logging, init_error_tracking
 from app.core.tenant_context import set_context
 from app.modules.integrity.reconcile import reconcile as run_reconcile
 from app.modules.platform.service import add_operator
@@ -26,6 +29,7 @@ from app.modules.users.schemas import UserCreate
 from app.modules.users.service import count_active_owners, create_user, get_by_username
 from app.seed import provision_tenant, run_seed
 from app.shared.business import BusinessConfig, business_scope, use_business
+from app.worker import Worker
 
 cli = typer.Typer(no_args_is_help=True, add_completion=False)
 
@@ -183,6 +187,19 @@ def platform_operator(
     if uri:
         typer.echo(f"Add to an authenticator app (shown once):\n{uri}")
         typer.echo("Recovery codes (shown once):\n" + "\n".join(codes))
+
+
+@cli.command("worker")
+def worker_command() -> None:
+    """Run background jobs until stopped."""
+    configure_logging()
+    if settings.sentry_dsn and settings.sentry_dsn.get_secret_value():
+        init_error_tracking(settings.sentry_dsn.get_secret_value())
+    check_database_role()
+    stop = threading.Event()
+    for signum in (signal.SIGTERM, signal.SIGINT):
+        signal.signal(signum, lambda *_: stop.set())
+    Worker().forever(stop)
 
 
 @cli.command("provision-db")

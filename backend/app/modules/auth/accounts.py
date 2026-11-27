@@ -21,6 +21,7 @@ from app.core.permissions import CurrentUser
 from app.core.security import hash_password, hash_token, new_refresh_token, verify_password
 from app.core.tenant_context import set_context, tenant_id_of
 from app.modules.auth.service import record_event
+from app.modules.jobs.service import queue_email
 from app.modules.tenancy import service as tenancy
 from app.modules.tenancy.models import AuthEvent, Tenant, TenantInvitation, TenantMembership
 from app.modules.users import service as users
@@ -87,13 +88,14 @@ def invite(
     if email_address:
         tenant = session.get(Tenant, tenant_id_of(session))
         assert tenant is not None
-        email.deliver(
+        queue_email(
+            session,
             email.Message(
                 email_address,
                 f"Join {tenant.legal_name} on TradeSphere",
                 f"You have been invited to {tenant.legal_name}.\n"
                 f"Open this link within {INVITATION_HOURS} hours:\n{link}\n",
-            )
+            ),
         )
         return invitation, None
     return invitation, link
@@ -259,13 +261,14 @@ def request_password_reset(session: Session, identifier: str, ip: str | None) ->
     if not email.can_send():
         return
     secret = _issue(session, user, "reset_password", timedelta(minutes=RESET_MINUTES))
-    email.deliver(
+    queue_email(
+        session,
         email.Message(
             user.email,
             "Reset your TradeSphere password",
             f"Open this link within {RESET_MINUTES} minutes:\n{_link('/reset-password', secret)}\n"
             "If you did not ask for this, ignore this message.\n",
-        )
+        ),
     )
 
 
@@ -314,12 +317,13 @@ def set_own_email(session: Session, user_id: int, address: str, password: str) -
             errors=[{"field": "email", "message": "Already exists"}],
         )
     secret = _issue(session, user, "verify_email", timedelta(hours=VERIFY_HOURS), address)
-    email.deliver(
+    queue_email(
+        session,
         email.Message(
             address,
             "Confirm your email address",
             f"Open this link within {VERIFY_HOURS} hours:\n{_link('/verify-email', secret)}\n",
-        )
+        ),
     )
 
 

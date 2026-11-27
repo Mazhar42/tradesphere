@@ -1,3 +1,4 @@
+import threading
 import time
 import uuid
 from collections.abc import AsyncIterator, Awaitable, Callable
@@ -36,6 +37,7 @@ from app.modules.sales.router import router as sales_router
 from app.modules.settings.router import router as settings_router
 from app.modules.users.router import router as users_router
 from app.shared.business import business_scope
+from app.worker import Worker
 
 API_PREFIX = "/api/v1"
 
@@ -47,7 +49,17 @@ def _operation_id(route: APIRoute) -> str:
 @asynccontextmanager
 async def _lifespan(_: FastAPI) -> AsyncIterator[None]:
     check_database_role()
-    yield
+    stop = threading.Event()
+    thread = None
+    if settings.run_worker_in_process:
+        thread = threading.Thread(target=Worker().forever, args=(stop,), daemon=True)
+        thread.start()
+    try:
+        yield
+    finally:
+        stop.set()
+        if thread is not None:
+            thread.join(timeout=10)
 
 
 def create_app() -> FastAPI:

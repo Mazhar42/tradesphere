@@ -18,6 +18,7 @@ import { formatDateTime } from '@/lib/format'
 
 type Tenant = Schemas['TenantRow']
 type Audit = Schemas['PlatformAuditRow']
+type Jobs = Schemas['JobHealth']
 
 async function call<T>(path: string, token: string | null, init: RequestInit = {}): Promise<T> {
   const response = await fetch(`/api/v1/platform${path}`, {
@@ -39,6 +40,7 @@ export function PlatformApp() {
   const [form, setForm] = useState({ username: '', password: '', code: '' })
   const [tenants, setTenants] = useState<Tenant[]>([])
   const [audit, setAudit] = useState<Audit[]>([])
+  const [jobs, setJobs] = useState<Jobs | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const run = useCallback(async (action: () => Promise<void>) => {
@@ -53,6 +55,7 @@ export function PlatformApp() {
   const load = async (using: string) => {
     setTenants(await call<Tenant[]>('/tenants', using))
     setAudit(await call<Audit[]>('/audit', using))
+    setJobs(await call<Jobs>('/jobs', using))
   }
 
   const signIn = (event: FormEvent) => {
@@ -139,6 +142,23 @@ export function PlatformApp() {
               </tbody>
             </table>
           </Card>
+          {jobs && (
+            <Card className="p-4">
+              <h2 className="mb-2 font-semibold">{t('platform.jobs')}</h2>
+              <p className="text-sm">
+                {t('platform.jobCounts', {
+                  queued: jobs.queued,
+                  failed: jobs.failed,
+                  minutes: Math.round(jobs.oldest_queued_seconds / 60),
+                })}
+              </p>
+              <ul className="mt-1 text-sm text-danger">
+                {jobs.recent_failures.map((failure) => (
+                  <li key={failure}>{failure}</li>
+                ))}
+              </ul>
+            </Card>
+          )}
           <Card className="p-4">
             <h2 className="mb-2 font-semibold">{t('platform.audit')}</h2>
             <ul className="space-y-1 text-sm">

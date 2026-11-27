@@ -16,6 +16,7 @@ from psycopg import sql
 from sqlalchemy import Connection, Engine, text
 
 from app.core.tables import (
+    APP_ADD_ONLY_TABLES,
     APP_INSERT_ONLY_TABLES,
     APPEND_ONLY_TABLES,
     GLOBAL_TABLES,
@@ -100,6 +101,10 @@ def transfer_ownership(conn: Connection, role: str) -> None:
         conn.exec_driver_sql(f"ALTER FUNCTION {signature} OWNER TO {quoted}")
 
 
+def _app_verbs(table: str) -> str:
+    return "SELECT, INSERT" if table in APP_ADD_ONLY_TABLES else _verbs(table)
+
+
 def _verbs(table: str) -> str:
     """What a runtime role may do with an application table."""
     if table in APPEND_ONLY_TABLES:
@@ -122,7 +127,7 @@ def apply_grants(conn: Connection) -> None:
             elif table in APP_INSERT_ONLY_TABLES:
                 _run(conn, "GRANT INSERT ON {} TO {}", table, APP)
             else:
-                _run(conn, "GRANT " + _verbs(table) + " ON {} TO {}", table, APP)
+                _run(conn, "GRANT " + _app_verbs(table) + " ON {} TO {}", table, APP)
         _run(conn, "GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO {}", APP)
     if _exists(conn, PLATFORM):
         for table in tables:

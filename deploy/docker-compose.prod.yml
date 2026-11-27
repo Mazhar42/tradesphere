@@ -95,6 +95,21 @@ services:
       retries: 5
       start_period: 15s
 
+  # Background jobs: email and housekeeping.
+  worker:
+    build: *api-build
+    image: tradesphere-api:prod
+    restart: unless-stopped
+    command: ["python", "-m", "app.cli", "worker"]
+    environment:
+      <<: *api-env
+      DATABASE_URL: postgresql+psycopg://tradesphere_app:${APP_DB_PASSWORD}@db:5432/tradesphere
+      PLATFORM_DATABASE_URL: postgresql+psycopg://tradesphere_platform:${PLATFORM_DB_PASSWORD}@db:5432/tradesphere
+    stop_grace_period: 30s
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
   web:
     build:
       context: ../frontend

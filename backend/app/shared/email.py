@@ -29,7 +29,8 @@ def can_send() -> bool:
 
 
 def deliver(message: Message) -> None:
-    """Send now. Raises if it cannot be sent."""
+    """Send now. Raises if it cannot be sent. Requests use `jobs.service.queue_email`, so a
+    slow or failing mail server never holds up, or half-completes, a request."""
     if settings.email_backend == "log":
         logger.info("Email to %s: %s\n%s", message.to, message.subject, message.body)
         return

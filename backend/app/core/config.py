@@ -53,6 +53,9 @@ class Settings(BaseSettings):
     smtp_username: str | None = None
     smtp_password: SecretStr | None = None
 
+    # Run the job worker on a thread of the web process: only for a host with one process.
+    run_worker_in_process: bool = False
+
     # A second dealership shares the database only once isolation has been reviewed
     # (docs/operations.md, "Dealerships").
     allow_multiple_tenants: bool = False

@@ -186,6 +186,8 @@
     "suspend": "Suspend",
     "activate": "Reactivate",
     "audit": "Recent platform activity",
+    "jobs": "Background jobs",
+    "jobCounts": "{{queued}} waiting, {{failed}} failed, oldest waiting {{minutes}} min",
     "reason": "Reason for changing {{name}}",
     "status": {
       "active": "Active",

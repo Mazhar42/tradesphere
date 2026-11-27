@@ -537,6 +537,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/platform/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Job Health */
+        get: operations["job_health"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/platform/support-grants": {
         parameters: {
             query?: never;
@@ -3430,6 +3447,19 @@ export interface components {
             payment_account_id?: number | null;
             /** Items */
             items: components["schemas"]["InvoiceLineIn"][];
+        };
+        /** JobHealth */
+        JobHealth: {
+            /** Queued */
+            queued: number;
+            /** Running */
+            running: number;
+            /** Failed */
+            failed: number;
+            /** Oldest Queued Seconds */
+            oldest_queued_seconds: number;
+            /** Recent Failures */
+            recent_failures: string[];
         };
         /** JournalEntryRead */
         JournalEntryRead: {
@@ -6801,6 +6831,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PlatformAuditRow"][];
+                };
+            };
+        };
+    };
+    job_health: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobHealth"];
                 };
             };
         };

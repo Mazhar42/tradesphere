@@ -20,8 +20,13 @@ PLATFORM_TABLES = frozenset(
         "platform_operators",
         "platform_audit_logs",
         "support_access_grants",
+        "jobs",
+        "outbox_events",
     }
 )
+
+# The application adds work and may look at its own; only the worker's role changes it.
+APP_ADD_ONLY_TABLES = frozenset({"jobs", "outbox_events"})
 
 # Closed to the application role altogether: a flaw in the dealership application must not be
 # able to make or unmake an operator.
