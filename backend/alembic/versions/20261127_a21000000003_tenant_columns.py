@@ -45,11 +45,7 @@ def upgrade() -> None:
         )
     bind = op.get_bind()
     tenants = bind.scalars(sa.text("SELECT id FROM tenants ORDER BY id")).all()
-    has_rows = [
-        t
-        for t in TABLES
-        if bind.scalar(sa.text(f"SELECT EXISTS (SELECT 1 FROM {t})"))
-    ]
+    has_rows = [t for t in TABLES if bind.scalar(sa.text(f"SELECT EXISTS (SELECT 1 FROM {t})"))]
     if has_rows and len(tenants) != 1:
         raise RuntimeError(
             f"{', '.join(has_rows)} hold rows but there is not exactly one dealership to "

@@ -170,7 +170,7 @@ def update_user(session: Session, user_id: int, data: UserUpdate, actor: Current
     if is_active is not None:
         member.status = "active" if is_active else "inactive"
     session.flush()
-    if is_active is False and not tenancy.memberships_of(session, user.id):
+    if is_active is False and tenancy.active_membership_count(session, user.id) == 0:
         revoke_all_tokens(session, user.id)
     record_audit(
         session,
