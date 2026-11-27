@@ -32,6 +32,7 @@ from app.modules.purchasing.router import router as purchasing_router
 from app.modules.sales.router import router as sales_router
 from app.modules.settings.router import router as settings_router
 from app.modules.users.router import router as users_router
+from app.shared.business import business_scope
 
 API_PREFIX = "/api/v1"
 
@@ -85,7 +86,8 @@ def create_app() -> FastAPI:
         started = time.perf_counter()
         status = 500  # stays 500 when an exception escapes every handler
         try:
-            response = await call_next(request)
+            with business_scope():
+                response = await call_next(request)
             status = response.status_code
         finally:
             access_log(
