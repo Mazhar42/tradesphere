@@ -211,15 +211,19 @@ def create_receipt(session: Session, data: ReceiptCreate, actor: CurrentUser) ->
     return receipt
 
 
+def next_receipt_number(session: Session, on: date) -> str:
+    return next_doc_number(session, DOC_PREFIX, on)
+
+
 def create_cash_receipt_for_sale(
-    session: Session, invoice: SalesInvoice, *, actor_id: int | None
+    session: Session, invoice: SalesInvoice, *, doc_no: str, actor_id: int | None
 ) -> CustomerReceipt:
     """The cash taken at the counter with an invoice: a receipt fully allocated to that invoice."""
     pa = session.get(PaymentAccount, invoice.payment_account_id)
     if pa is None:
         raise NotFoundError("Payment account not found.")
     receipt = CustomerReceipt(
-        doc_no=next_doc_number(session, DOC_PREFIX, invoice.business_date),
+        doc_no=doc_no,
         customer_id=invoice.customer_id,
         business_date=invoice.business_date,
         amount=invoice.paid_amount,

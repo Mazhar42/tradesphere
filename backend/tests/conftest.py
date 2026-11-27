@@ -14,12 +14,13 @@ if not TEST_DATABASE_URL:
 os.environ["DATABASE_URL"] = TEST_DATABASE_URL
 os.environ["ENVIRONMENT"] = "test"
 
+import uuid  # noqa: E402
 from collections.abc import Callable, Iterator  # noqa: E402
 
 import pytest  # noqa: E402
 from alembic.config import Config  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
-from sqlalchemy import Engine, text  # noqa: E402
+from sqlalchemy import Engine, create_engine, make_url, text  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
 
 from alembic import command  # noqa: E402
@@ -47,6 +48,32 @@ def engine() -> Iterator[Engine]:
         run_seed(session)
         session.commit()
     yield app_engine
+
+
+@pytest.fixture
+def scratch_engine(engine: Engine) -> Iterator[Engine]:
+    """A separate, freshly migrated and seeded database for tests that must really commit
+    (threads and row locks). It is dropped afterwards, so nothing has to be cleaned up."""
+    assert TEST_DATABASE_URL
+    name = f"tradesphere_scratch_{uuid.uuid4().hex[:10]}"
+    url = make_url(TEST_DATABASE_URL).set(database=name)
+    admin = engine.execution_options(isolation_level="AUTOCOMMIT")
+    with admin.connect() as conn:
+        conn.execute(text(f'CREATE DATABASE "{name}"'))
+    scratch = create_engine(url, pool_size=10)
+    try:
+        cfg = Config("alembic.ini")
+        cfg.attributes["database_url"] = url.render_as_string(hide_password=False)
+        cfg.attributes["configure_logger"] = False
+        command.upgrade(cfg, "head")
+        with Session(scratch) as session:
+            run_seed(session)
+            session.commit()
+        yield scratch
+    finally:
+        scratch.dispose()
+        with admin.connect() as conn:
+            conn.execute(text(f'DROP DATABASE "{name}" WITH (FORCE)'))
 
 
 @pytest.fixture

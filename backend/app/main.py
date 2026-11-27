@@ -11,7 +11,7 @@ import app.models as _models  # noqa: F401  (register all tables)
 from app.core.config import settings
 from app.core.context import client_ip_var, request_id_var
 from app.core.db import DbSession
-from app.core.errors import register_exception_handlers
+from app.core.errors import RetryTransientConflicts, register_exception_handlers
 from app.core.observability import access_log, configure_logging
 from app.modules.accounting.router import router as accounting_router
 from app.modules.audit.router import router as audit_router
@@ -48,6 +48,8 @@ def create_app() -> FastAPI:
         generate_unique_id_function=_operation_id,
     )
 
+    # Added first, so it is the innermost: CORS headers and the access log wrap its answer.
+    app.add_middleware(RetryTransientConflicts)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins,
