@@ -79,6 +79,8 @@ Differences from the brief's list: jobs are a phase of their own; financial corr
 - **Accept:** suite passes as the app role; ledger `UPDATE` denied by grant and by trigger.
 - **Rollback:** restore ownership with the script's reverse step.
 
+**Status 2026-11-27:** implemented, branches `p1/1.1-db-roles` to `p1/1.4-text-and-time`. The text and business-date context is set per request through a context variable rather than a new parameter at every call site; date functions also accept it explicitly.
+
 ## Phase 2 — Tenancy and isolation
 
 **Objective:** `database-transformation.md` implemented. **Prerequisites:** 1; a verified backup.
@@ -101,6 +103,13 @@ Differences from the brief's list: jobs are a phase of their own; financial corr
 - **Tests:** `testing-and-acceptance.md` §4; existing suite unchanged in behaviour.
 - **Accept:** verification queries return nothing; integrity totals identical; isolation suite green; creating a second tenant is blocked until then.
 - **Rollback:** downgrade while one tenant exists; restore afterwards.
+
+**Status 2026-11-27:** implemented, branches `p2/2.1-tenancy-tables` to `p2/2.8-isolation-suite`.
+
+- Membership backfill moved from 2.6 to 2.1 (the context code needs it); 2.6 had nothing left to do.
+- A second dealership is refused unless `ALLOW_MULTIPLE_TENANTS=true`. **Open:** the second-person review of the 2.5 and 2.7 migrations.
+- `alembic check` does not compare the composite keys; `tests/test_schema_isolation.py` does instead.
+- Not verified: the Render database role's attributes; the migration on a copy of real data (none exists).
 
 ## Phase 3 — Identity, membership, platform administration
 
