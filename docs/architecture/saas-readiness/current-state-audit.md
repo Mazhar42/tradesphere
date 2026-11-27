@@ -94,6 +94,9 @@ Severity is judged against the goal of a commercial multi-tenant SaaS.
 | TS-22 | Low | Frontend resilience |
 | TS-23 | Low | Documentation and configuration drift |
 | TS-24 | Medium | Reconcile loads every sale into memory (measured, added in batch 2) |
+| TS-25 | Medium | Reversing a sale can overwrite a claim being submitted (found during phase 0) |
+
+Findings describe `main` at `84b6326`. Phase 0 status is recorded in `implementation-roadmap.md`.
 
 ### TS-01 · Critical · No tenant concept or isolation — Missing
 - **Files:** all 56 tables; `app/core/db.py`, `app/core/permissions.py`, `app/seed.py`, `app/shared/sequences.py`.
@@ -252,6 +255,13 @@ No error boundary or not-found page; permission checks run at render, not in `be
 - **Consequences:** the API route holds a worker thread and much memory for minutes; with many tenants it is a self-inflicted denial of service.
 - **Recommendation:** compare grouped sums in SQL; run as a job; the endpoint returns the last result (roadmap 6.4).
 - **Accept when:** a medium tenant reconciles within 60 s with bounded memory.
+
+### TS-25 · Medium · Sale reversal can overwrite a claim submission — U
+- **Files:** `app/modules/claims/service.py` (`cancel_for_document`, `submit_claim`).
+- **Current:** `cancel_for_document` reads claimable items without `FOR UPDATE`, then sets them `cancelled`. `submit_claim` locks an item and sets it `in_claim`.
+- **Problem:** found by code reading during phase 0, **not reproduced**. If a claim is submitted between the read and the write, the reversal can overwrite `in_claim` with `cancelled`, leaving a submitted claim with a cancelled item.
+- **Recommendation:** lock the items `FOR UPDATE` in `cancel_for_document` and add a committed-data race test. Fits phase 6.
+- **Accept when:** the race ends with either a refused reversal or a refused submission.
 
 ## 5. What to keep
 

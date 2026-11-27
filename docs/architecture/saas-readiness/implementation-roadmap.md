@@ -55,6 +55,12 @@ Differences from the brief's list: jobs are a phase of their own; financial corr
 - **Accept:** no 500 or deadlock in the race; forged IP ignored; no token after logout; CI gates required.
 - **Rollback:** revert; no data change.
 
+**Status 2026-11-27:** implemented and checked locally on branches `p0/0.1-deadlock` to `p0/0.5-errors-health` (stacked, from `main`); **not pushed, merged or deployed**.
+
+- Milestone 0.1 also fixed a second deadlock not in TS-02: a cash sale (journal number, then receipt number) against a standalone customer receipt (the reverse).
+- Open: CI has not run on GitHub and is not a required check; real client addresses on Render are unconfirmed; error reporting has not been tried against a live tracker.
+- Not covered by phase 0: the rest of TS-15 (lockout by a hostile client, general rate limit, MFA), alerting (TS-07, phase 15), frontend error reporting, image scanning, and the new TS-25.
+
 ## Phase 1 — Foundations
 
 **Objective:** make isolation testable before building it. **Prerequisites:** 0.
