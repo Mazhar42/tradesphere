@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from app.modules.inventory.reconcile import reconcile
+from app.modules.integrity.reconcile import reconcile
 from tests.helpers import D, Shop, in_days
 
 

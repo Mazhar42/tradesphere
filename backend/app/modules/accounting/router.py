@@ -6,19 +6,16 @@ from sqlalchemy import select
 
 from app.core.db import DbSession
 from app.core.permissions import CurrentUser, require
-from app.modules.accounting import opening, service
+from app.modules.accounting import service
 from app.modules.accounting.models import Account
 from app.modules.accounting.schemas import (
     AccountRead,
     JournalEntryRead,
-    OpeningBalanceRead,
-    OpeningBalancesCreate,
     PaymentAccountCreate,
     PaymentAccountRead,
     PaymentAccountUpdate,
     TrialBalanceRead,
 )
-from app.shared.idempotency import IdempotencyKeyHeader, run_idempotent
 from app.shared.pagination import PageParamsDep
 from app.shared.schemas import Page
 
@@ -26,7 +23,6 @@ router = APIRouter(tags=["accounting"])
 
 CanRead = Annotated[CurrentUser, Depends(require("finance:read"))]
 CanWrite = Annotated[CurrentUser, Depends(require("finance:write"))]
-CanOpen = Annotated[CurrentUser, Depends(require("finance:opening"))]
 
 
 @router.get("/accounts", response_model=list[AccountRead])
@@ -90,46 +86,3 @@ def list_journal(
 @router.get("/reports/trial-balance", response_model=TrialBalanceRead)
 def get_trial_balance(db: DbSession, _: CanRead, as_of: date | None = None) -> TrialBalanceRead:
     return service.trial_balance(db, as_of)
-
-
-# --- Opening balances ---------------------------------------------------------------------------
-@router.get("/opening-balances", response_model=list[OpeningBalanceRead])
-def list_opening_balances(db: DbSession, _: CanOpen) -> list[OpeningBalanceRead]:
-    return [OpeningBalanceRead.model_validate(o) for o in opening.list_all(db)]
-
-
-@router.post(
-    "/opening-balances", response_model=OpeningBalanceRead, status_code=status.HTTP_201_CREATED
-)
-def post_opening_balances(
-    db: DbSession, actor: CanOpen, data: OpeningBalancesCreate, key: IdempotencyKeyHeader
-) -> object:
-    result = run_idempotent(
-        db,
-        user_id=actor.id,
-        key=key,
-        endpoint="POST /opening-balances",
-        payload=data.model_dump(mode="json"),
-        status_code=201,
-        handler=lambda: OpeningBalanceRead.model_validate(opening.post_opening(db, data, actor)),
-    )
-    db.commit()
-    return result
-
-
-@router.post("/opening-balances/{opening_id}/reverse", response_model=OpeningBalanceRead)
-def reverse_opening_balances(
-    db: DbSession, actor: CanOpen, opening_id: int, key: IdempotencyKeyHeader
-) -> object:
-    result = run_idempotent(
-        db,
-        user_id=actor.id,
-        key=key,
-        endpoint=f"POST /opening-balances/{opening_id}/reverse",
-        payload={"id": opening_id},
-        handler=lambda: OpeningBalanceRead.model_validate(
-            opening.reverse_opening(db, opening_id, actor)
-        ),
-    )
-    db.commit()
-    return result

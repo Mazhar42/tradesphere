@@ -22,7 +22,7 @@ from app.core.permissions import CurrentUser
 from app.modules.accounting.journal import INVENTORY, OPENING_EQUITY, JLine, post_journal
 from app.modules.accounting.models import PaymentAccount
 from app.modules.catalog.models import Product, Uom
-from app.modules.inventory.reconcile import reconcile
+from app.modules.integrity.reconcile import reconcile
 from app.modules.inventory.stock import get_location_id, stock_in
 from app.modules.parties.models import Customer
 from app.modules.sales import invoices, receipts

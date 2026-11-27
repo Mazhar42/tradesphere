@@ -22,8 +22,10 @@ from app.modules.auth.router import router as auth_router
 from app.modules.catalog.router import router as catalog_router
 from app.modules.claims.router import router as claims_router
 from app.modules.finance.router import router as finance_router
+from app.modules.integrity.router import router as integrity_router
 from app.modules.inventory.doc_router import router as inventory_docs_router
 from app.modules.inventory.router import router as inventory_router
+from app.modules.opening.router import router as opening_router
 from app.modules.parties.router import router as parties_router
 from app.modules.purchasing.return_router import router as purchase_returns_router
 from app.modules.purchasing.router import router as purchasing_router
@@ -121,6 +123,8 @@ def create_app() -> FastAPI:
         finance_router,
         inventory_router,
         accounting_router,
+        opening_router,
+        integrity_router,
         settings_router,
         audit_router,
     ):

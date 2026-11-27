@@ -5,7 +5,6 @@ from sqlalchemy import select
 
 from app.core.db import DbSession
 from app.core.permissions import CurrentUser, require
-from app.modules.inventory import reconcile as reconcile_service
 from app.modules.inventory import service
 from app.modules.inventory.models import Batch, Location
 from app.modules.inventory.schemas import (
@@ -13,7 +12,6 @@ from app.modules.inventory.schemas import (
     BatchStockRow,
     LocationRead,
     MovementPage,
-    ReconcileRead,
     StockRow,
     StockTotals,
 )
@@ -105,10 +103,3 @@ def list_batches(db: DbSession, _: CanRead, product_id: Annotated[int, Query()])
             .limit(50)
         ).all()
     )
-
-
-@router.get("/inventory/reconcile", response_model=ReconcileRead)
-def reconcile(
-    db: DbSession, _: Annotated[CurrentUser, Depends(require("finance:read"))]
-) -> ReconcileRead:
-    return reconcile_service.reconcile(db)

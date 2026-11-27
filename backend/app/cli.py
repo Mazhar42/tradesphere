@@ -13,7 +13,7 @@ from app.bootstrap import ensure_owner
 from app.core import provision
 from app.core.config import settings
 from app.core.db import SessionLocal
-from app.modules.inventory.reconcile import reconcile as run_reconcile
+from app.modules.integrity.reconcile import reconcile as run_reconcile
 from app.modules.sales.rebuild import rebuild_sales_summary
 from app.modules.users.schemas import UserCreate
 from app.modules.users.service import count_active_owners, create_user, get_by_username
