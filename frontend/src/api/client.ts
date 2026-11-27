@@ -17,6 +17,27 @@ let accessToken: string | null = null
 let refreshInFlight: Promise<Schemas['TokenResponse'] | null> | null = null
 let onSessionExpired: (() => void) | null = null
 
+// The dealership this tab is showing. sessionStorage is per tab, which is the point: another
+// tab switching dealership must not move this one into different books.
+const TENANT_KEY = 'ts.tenant'
+
+export function tabTenant(): number | null {
+  try {
+    return Number(window.sessionStorage.getItem(TENANT_KEY)) || null
+  } catch {
+    return null
+  }
+}
+
+export function setTabTenant(id: number | null): void {
+  try {
+    if (id === null) window.sessionStorage.removeItem(TENANT_KEY)
+    else window.sessionStorage.setItem(TENANT_KEY, String(id))
+  } catch {
+    // Storage unavailable: the server falls back to the first dealership.
+  }
+}
+
 export function setAccessToken(token: string | null): void {
   accessToken = token
 }
@@ -25,16 +46,29 @@ export function setSessionExpiredHandler(handler: (() => void) | null): void {
   onSessionExpired = handler
 }
 
+function postRefresh(tenantId: number | null): Promise<Response> {
+  return fetch('/api/v1/auth/refresh', {
+    method: 'POST',
+    credentials: 'same-origin',
+    ...(tenantId
+      ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tenant_id: tenantId }) }
+      : {}),
+  })
+}
+
 /** Exchange the refresh cookie for a new access token. Concurrent callers share one request. */
 export function refreshSession(): Promise<Schemas['TokenResponse'] | null> {
-  refreshInFlight ??= fetch('/api/v1/auth/refresh', { method: 'POST', credentials: 'same-origin' })
-    .then(async (response) => {
+  refreshInFlight ??= postRefresh(tabTenant())
+    .then(async (first) => {
+      // Access to this tab's dealership may have been removed: fall back to another one.
+      const response = first.status === 403 && tabTenant() ? await postRefresh(null) : first
       if (!response.ok) {
         accessToken = null
         return null
       }
       const body = (await response.json()) as Schemas['TokenResponse']
       accessToken = body.access_token
+      setTabTenant(body.user.tenant?.id ?? null)
       return body
     })
     .catch(() => null)
@@ -49,10 +83,21 @@ function withAuth(request: Request): Request {
   return request
 }
 
+async function problemCode(response: Response): Promise<string | undefined> {
+  try {
+    return ((await response.json()) as { code?: string }).code
+  } catch {
+    return undefined
+  }
+}
+
 async function authFetch(input: Request): Promise<Response> {
   const retry = input.clone()
   const response = await fetch(withAuth(input))
-  if (response.status !== 401 || new URL(input.url).pathname.startsWith('/api/v1/auth/')) {
+  const expired =
+    response.status === 401 ||
+    (response.status === 403 && (await problemCode(response.clone())) === 'membership_inactive')
+  if (!expired || new URL(input.url).pathname.startsWith('/api/v1/auth/')) {
     return response
   }
   const refreshed = await refreshSession()

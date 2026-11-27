@@ -91,6 +91,9 @@
     "body": "This screen could not be shown. Nothing you already saved is affected. Reload to try again.",
     "reload": "Reload"
   },
+  "tenant": {
+    "switch": "Switch dealership"
+  },
   "forbidden": {
     "title": "No access",
     "body": "Your role does not allow access to this page. Ask the owner if you need it."

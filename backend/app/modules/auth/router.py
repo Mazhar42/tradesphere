@@ -6,7 +6,7 @@ from app.core.config import settings
 from app.core.db import DbSession
 from app.core.permissions import CurrentUserDep
 from app.modules.auth import service
-from app.modules.auth.schemas import LoginRequest, MeRead, TokenResponse
+from app.modules.auth.schemas import LoginRequest, MeRead, RefreshRequest, TokenResponse
 from app.modules.users.service import get_user
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -46,10 +46,11 @@ def refresh(
     db: DbSession,
     request: Request,
     response: Response,
+    data: RefreshRequest | None = None,
     ts_refresh: Annotated[str | None, Cookie()] = None,
 ) -> TokenResponse:
     ua, ip = _client(request)
-    result = service.refresh(db, ts_refresh, ua, ip)
+    result = service.refresh(db, ts_refresh, ua, ip, data.tenant_id if data else None)
     db.commit()
     if result.refresh_token:
         _set_refresh_cookie(response, result.refresh_token)
@@ -67,4 +68,5 @@ def logout(
 
 @router.get("/me", response_model=MeRead)
 def me(db: DbSession, user: CurrentUserDep) -> MeRead:
-    return service.me_from_user(get_user(db, user.id))
+    assert user.tenant_id is not None
+    return service.me_from_user(db, get_user(db, user.id), user.tenant_id)

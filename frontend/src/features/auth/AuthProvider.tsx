@@ -9,6 +9,7 @@ import {
   refreshSession,
   setAccessToken,
   setSessionExpiredHandler,
+  setTabTenant,
   unwrap,
 } from '@/api/client'
 
@@ -47,9 +48,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(async (username: string, password: string) => {
     const session = await unwrap(api.POST('/api/v1/auth/login', { body: { username, password } }))
     setAccessToken(session.access_token)
+    setTabTenant(session.user.tenant?.id ?? null)
     setUser(session.user)
     setStatus('authenticated')
   }, [])
+
+  const switchTenant = useCallback(
+    async (tenantId: number) => {
+      setTabTenant(tenantId)
+      const session = await refreshSession()
+      // Nothing fetched for the previous dealership may stay on screen.
+      queryClient.clear()
+      if (session) setUser(session.user)
+    },
+    [queryClient],
+  )
 
   const logout = useCallback(async () => {
     try {
@@ -68,9 +81,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       login,
       logout,
+      switchTenant,
       can: (permission) => user?.permissions.includes(permission) ?? false,
     }),
-    [status, user, login, logout],
+    [status, user, login, logout, switchTenant],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

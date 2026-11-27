@@ -1,5 +1,5 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { Link, Outlet } from '@tanstack/react-router'
+import { Link, Outlet, useNavigate } from '@tanstack/react-router'
 import {
   BarChart3,
   Boxes,
@@ -159,7 +159,8 @@ function Sidebar({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: (
 
 function UserMenu() {
   const { t } = useTranslation()
-  const { user, logout } = useAuth()
+  const { user, logout, switchTenant } = useAuth()
+  const navigate = useNavigate()
   if (!user) return null
   const initials = user.full_name
     .split(/\s+/)
@@ -179,6 +180,9 @@ function UserMenu() {
             {initials}
           </span>
           <span className="hidden text-left leading-tight sm:block">
+            {user.tenants.length > 1 && (
+              <span className="block text-xs font-semibold text-primary">{user.tenant?.name}</span>
+            )}
             <span className="block font-medium">{user.full_name}</span>
             <span className="block text-xs text-muted">
               {user.roles.map((r) => t(`roles.${r}`)).join(', ')}
@@ -194,6 +198,24 @@ function UserMenu() {
           className="z-50 min-w-48 rounded-lg border border-border bg-surface p-1 shadow-lg"
         >
           <div className="px-2 py-1.5 text-xs text-muted">@{user.username}</div>
+          {user.tenants.length > 1 && (
+            <>
+              <DropdownMenu.Separator className="my-1 h-px bg-border" />
+              <DropdownMenu.Label className="px-2 py-1 text-xs text-muted">
+                {t('tenant.switch')}
+              </DropdownMenu.Label>
+              {user.tenants.map((dealer) => (
+                <DropdownMenu.Item
+                  key={dealer.id}
+                  disabled={dealer.id === user.tenant?.id}
+                  onSelect={() => void switchTenant(dealer.id).then(() => navigate({ to: '/' }))}
+                  className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm outline-none data-[disabled]:font-semibold data-[highlighted]:bg-surface-muted"
+                >
+                  {dealer.name}
+                </DropdownMenu.Item>
+              ))}
+            </>
+          )}
           <DropdownMenu.Separator className="my-1 h-px bg-border" />
           <DropdownMenu.Item
             onSelect={() => void logout()}

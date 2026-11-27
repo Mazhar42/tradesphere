@@ -3071,6 +3071,9 @@ export interface components {
             roles: string[];
             /** Permissions */
             permissions: string[];
+            tenant: components["schemas"]["TenantSummary"] | null;
+            /** Tenants */
+            tenants: components["schemas"]["TenantSummary"][];
         };
         /** MovementPage */
         MovementPage: {
@@ -4286,6 +4289,11 @@ export interface components {
             /** Issues */
             issues: components["schemas"]["ReconcileIssue"][];
         };
+        /** RefreshRequest */
+        RefreshRequest: {
+            /** Tenant Id */
+            tenant_id?: number | null;
+        };
         /** RejectionCreate */
         RejectionCreate: {
             /** Lines */
@@ -4728,6 +4736,15 @@ export interface components {
             /** Notes */
             notes?: string | null;
         };
+        /** TenantSummary */
+        TenantSummary: {
+            /** Id */
+            id: number;
+            /** Slug */
+            slug: string;
+            /** Name */
+            name: string;
+        };
         /** TokenResponse */
         TokenResponse: {
             /** Access Token */
@@ -5018,7 +5035,11 @@ export interface operations {
                 ts_refresh?: string | null;
             };
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["RefreshRequest"] | null;
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

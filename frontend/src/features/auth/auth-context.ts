@@ -9,6 +9,7 @@ export interface AuthContextValue {
   user: Me | null
   login: (username: string, password: string) => Promise<void>
   logout: () => Promise<void>
+  switchTenant: (tenantId: number) => Promise<void>
   can: (permission: string) => boolean
 }
 

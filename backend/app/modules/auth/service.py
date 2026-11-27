@@ -15,9 +15,9 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.context import client_ip_var, request_id_var
-from app.core.errors import RateLimitedError, UnauthorizedError
+from app.core.errors import ForbiddenError, RateLimitedError, UnauthorizedError
 from app.core.security import create_access_token, hash_token, new_refresh_token, verify_password
-from app.modules.auth.schemas import MeRead, TokenResponse
+from app.modules.auth.schemas import MeRead, TenantSummary, TokenResponse
 from app.modules.tenancy import service as tenancy
 from app.modules.tenancy.models import AuthEvent
 from app.modules.users.models import RefreshToken, User
@@ -70,13 +70,21 @@ class AuthResult:
     refresh_token: str | None  # None => keep the cookie the browser already has
 
 
-def me_from_user(user: User) -> MeRead:
+def me_from_user(session: Session, user: User, tenant_id: int) -> MeRead:
+    # Read the roles of the current dealership before listing the others.
+    roles, permissions = user.role_codes, sorted(user.permission_codes)
+    tenants = [
+        TenantSummary(id=t.id, slug=t.slug, name=t.legal_name)
+        for t, _ in tenancy.memberships_of(session, user.id)
+    ]
     return MeRead(
         id=user.id,
         username=user.username,
         full_name=user.full_name,
-        roles=user.role_codes,
-        permissions=sorted(user.permission_codes),
+        roles=roles,
+        permissions=permissions,
+        tenant=next((t for t in tenants if t.id == tenant_id), None),
+        tenants=tenants,
     )
 
 
@@ -86,13 +94,20 @@ def _token_response(session: Session, user: User, tenant_id: int) -> TokenRespon
     return TokenResponse(
         access_token=create_access_token(user.id, tenant_id),
         expires_in=settings.access_token_minutes * 60,
-        user=me_from_user(user),
+        user=me_from_user(session, user, tenant_id),
     )
 
 
-def _default_tenant(session: Session, user: User) -> int | None:
-    memberships = tenancy.memberships_of(session, user.id)
-    return memberships[0][0].id if memberships else None
+def _choose_tenant(session: Session, user: User, wanted: int | None = None) -> int | None:
+    """The wanted dealership if the person belongs to it, or the oldest one if none is named."""
+    ids = [t.id for t, _ in tenancy.memberships_of(session, user.id)]
+    if wanted is None:
+        return ids[0] if ids else None
+    if ids and wanted not in ids:
+        raise ForbiddenError(
+            "You no longer have access to this dealership.", code="membership_inactive"
+        )
+    return wanted if wanted in ids else None
 
 
 def _issue_refresh_token(
@@ -121,7 +136,7 @@ def login(
     valid = verify_password(password, user.password_hash if user else None)
     tenant_id = None
     if user is not None and valid and user.is_active:
-        tenant_id = _default_tenant(session, user)
+        tenant_id = _choose_tenant(session, user)
     if user is None or tenant_id is None:
         record_event(
             session,
@@ -139,7 +154,11 @@ def login(
 
 
 def refresh(
-    session: Session, raw_token: str | None, user_agent: str | None, ip: str | None
+    session: Session,
+    raw_token: str | None,
+    user_agent: str | None,
+    ip: str | None,
+    tenant: int | None = None,
 ) -> AuthResult:
     if not raw_token:
         raise UnauthorizedError("No refresh token.", code="no_refresh_token")
@@ -154,7 +173,9 @@ def refresh(
         raise UnauthorizedError("Session expired. Please log in again.", code="session_expired")
 
     user = session.get(User, token.user_id)
-    tenant_id = _default_tenant(session, user) if user is not None and user.is_active else None
+    tenant_id = (
+        _choose_tenant(session, user, tenant) if user is not None and user.is_active else None
+    )
     if user is None or tenant_id is None:
         raise UnauthorizedError("Session expired. Please log in again.", code="session_expired")
 
