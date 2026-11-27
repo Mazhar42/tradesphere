@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 
 from sqlalchemy import (
@@ -22,6 +22,8 @@ class Expense(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
 
     __tablename__ = "expenses"
 
+    status: Mapped[str] = mapped_column(String(10), server_default="posted")
+    reversed_at: Mapped[datetime | None]
     doc_no: Mapped[str] = mapped_column(String(30))
     business_date: Mapped[date]
     expense_account_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("accounts.id"))
@@ -36,6 +38,7 @@ class Expense(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
     payment_account: Mapped[PaymentAccount] = relationship(lazy="joined")
 
     __table_args__ = (
+        CheckConstraint("status IN ('posted','reversed')", name="status_valid"),
         UniqueConstraint("tenant_id", "doc_no", name="uq_expenses_doc_no"),
         CheckConstraint("amount > 0", name="amount_positive"),
         Index("ix_expenses_business_date", "business_date"),
@@ -50,6 +53,8 @@ class FundTransfer(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
 
     __tablename__ = "fund_transfers"
 
+    status: Mapped[str] = mapped_column(String(10), server_default="posted")
+    reversed_at: Mapped[datetime | None]
     doc_no: Mapped[str] = mapped_column(String(30))
     business_date: Mapped[date]
     from_payment_account_id: Mapped[int] = mapped_column(
@@ -71,6 +76,7 @@ class FundTransfer(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
     )
 
     __table_args__ = (
+        CheckConstraint("status IN ('posted','reversed')", name="status_valid"),
         UniqueConstraint("tenant_id", "doc_no", name="uq_fund_transfers_doc_no"),
         CheckConstraint("amount > 0 AND charges >= 0", name="amounts_valid"),
         CheckConstraint("from_payment_account_id <> to_payment_account_id", name="accounts_differ"),
@@ -85,6 +91,8 @@ class OwnerTransaction(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Ba
 
     __tablename__ = "owner_transactions"
 
+    status: Mapped[str] = mapped_column(String(10), server_default="posted")
+    reversed_at: Mapped[datetime | None]
     doc_no: Mapped[str] = mapped_column(String(30))
     business_date: Mapped[date]
     kind: Mapped[str] = mapped_column(String(10))
@@ -95,6 +103,7 @@ class OwnerTransaction(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Ba
     payment_account: Mapped[PaymentAccount] = relationship(lazy="joined")
 
     __table_args__ = (
+        CheckConstraint("status IN ('posted','reversed')", name="status_valid"),
         UniqueConstraint("tenant_id", "doc_no", name="uq_owner_transactions_doc_no"),
         CheckConstraint("amount > 0", name="amount_positive"),
         CheckConstraint("kind IN ('capital','drawing')", name="kind_valid"),

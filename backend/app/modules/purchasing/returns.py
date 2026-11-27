@@ -17,10 +17,11 @@ from app.modules.accounting.journal import (
     SUPPLIER_PAYABLE,
     JLine,
     post_journal,
+    reverse_entries,
 )
-from app.modules.claims.service import create_claimable
+from app.modules.claims.service import cancel_for_document, create_claimable
 from app.modules.inventory.documents import check_product_and_batch
-from app.modules.inventory.stock import get_location_id, lock_costs, stock_out
+from app.modules.inventory.stock import get_location_id, lock_costs, reverse_movements, stock_out
 from app.modules.parties.models import Supplier
 from app.modules.purchasing.models import PurchaseReturn, PurchaseReturnItem
 from app.modules.purchasing.return_schemas import (
@@ -223,6 +224,50 @@ def post_return(  # noqa: PLR0912
         entity_type="purchase_return",
         entity_id=ret.id,
         after={"doc_no": ret.doc_no, "value": ret.total_value, "cost": cost_total},
+    )
+    return ret
+
+
+def reverse_return(session: Session, return_id: int, actor: CurrentUser) -> PurchaseReturn:
+    """Brings the goods back at the value they left at, and mirrors the supplier debit."""
+    ret = session.scalar(
+        select(PurchaseReturn)
+        .where(PurchaseReturn.id == return_id)
+        .with_for_update(of=PurchaseReturn)
+        .execution_options(populate_existing=True)
+    )
+    if ret is None:
+        raise NotFoundError("Purchase return not found.")
+    if ret.status != "posted":
+        raise ConflictError("Only posted returns can be reversed.", code="not_posted")
+    on = today()
+    ensure_period_open(session, ret.business_date)
+    ensure_period_open(session, on)
+    reverse_movements(
+        session,
+        source_doc_type=DOC_TYPE,
+        source_doc_id=ret.id,
+        business_date=on,
+        actor_id=actor.id,
+    )
+    reverse_entries(
+        session,
+        source_doc_type=DOC_TYPE,
+        source_doc_id=ret.id,
+        business_date=on,
+        actor_id=actor.id,
+    )
+    cancel_for_document(session, source_doc_type=DOC_TYPE, source_doc_id=ret.id)
+    ret.status = "reversed"
+    ret.reversed_at = now_utc()
+    session.flush()
+    record_audit(
+        session,
+        actor_id=actor.id,
+        action="reverse",
+        entity_type="purchase_return",
+        entity_id=ret.id,
+        after={"doc_no": ret.doc_no},
     )
     return ret
 

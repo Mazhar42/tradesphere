@@ -211,7 +211,7 @@ class Shop:
         return dict(self.get(f"/api/v1/suppliers/{supplier_id}/summary"))
 
     def reconcile(self) -> dict[str, Any]:
-        return dict(self.get("/api/v1/inventory/reconcile"))
+        return dict(self.get("/api/v1/inventory/reconcile", fresh=True))
 
     def receive(
         self,

@@ -26,6 +26,7 @@ from app.core.db import PlatformSessionLocal, SessionLocal
 from app.core.tenant_context import set_context
 from app.modules.billing import service as billing
 from app.modules.billing.models import Subscription
+from app.modules.integrity.reconcile import run_and_store
 from app.modules.jobs import service as jobs
 from app.modules.jobs.models import Job, OutboxEvent
 from app.modules.tenancy.models import Tenant
@@ -76,6 +77,13 @@ def _send_email(_: Session, payload: dict[str, Any]) -> None:
 def _purge_idempotency(session: Session, _: dict[str, Any]) -> None:
     before = now_utc() - timedelta(days=KEEP_IDEMPOTENCY_DAYS)
     session.execute(delete(IdempotencyKey).where(IdempotencyKey.created_at < before))
+
+
+@handles("reconcile", needs_tenant=True)
+def _reconcile(session: Session, _: dict[str, Any]) -> None:
+    result = run_and_store(session)
+    if not result.ok:
+        logger.error("Reconcile found %d differences", len(result.issues))
 
 
 @handles("purge.platform", platform=True)
@@ -144,6 +152,12 @@ class Worker:
                     dedupe_key=f"billing.advance:{tenant_id}:{half}",
                 )
             for tenant_id in session.scalars(select(Tenant.id).where(Tenant.status == "active")):
+                jobs.enqueue(
+                    session,
+                    "reconcile",
+                    tenant_id=tenant_id,
+                    dedupe_key=f"reconcile:{tenant_id}:{today}",
+                )
                 jobs.enqueue(
                     session,
                     "purge.idempotency",

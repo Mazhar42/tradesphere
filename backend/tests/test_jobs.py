@@ -181,7 +181,11 @@ def test_daily_housekeeping_is_queued_once_and_purges_old_keys(queue: Queue) -> 
     first, second = queue.worker("w1"), queue.worker("w2")
     first.schedule()
     second.schedule()
-    assert sorted(j.kind for j in queue.jobs()) == ["purge.idempotency", "purge.platform"]
+    assert sorted(j.kind for j in queue.jobs()) == [
+        "purge.idempotency",
+        "purge.platform",
+        "reconcile",
+    ]
 
     first.run_pending()
 

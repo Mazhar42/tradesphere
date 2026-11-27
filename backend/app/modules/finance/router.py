@@ -1,12 +1,12 @@
 from datetime import date
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Query, Response, status
 from sqlalchemy import select
 
 from app.core.db import DbSession
 from app.core.permissions import CurrentUser, require
-from app.modules.finance import reports, service
+from app.modules.finance import reports, reversals, service
 from app.modules.finance.models import Expense, FundTransfer, OwnerTransaction
 from app.modules.finance.report_schemas import (
     Cashbook,
@@ -36,6 +36,7 @@ router = APIRouter(tags=["finance"])
 
 CanRead = Annotated[CurrentUser, Depends(require("finance:read"))]
 CanWrite = Annotated[CurrentUser, Depends(require("finance:write"))]
+CanReverse = Annotated[CurrentUser, Depends(require("finance:reverse"))]
 CanProfit = Annotated[CurrentUser, Depends(require("reports:profit"))]
 CanReports = Annotated[CurrentUser, Depends(require("reports:read"))]
 CanClaims = Annotated[CurrentUser, Depends(require("claims:read"))]
@@ -98,6 +99,7 @@ def list_fund_transfers(db: DbSession, _: CanRead, page: PageParamsDep) -> Page[
     items = [
         FundTransferRead(
             id=t.id,
+            status=t.status,
             doc_no=t.doc_no,
             business_date=t.business_date,
             from_account=t.from_account.name,
@@ -112,6 +114,34 @@ def list_fund_transfers(db: DbSession, _: CanRead, page: PageParamsDep) -> Page[
     return Page(items=items, total=total, page=page.page, page_size=page.page_size)
 
 
+def _transfer_read(t: FundTransfer) -> FundTransferRead:
+    return FundTransferRead(
+        id=t.id,
+        status=t.status,
+        doc_no=t.doc_no,
+        business_date=t.business_date,
+        from_account=t.from_account.name,
+        to_account=t.to_account.name,
+        amount=t.amount,
+        charges=t.charges,
+        reference=t.reference,
+        notes=t.notes,
+    )
+
+
+def _owner_read(o: OwnerTransaction) -> OwnerTransactionRead:
+    return OwnerTransactionRead(
+        id=o.id,
+        status=o.status,
+        doc_no=o.doc_no,
+        business_date=o.business_date,
+        kind=o.kind,
+        amount=o.amount,
+        payment_account_name=o.payment_account.name,
+        notes=o.notes,
+    )
+
+
 @router.post(
     "/fund-transfers", response_model=FundTransferRead, status_code=status.HTTP_201_CREATED
 )
@@ -122,6 +152,7 @@ def create_fund_transfer(
         t = service.create_fund_transfer(db, data, actor)
         return FundTransferRead(
             id=t.id,
+            status=t.status,
             doc_no=t.doc_no,
             business_date=t.business_date,
             from_account=t.from_account.name,
@@ -159,6 +190,7 @@ def list_owner_transactions(
     items = [
         OwnerTransactionRead(
             id=o.id,
+            status=o.status,
             doc_no=o.doc_no,
             business_date=o.business_date,
             kind=o.kind,
@@ -181,6 +213,7 @@ def create_owner_transaction(
         o = service.create_owner_transaction(db, data, actor)
         return OwnerTransactionRead(
             id=o.id,
+            status=o.status,
             doc_no=o.doc_no,
             business_date=o.business_date,
             kind=o.kind,
@@ -307,3 +340,57 @@ def po_status_report(
 @router.get("/reports/dashboard", response_model=Dashboard)
 def dashboard_report(db: DbSession, user: CanReports) -> Dashboard:
     return reports.dashboard(db, show_profit=user.has("reports:profit"))
+
+
+# --- Reversals ------------------------------------------------------------------------------
+def _reverse(db: DbSession, actor: CurrentUser, key: str, endpoint: str, handler: Any) -> object:
+    result = run_idempotent(
+        db, user_id=actor.id, key=key, endpoint=endpoint, payload={}, handler=handler
+    )
+    db.commit()
+    return result
+
+
+@router.post("/expenses/{expense_id}/reverse", response_model=ExpenseRead)
+def reverse_expense(
+    db: DbSession, actor: CanReverse, expense_id: int, key: IdempotencyKeyHeader
+) -> object:
+    return _reverse(
+        db,
+        actor,
+        key,
+        f"POST /expenses/{expense_id}/reverse",
+        lambda: _expense_read(reversals.reverse_money_document(db, Expense, expense_id, actor)),
+    )
+
+
+@router.post("/fund-transfers/{fund_transfer_id}/reverse", response_model=FundTransferRead)
+def reverse_fund_transfer(
+    db: DbSession, actor: CanReverse, fund_transfer_id: int, key: IdempotencyKeyHeader
+) -> object:
+    return _reverse(
+        db,
+        actor,
+        key,
+        f"POST /fund-transfers/{fund_transfer_id}/reverse",
+        lambda: _transfer_read(
+            reversals.reverse_money_document(db, FundTransfer, fund_transfer_id, actor)
+        ),
+    )
+
+
+@router.post(
+    "/owner-transactions/{owner_transaction_id}/reverse", response_model=OwnerTransactionRead
+)
+def reverse_owner_transaction(
+    db: DbSession, actor: CanReverse, owner_transaction_id: int, key: IdempotencyKeyHeader
+) -> object:
+    return _reverse(
+        db,
+        actor,
+        key,
+        f"POST /owner-transactions/{owner_transaction_id}/reverse",
+        lambda: _owner_read(
+            reversals.reverse_money_document(db, OwnerTransaction, owner_transaction_id, actor)
+        ),
+    )

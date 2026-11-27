@@ -38,6 +38,7 @@ def claimable_read(item: ClaimableItem, supplier_name: str) -> ClaimableRead:
 def settlement_read(settlement: ClaimSettlement) -> ClaimSettlementRead:
     return ClaimSettlementRead(
         id=settlement.id,
+        status=settlement.status,
         doc_no=settlement.doc_no,
         business_date=settlement.business_date,
         method=settlement.method,
@@ -110,6 +111,7 @@ def claim_list_item(claim: CompanyClaim, supplier_name: str) -> CompanyClaimList
 def commission_read(payment: CommissionPayment) -> CommissionRead:
     return CommissionRead(
         id=payment.id,
+        status=payment.status,
         doc_no=payment.doc_no,
         customer_id=payment.customer_id,
         customer_name=payment.customer.name,

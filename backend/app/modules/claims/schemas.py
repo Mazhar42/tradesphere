@@ -70,6 +70,7 @@ class CommissionCreate(WriteSchema):
 
 class CommissionRead(ReadSchema):
     id: int
+    status: str
     doc_no: str
     customer_id: int
     customer_name: str
@@ -85,6 +86,7 @@ class CommissionRead(ReadSchema):
 
 class ClaimSettlementRead(ReadSchema):
     id: int
+    status: str
     doc_no: str
     business_date: date
     method: str

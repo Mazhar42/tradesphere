@@ -192,6 +192,7 @@ def expense_read_model(expense: Expense) -> dict[str, object]:
     account = expense.expense_account
     return {
         "id": expense.id,
+        "status": expense.status,
         "doc_no": expense.doc_no,
         "business_date": expense.business_date,
         "expense_account_code": account.code,

@@ -244,6 +244,7 @@ class SalesReturn(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
     net_amount: Mapped[Decimal] = mapped_column(MONEY, default=Decimal(0))
     cogs: Mapped[Decimal] = mapped_column(MONEY, default=Decimal(0))
     posted_at: Mapped[datetime | None]
+    reversed_at: Mapped[datetime | None]
 
     invoice: Mapped[SalesInvoice] = relationship(lazy="joined")
     payment_account: Mapped[PaymentAccount | None] = relationship(lazy="joined")
@@ -261,7 +262,7 @@ class SalesReturn(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base):
             unique=True,
             postgresql_where=text("doc_no IS NOT NULL"),
         ),
-        CheckConstraint("status IN ('draft','posted')", name="status_valid"),
+        CheckConstraint("status IN ('draft','posted','reversed')", name="status_valid"),
         CheckConstraint("refund_method IN ('cash','credit')", name="refund_method_valid"),
         CheckConstraint(
             "refund_method = 'credit' OR payment_account_id IS NOT NULL",

@@ -36,7 +36,7 @@ def apply_sales_summary(session: Session, invoice: SalesInvoice, sign: int) -> N
         session.execute(stmt)
 
 
-def apply_return_summary(session: Session, ret: SalesReturn) -> None:
+def apply_return_summary(session: Session, ret: SalesReturn, sign: int = 1) -> None:
     """A posted return is dated on its own business date, like its journal entries: it reduces
     that day's sold quantity, discounts, net and cost, and adds to `returns_amount`."""
     for item in ret.items:
@@ -49,6 +49,7 @@ def apply_return_summary(session: Session, ret: SalesReturn) -> None:
             "net_amount": -item.net_amount,
             "cogs": -item.cogs,
         }
+        delta = {column: sign * amount for column, amount in delta.items()}
         stmt = insert(DailySalesSummary).values(
             business_date=ret.business_date,
             product_id=item.product_id,

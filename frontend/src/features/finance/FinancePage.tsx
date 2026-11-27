@@ -3,6 +3,7 @@ import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { ReverseButton } from '@/components/data/ReverseButton'
 import { api, type Schemas, unwrap } from '@/api/client'
 import { type Column, DataTable } from '@/components/data/data-table'
 import { Pagination } from '@/components/data/pagination'
@@ -61,6 +62,19 @@ export function FinancePage() {
     { header: t('finance.columns.payee'), cell: (e) => e.payee ?? '—' },
     { header: t('finance.columns.paidFrom'), cell: (e) => e.payment_account_name },
     { header: t('sales.amount'), align: 'right', cell: (e) => <Taka value={e.amount} /> },
+    {
+      id: 'reverse',
+      header: '',
+      align: 'right',
+      cell: (e) => (
+        <ReverseButton
+          docNo={e.doc_no ?? ''}
+          status={e.status}
+          allowed={can('finance:reverse')}
+          post={(header) => api.POST('/api/v1/expenses/{expense_id}/reverse', { params: { path: { expense_id: e.id }, header } })}
+        />
+      ),
+    },
   ]
   const transferColumns: Column<Transfer>[] = [
     { header: t('finance.columns.date'), cell: (e) => formatDate(e.business_date, lang) },
@@ -70,6 +84,19 @@ export function FinancePage() {
     { header: t('sales.amount'), align: 'right', cell: (e) => <Taka value={e.amount} /> },
     { header: t('finance.columns.charges'), align: 'right', cell: (e) => <Taka value={e.charges} /> },
     { header: t('finance.columns.reference'), cell: (e) => e.reference ?? '—' },
+    {
+      id: 'reverse',
+      header: '',
+      align: 'right',
+      cell: (e) => (
+        <ReverseButton
+          docNo={e.doc_no ?? ''}
+          status={e.status}
+          allowed={can('finance:reverse')}
+          post={(header) => api.POST('/api/v1/fund-transfers/{fund_transfer_id}/reverse', { params: { path: { fund_transfer_id: e.id }, header } })}
+        />
+      ),
+    },
   ]
   const ownerColumns: Column<Owner>[] = [
     { header: t('finance.columns.date'), cell: (e) => formatDate(e.business_date, lang) },
@@ -78,6 +105,19 @@ export function FinancePage() {
     { header: t('finance.owner.account'), cell: (e) => e.payment_account_name },
     { header: t('sales.amount'), align: 'right', cell: (e) => <Taka value={e.amount} /> },
     { header: t('finance.columns.notes'), cell: (e) => e.notes ?? '—' },
+    {
+      id: 'reverse',
+      header: '',
+      align: 'right',
+      cell: (e) => (
+        <ReverseButton
+          docNo={e.doc_no ?? ''}
+          status={e.status}
+          allowed={can('finance:reverse')}
+          post={(header) => api.POST('/api/v1/owner-transactions/{owner_transaction_id}/reverse', { params: { path: { owner_transaction_id: e.id }, header } })}
+        />
+      ),
+    },
   ]
 
   const active = tab === 'expenses' ? expenses : tab === 'transfers' ? transfers : owner

@@ -94,10 +94,15 @@ def cancel_for_document(session: Session, *, source_doc_type: str, source_doc_id
     Refused once an item has been put into a company claim: that claim must be dealt with first.
     """
     items = session.scalars(
-        select(ClaimableItem).where(
+        select(ClaimableItem)
+        .where(
             ClaimableItem.source_doc_type == source_doc_type,
             ClaimableItem.source_doc_id == source_doc_id,
         )
+        .order_by(ClaimableItem.id)
+        # Locked, so a claim being submitted is seen once it commits (TS-25).
+        .with_for_update(of=ClaimableItem)
+        .execution_options(populate_existing=True)
     ).all()
     blocked = [i for i in items if i.status not in ("open", "cancelled")]
     if blocked:
@@ -790,3 +795,33 @@ def list_claims(
 
 def claim_outstanding(claim: CompanyClaim) -> Decimal:
     return claim.total_claimed - claim.total_settled - claim.total_rejected
+
+
+def restore_trade_discount(session: Session, *, invoice_item_id: int, amount: Decimal) -> None:
+    """Undo `reduce_trade_discount` when a sales return is reversed. Only while the item has
+    not gone to the company."""
+    if amount <= 0:
+        return
+    item = session.scalar(
+        select(ClaimableItem)
+        .where(
+            ClaimableItem.source_doc_type == "sales_invoice",
+            ClaimableItem.source_line_id == invoice_item_id,
+            ClaimableItem.claim_type == "trade_discount",
+        )
+        .order_by(ClaimableItem.id.desc())
+        .limit(1)
+        .with_for_update(of=ClaimableItem)
+        .execution_options(populate_existing=True)
+    )
+    if item is None:
+        return
+    if item.status not in ("open", "cancelled"):
+        raise ConflictError(
+            "The company claim for this discount has moved on; the return cannot be reversed.",
+            code="claim_in_progress",
+        )
+    item.book_amount += amount
+    item.claim_amount += amount
+    item.status = "open"
+    session.flush()

@@ -24,11 +24,12 @@ from app.modules.accounting.journal import (
     RECEIVABLE,
     JLine,
     post_journal,
+    reverse_entries,
 )
 from app.modules.accounting.models import PaymentAccount
 from app.modules.accounting.service import require_active_payment_account
-from app.modules.claims.service import reduce_trade_discount
-from app.modules.inventory.stock import get_location_id, lock_costs, stock_in
+from app.modules.claims.service import reduce_trade_discount, restore_trade_discount
+from app.modules.inventory.stock import get_location_id, lock_costs, reverse_movements, stock_in
 from app.modules.sales.ledger import lock_customer
 from app.modules.sales.models import (
     CONDITION_LOCATION,
@@ -408,6 +409,57 @@ def _post_return_journal(
             lines=lines,
             actor_id=actor.id,
         )
+
+
+def reverse_return(session: Session, return_id: int, actor: CurrentUser) -> SalesReturn:
+    """Takes the returned goods out again and mirrors the credit or refund. Like every stock
+    reversal it is refused once the products have moved since."""
+    draft = get_return(session, return_id)
+    lock_customer(session, draft.customer_id)
+    _lock_invoice(session, draft.invoice_id)
+    ret = session.scalar(
+        select(SalesReturn)
+        .where(SalesReturn.id == return_id)
+        .with_for_update(of=SalesReturn)
+        .execution_options(populate_existing=True)
+    )
+    assert ret is not None
+    if ret.status != "posted":
+        raise ConflictError("Only posted returns can be reversed.", code="not_posted")
+    on = today()
+    ensure_period_open(session, ret.business_date)
+    ensure_period_open(session, on)
+    reverse_movements(
+        session,
+        source_doc_type=DOC_TYPE,
+        source_doc_id=ret.id,
+        business_date=on,
+        actor_id=actor.id,
+    )
+    reverse_entries(
+        session,
+        source_doc_type=DOC_TYPE,
+        source_doc_id=ret.id,
+        business_date=on,
+        actor_id=actor.id,
+    )
+    for item in ret.items:
+        restore_trade_discount(
+            session, invoice_item_id=item.invoice_item_id, amount=item.company_discount
+        )
+    apply_return_summary(session, ret, -1)
+    ret.status = "reversed"
+    ret.reversed_at = now_utc()
+    session.flush()
+    record_audit(
+        session,
+        actor_id=actor.id,
+        action="reverse",
+        entity_type="sales_return",
+        entity_id=ret.id,
+        after={"doc_no": ret.doc_no},
+    )
+    return ret
 
 
 def return_to_read(ret: SalesReturn) -> SalesReturnRead:

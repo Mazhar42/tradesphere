@@ -1588,6 +1588,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/sales-returns/{return_id}/reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reverse Sales Return */
+        post: operations["reverse_sales_return"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/purchase-returns": {
         parameters: {
             query?: never;
@@ -1635,6 +1652,23 @@ export interface paths {
         put?: never;
         /** Post Purchase Return */
         post: operations["post_purchase_return"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/purchase-returns/{return_id}/reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reverse Purchasing Return */
+        post: operations["reverse_purchasing_return"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1869,6 +1903,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/company-claims/{claim_id}/settlements/{settlement_id}/reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reverse Claim Settlement */
+        post: operations["reverse_claim_settlement"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commission-payments/{commission_id}/reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reverse Commission Payment */
+        post: operations["reverse_commission_payment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/expenses": {
         parameters: {
             query?: never;
@@ -2053,6 +2121,57 @@ export interface paths {
         get: operations["dashboard_report"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/expenses/{expense_id}/reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reverse Expense */
+        post: operations["reverse_expense"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/fund-transfers/{fund_transfer_id}/reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reverse Fund Transfer */
+        post: operations["reverse_fund_transfer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/owner-transactions/{owner_transaction_id}/reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reverse Owner Transaction */
+        post: operations["reverse_owner_transaction"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2289,7 +2408,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Reconcile */
+        /**
+         * Reconcile
+         * @description The last stored result (nightly, or the last time someone asked). `fresh` checks now.
+         */
         get: operations["reconcile"];
         put?: never;
         post?: never;
@@ -2888,6 +3010,8 @@ export interface components {
         ClaimSettlementRead: {
             /** Id */
             id: number;
+            /** Status */
+            status: string;
             /** Doc No */
             doc_no: string;
             /**
@@ -2982,6 +3106,8 @@ export interface components {
         CommissionRead: {
             /** Id */
             id: number;
+            /** Status */
+            status: string;
             /** Doc No */
             doc_no: string;
             /** Customer Id */
@@ -3253,6 +3379,8 @@ export interface components {
         ExpenseRead: {
             /** Id */
             id: number;
+            /** Status */
+            status: string;
             /** Doc No */
             doc_no: string;
             /**
@@ -3297,6 +3425,8 @@ export interface components {
         FundTransferRead: {
             /** Id */
             id: number;
+            /** Status */
+            status: string;
             /** Doc No */
             doc_no: string;
             /**
@@ -4152,6 +4282,8 @@ export interface components {
         OwnerTransactionRead: {
             /** Id */
             id: number;
+            /** Status */
+            status: string;
             /** Doc No */
             doc_no: string;
             /**
@@ -5356,6 +5488,8 @@ export interface components {
         };
         /** ReconcileRead */
         ReconcileRead: {
+            /** Ran At */
+            ran_at?: string | null;
             /** Ok */
             ok: boolean;
             /** Issues */
@@ -9902,6 +10036,40 @@ export interface operations {
             };
         };
     };
+    reverse_sales_return: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Unique key (e.g. a UUID) that makes retries of this request safe. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                return_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesReturnRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_purchase_returns: {
         parameters: {
             query?: {
@@ -10030,6 +10198,40 @@ export interface operations {
         };
     };
     post_purchase_return: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Unique key (e.g. a UUID) that makes retries of this request safe. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                return_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PurchaseReturnRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reverse_purchasing_return: {
         parameters: {
             query?: never;
             header: {
@@ -10725,6 +10927,75 @@ export interface operations {
             };
         };
     };
+    reverse_claim_settlement: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Unique key (e.g. a UUID) that makes retries of this request safe. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                claim_id: number;
+                settlement_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyClaimRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reverse_commission_payment: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Unique key (e.g. a UUID) that makes retries of this request safe. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                commission_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommissionRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_expenses: {
         parameters: {
             query?: {
@@ -11172,6 +11443,108 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Dashboard"];
+                };
+            };
+        };
+    };
+    reverse_expense: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Unique key (e.g. a UUID) that makes retries of this request safe. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                expense_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExpenseRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reverse_fund_transfer: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Unique key (e.g. a UUID) that makes retries of this request safe. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                fund_transfer_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FundTransferRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reverse_owner_transaction: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Unique key (e.g. a UUID) that makes retries of this request safe. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                owner_transaction_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OwnerTransactionRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -11631,7 +12004,9 @@ export interface operations {
     };
     reconcile: {
         parameters: {
-            query?: never;
+            query?: {
+                fresh?: boolean;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -11645,6 +12020,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ReconcileRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

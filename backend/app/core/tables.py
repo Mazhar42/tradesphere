@@ -124,6 +124,7 @@ TENANT_TABLES = frozenset(
         "expenses",
         "fund_transfers",
         "owner_transactions",
+        "reconcile_runs",
     }
 )
 

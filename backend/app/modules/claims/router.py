@@ -5,7 +5,7 @@ from sqlalchemy import select
 
 from app.core.db import DbSession
 from app.core.permissions import CurrentUser, require
-from app.modules.claims import reads, service
+from app.modules.claims import reads, reversals, service
 from app.modules.claims.models import CommissionPayment
 from app.modules.claims.schemas import (
     ClaimableRead,
@@ -26,6 +26,7 @@ router = APIRouter(tags=["claims"])
 
 CanRead = Annotated[CurrentUser, Depends(require("claims:read"))]
 CanWrite = Annotated[CurrentUser, Depends(require("claims:write"))]
+CanReverse = Annotated[CurrentUser, Depends(require("claims:reverse"))]
 
 
 @router.get("/claimable-items", response_model=Page[ClaimableRead])
@@ -192,6 +193,50 @@ def create_commission_payment(
         payload=data.model_dump(mode="json"),
         status_code=201,
         handler=lambda: reads.commission_read(service.create_commission(db, data, actor)),
+    )
+    db.commit()
+    return result
+
+
+# --- Reversals ------------------------------------------------------------------------------
+@router.post(
+    "/company-claims/{claim_id}/settlements/{settlement_id}/reverse",
+    response_model=CompanyClaimRead,
+)
+def reverse_claim_settlement(
+    db: DbSession,
+    actor: CanReverse,
+    claim_id: int,
+    settlement_id: int,
+    key: IdempotencyKeyHeader,
+) -> object:
+    result = run_idempotent(
+        db,
+        user_id=actor.id,
+        key=key,
+        endpoint=f"POST /company-claims/{claim_id}/settlements/{settlement_id}/reverse",
+        payload={},
+        handler=lambda: reads.claim_to_read(
+            db, reversals.reverse_settlement(db, claim_id, settlement_id, actor)
+        ),
+    )
+    db.commit()
+    return result
+
+
+@router.post("/commission-payments/{commission_id}/reverse", response_model=CommissionRead)
+def reverse_commission_payment(
+    db: DbSession, actor: CanReverse, commission_id: int, key: IdempotencyKeyHeader
+) -> object:
+    result = run_idempotent(
+        db,
+        user_id=actor.id,
+        key=key,
+        endpoint=f"POST /commission-payments/{commission_id}/reverse",
+        payload={},
+        handler=lambda: reads.commission_read(
+            reversals.reverse_commission(db, commission_id, actor)
+        ),
     )
     db.commit()
     return result

@@ -5,6 +5,7 @@ import { type ReactNode, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
+import { ReverseButton } from '@/components/data/ReverseButton'
 import { api, type Schemas, unwrap } from '@/api/client'
 import { type Column, DataTable } from '@/components/data/data-table'
 import { ErrorState, PageHeader } from '@/components/layout/page'
@@ -351,6 +352,19 @@ export function ClaimDetailPage() {
     { header: t('claims.account'), cell: (s) => s.payment_account_name ?? '—' },
     { header: t('sales.reference'), cell: (s) => s.reference ?? '—' },
     { header: t('sales.amount'), align: 'right', cell: (s) => <Taka value={s.amount} /> },
+    {
+      id: 'reverse',
+      header: '',
+      align: 'right',
+      cell: (s) => (
+        <ReverseButton
+          docNo={s.doc_no ?? ''}
+          status={s.status}
+          allowed={can('claims:reverse')}
+          post={(header) => api.POST('/api/v1/company-claims/{claim_id}/settlements/{settlement_id}/reverse', { params: { path: { claim_id: claim.id, settlement_id: s.id }, header } })}
+        />
+      ),
+    },
   ]
 
   return (

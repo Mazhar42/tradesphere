@@ -186,6 +186,8 @@ Differences from the brief's list: jobs are a phase of their own; financial corr
 - **Accept:** every posted type correctable or documented; medium tenant reconciles in 60 s.
 - **Rollback:** disable routes; posted reversals are never deleted.
 
+**Status 2026-11-27:** 6.1 to 6.5 implemented; 6.6 documented, rounding unchanged. TS-25 fixed. Impact note: `reversals-impact.md` (**needs the owner's and accountant's review**). Reconcile on 200,000 synthetic invoices took 2.4 s locally (117 s before). Reversal buttons were added to finance, claim and return screens; commission payments can be reversed through the API only.
+
 ## Phase 7 — Import and onboarding
 
 **Objective:** `data-import-and-coexistence.md` parts 1 and 2. **Prerequisites:** 4, 6.

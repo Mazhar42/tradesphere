@@ -4,6 +4,7 @@ import { Plus } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { ReverseButton } from '@/components/data/ReverseButton'
 import { api, type Schemas, unwrap } from '@/api/client'
 import { type Column, DataTable } from '@/components/data/data-table'
 import { Pagination } from '@/components/data/pagination'
@@ -57,8 +58,21 @@ export function ReturnsPage() {
       { header: t('returns.refund'), cell: (r) => t(`returns.refunds.${r.refund_method}`, r.refund_method) },
       { header: t('common.status'), cell: (r) => <DocBadge status={r.status} /> },
       { header: t('returns.value'), align: 'right', cell: (r) => <Taka value={r.net_amount} /> },
+      {
+        id: 'reverse',
+        header: '',
+        align: 'right',
+        cell: (r) => (
+          <ReverseButton
+            docNo={r.doc_no ?? ''}
+            status={r.status}
+            allowed={can('sales:reverse')}
+            post={(header) => api.POST('/api/v1/sales-returns/{return_id}/reverse', { params: { path: { return_id: r.id }, header } })}
+          />
+        ),
+      },
     ],
-    [t, lang],
+    [t, lang, can],
   )
   const purchaseColumns = useMemo<Column<Schemas['PurchaseReturnRead']>[]>(
     () => [
@@ -75,8 +89,21 @@ export function ReturnsPage() {
       { header: t('common.status'), cell: (r) => <DocBadge status={r.status} /> },
       { header: t('returns.creditValue'), align: 'right', cell: (r) => <Taka value={r.total_value} /> },
       { header: t('returns.bookCost'), align: 'right', cell: (r) => <Taka value={r.total_cost} /> },
+      {
+        id: 'reverse',
+        header: '',
+        align: 'right',
+        cell: (r) => (
+          <ReverseButton
+            docNo={r.doc_no ?? ''}
+            status={r.status}
+            allowed={can('purchasing:reverse')}
+            post={(header) => api.POST('/api/v1/purchase-returns/{return_id}/reverse', { params: { path: { return_id: r.id }, header } })}
+          />
+        ),
+      },
     ],
-    [t, lang],
+    [t, lang, can],
   )
 
   const current = tab === 'sales' ? sales : purchase

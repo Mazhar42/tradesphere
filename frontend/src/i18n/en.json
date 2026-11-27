@@ -237,6 +237,12 @@
       "suspended": "The account is suspended for non-payment."
     }
   },
+  "reversal": {
+    "reverse": "Reverse",
+    "reversed": "Reversed",
+    "done": "{{doc}} reversed",
+    "confirm": "Reverse {{doc}}? A correcting entry dated today is posted. This cannot be undone."
+  },
   "forbidden": {
     "title": "No access",
     "body": "Your role does not allow access to this page. Ask the owner if you need it."

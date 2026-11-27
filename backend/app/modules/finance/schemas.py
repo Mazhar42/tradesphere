@@ -21,6 +21,7 @@ class ExpenseCreate(WriteSchema):
 
 class ExpenseRead(ReadSchema):
     id: int
+    status: str
     doc_no: str
     business_date: date
     expense_account_code: str
@@ -43,6 +44,7 @@ class FundTransferCreate(WriteSchema):
 
 class FundTransferRead(ReadSchema):
     id: int
+    status: str
     doc_no: str
     business_date: date
     from_account: str
@@ -63,6 +65,7 @@ class OwnerTransactionCreate(WriteSchema):
 
 class OwnerTransactionRead(ReadSchema):
     id: int
+    status: str
     doc_no: str
     business_date: date
     kind: str

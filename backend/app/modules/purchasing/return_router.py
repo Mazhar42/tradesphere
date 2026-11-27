@@ -16,6 +16,7 @@ router = APIRouter(tags=["purchasing"])
 
 CanRead = Annotated[CurrentUser, Depends(require("purchasing:read"))]
 CanWrite = Annotated[CurrentUser, Depends(require("purchasing:write"))]
+CanReverse = Annotated[CurrentUser, Depends(require("purchasing:reverse"))]
 
 
 @router.get("/purchase-returns", response_model=Page[PurchaseReturnRead])
@@ -76,6 +77,22 @@ def post_purchase_return(
         endpoint=f"POST /purchase-returns/{return_id}/post",
         payload={"id": return_id},
         handler=lambda: returns.return_to_read(returns.post_return(db, return_id, actor)),
+    )
+    db.commit()
+    return result
+
+
+@router.post("/purchase-returns/{return_id}/reverse", response_model=PurchaseReturnRead)
+def reverse_purchasing_return(
+    db: DbSession, actor: CanReverse, return_id: int, key: IdempotencyKeyHeader
+) -> object:
+    result = run_idempotent(
+        db,
+        user_id=actor.id,
+        key=key,
+        endpoint=f"POST /purchase-returns/{return_id}/reverse",
+        payload={"id": return_id},
+        handler=lambda: returns.return_to_read(returns.reverse_return(db, return_id, actor)),
     )
     db.commit()
     return result

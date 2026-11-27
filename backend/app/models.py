@@ -27,6 +27,7 @@ from app.modules.claims.models import (
     CompanyClaimLine,
 )
 from app.modules.finance.models import Expense, FundTransfer, OwnerTransaction
+from app.modules.integrity.models import ReconcileRun
 from app.modules.inventory.models import (
     Batch,
     InventoryMovement,
@@ -130,6 +131,7 @@ __all__ = [
     "PurchaseReturn",
     "PurchaseReturnItem",
     "ReceiptAllocation",
+    "ReconcileRun",
     "RefreshToken",
     "Role",
     "SaleItemBatch",

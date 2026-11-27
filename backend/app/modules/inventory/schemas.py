@@ -94,5 +94,6 @@ class ReconcileIssue(ReadSchema):
 
 
 class ReconcileRead(ReadSchema):
+    ran_at: datetime | None = None  # None: checked just now
     ok: bool
     issues: list[ReconcileIssue]

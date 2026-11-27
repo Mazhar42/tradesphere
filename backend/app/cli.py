@@ -20,6 +20,7 @@ from app.core.db import SessionLocal, check_database_role
 from app.core.observability import configure_logging, init_error_tracking
 from app.core.tenant_context import set_context
 from app.modules.integrity.reconcile import reconcile as run_reconcile
+from app.modules.inventory.rebuild import rebuild_stock
 from app.modules.platform.service import add_operator
 from app.modules.sales.rebuild import rebuild_sales_summary
 from app.modules.tenancy.models import Tenant
@@ -121,6 +122,16 @@ def reconcile(tenant: TenantOption = None, all_tenants: AllTenants = False) -> N
             typer.echo(f"{slug}: [{issue.check}] {issue.detail}", err=True)
     if drift:
         raise typer.Exit(1)
+
+
+@cli.command("rebuild-stock")
+def rebuild_stock_command(tenant: TenantOption = None, all_tenants: AllTenants = False) -> None:
+    """Rewrite stock balances and costs from the movement ledger. Stop posting first."""
+    for tenant_id, slug in _selected(tenant, all_tenants):
+        with _in_tenant(tenant_id) as session:
+            balances, costs = rebuild_stock(session)
+            session.commit()
+        typer.echo(f"{slug}: rewrote {balances} balance rows and {costs} cost rows.")
 
 
 @cli.command("rebuild-projections")

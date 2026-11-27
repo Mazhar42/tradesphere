@@ -322,3 +322,19 @@ def get_sales_summary(
     if user.has("reports:profit"):
         return rows
     return [row.model_copy(update={"cogs": None, "gross_profit": None}) for row in rows]
+
+
+@router.post("/sales-returns/{return_id}/reverse", response_model=SalesReturnRead)
+def reverse_sales_return(
+    db: DbSession, actor: CanReverse, return_id: int, key: IdempotencyKeyHeader
+) -> object:
+    result = run_idempotent(
+        db,
+        user_id=actor.id,
+        key=key,
+        endpoint=f"POST /sales-returns/{return_id}/reverse",
+        payload={"id": return_id},
+        handler=lambda: returns.return_to_read(returns.reverse_return(db, return_id, actor)),
+    )
+    db.commit()
+    return result

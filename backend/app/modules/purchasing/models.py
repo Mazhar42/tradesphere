@@ -247,6 +247,7 @@ class PurchaseReturn(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base
     total_value: Mapped[Decimal] = mapped_column(MONEY, default=Decimal(0))  # agreed credit
     total_cost: Mapped[Decimal] = mapped_column(MONEY, default=Decimal(0))  # book cost removed
     posted_at: Mapped[datetime | None]
+    reversed_at: Mapped[datetime | None]
 
     supplier: Mapped[Supplier] = relationship(lazy="joined")
     items: Mapped[list["PurchaseReturnItem"]] = relationship(
@@ -261,7 +262,7 @@ class PurchaseReturn(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Base
             unique=True,
             postgresql_where=text("doc_no IS NOT NULL"),
         ),
-        CheckConstraint("status IN ('draft','posted')", name="status_valid"),
+        CheckConstraint("status IN ('draft','posted','reversed')", name="status_valid"),
     )
 
 

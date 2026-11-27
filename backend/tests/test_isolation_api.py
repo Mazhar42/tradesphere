@@ -188,7 +188,7 @@ def _build_other(client: TestClient, db: Session) -> Other:
             "items": [{"product_id": product["id"], "qty_base": "1"}],
         },
     )["id"]
-    post(
+    ids["commission_id"] = post(
         "/api/v1/commission-payments",
         {
             "customer_id": ids["customer_id"],
@@ -199,7 +199,7 @@ def _build_other(client: TestClient, db: Session) -> Other:
             "supplier_id": ids["supplier_id"],
         },
         idem=True,
-    )
+    )["id"]
     claimables = get("/api/v1/claimable-items")["items"]
     ids["claimable_item_id"] = claimables[0]["id"]
     claim = post(
@@ -211,7 +211,7 @@ def _build_other(client: TestClient, db: Session) -> Other:
     ids["expense_account_id"] = next(
         a["id"] for a in get("/api/v1/accounts") if a["code"] == "6010"
     )
-    post(
+    ids["expense_id"] = post(
         "/api/v1/expenses",
         {
             "expense_account_id": ids["expense_account_id"],
@@ -220,8 +220,8 @@ def _build_other(client: TestClient, db: Session) -> Other:
             "payee": f"{MARK} landlord",
         },
         idem=True,
-    )
-    post(
+    )["id"]
+    ids["fund_transfer_id"] = post(
         "/api/v1/fund-transfers",
         {
             "from_payment_account_id": cash,
@@ -230,12 +230,12 @@ def _build_other(client: TestClient, db: Session) -> Other:
             "notes": f"{MARK} transfer",
         },
         idem=True,
-    )
-    post(
+    )["id"]
+    ids["owner_transaction_id"] = post(
         "/api/v1/owner-transactions",
         {"kind": "capital", "amount": "10", "payment_account_id": cash, "notes": f"{MARK} money"},
         idem=True,
-    )
+    )["id"]
     post("/api/v1/payment-accounts", {"name": f"{MARK} bank", "kind": "bank"})
     ids["role_id"] = post(
         "/api/v1/roles",
@@ -252,6 +252,7 @@ def _build_other(client: TestClient, db: Session) -> Other:
     # Only the platform can write invoices, outside this test's transaction; the case that uses
     # a real one is in test_billing.py.
     ids["billing_invoice_id"] = 1
+    ids["settlement_id"] = 1  # the claim itself is what must not be found
     ids["invitation_id"] = post(
         "/api/v1/invitations", {"note": f"{MARK} invitee", "roles": ["cashier"]}
     )["invitation"]["id"]

@@ -152,6 +152,8 @@ class ClaimSettlement(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Bas
 
     __tablename__ = "claim_settlements"
 
+    status: Mapped[str] = mapped_column(String(10), server_default="posted")
+    reversed_at: Mapped[datetime | None]
     doc_no: Mapped[str] = mapped_column(String(30))
     claim_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("company_claims.id"), index=True)
     business_date: Mapped[date]
@@ -171,6 +173,7 @@ class ClaimSettlement(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, Bas
     )
 
     __table_args__ = (
+        CheckConstraint("status IN ('posted','reversed')", name="status_valid"),
         UniqueConstraint("tenant_id", "doc_no", name="uq_claim_settlements_doc_no"),
         CheckConstraint("amount > 0", name="amount_positive"),
         CheckConstraint(
@@ -215,6 +218,8 @@ class CommissionPayment(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, B
 
     __tablename__ = "commission_payments"
 
+    status: Mapped[str] = mapped_column(String(10), server_default="posted")
+    reversed_at: Mapped[datetime | None]
     doc_no: Mapped[str] = mapped_column(String(30))
     customer_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("customers.id"), index=True)
     business_date: Mapped[date]
@@ -235,6 +240,7 @@ class CommissionPayment(TenantScoped, IdMixin, TimestampMixin, CreatedByMixin, B
     payment_account: Mapped[PaymentAccount | None] = relationship(lazy="joined")
 
     __table_args__ = (
+        CheckConstraint("status IN ('posted','reversed')", name="status_valid"),
         UniqueConstraint("tenant_id", "doc_no", name="uq_commission_payments_doc_no"),
         CheckConstraint("amount > 0", name="amount_positive"),
         CheckConstraint("method IN ('cash','credit_to_account')", name="method_valid"),

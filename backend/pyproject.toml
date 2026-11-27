@@ -38,6 +38,7 @@ ignore = ["PLR0913", "PLR0917", "PLR2004", "S101", "RUF001", "RUF002", "RUF003",
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S105", "S106", "PLR0915"]
+"app/modules/integrity/reconcile.py" = ["S608"]  # queries are assembled from constants only
 "alembic/**" = ["E501", "S608"]  # SQL built from constants in the migration
 
 [tool.mypy]

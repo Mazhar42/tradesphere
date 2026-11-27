@@ -37,6 +37,8 @@ PERMISSIONS: dict[str, str] = {
     # Finance & reports (phase 5)
     "finance:read": "View accounts, cashbook and journals",
     "finance:write": "Record expenses, transfers and owner transactions",
+    "finance:reverse": "Reverse expenses, fund transfers and owner transactions",
+    "claims:reverse": "Reverse claim settlements and commission payments",
     "finance:opening": "Post or reverse opening balances (go-live data load)",
     "reports:read": "View operational reports",
     "reports:profit": "View cost, profit and margin figures",
