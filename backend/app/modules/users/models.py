@@ -52,9 +52,8 @@ class User(IdMixin, TimestampMixin, Base):
     password_hash: Mapped[str] = mapped_column(String(255))
     is_active: Mapped[bool] = mapped_column(default=True)
     last_login_at: Mapped[datetime | None]
-    roles: Mapped[list[Role]] = relationship(
-        secondary=user_roles, lazy="selectin", order_by=Role.code
-    )
+    # Loaded on use, never with the user: which roles appear depends on the dealership context.
+    roles: Mapped[list[Role]] = relationship(secondary=user_roles, order_by=Role.code)
 
     __table_args__ = (Index("uq_users_username", func.lower(username), unique=True),)
 

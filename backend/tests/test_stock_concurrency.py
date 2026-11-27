@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from app.core.errors import BusinessRuleError
 from app.modules.catalog.models import Product, Uom
 from app.modules.inventory.stock import get_location_id, stock_in, stock_out
+from tests.conftest import IN_TEST_TENANT
 from tests.helpers import today
 
 D = Decimal
@@ -18,7 +19,7 @@ D = Decimal
 def test_two_sales_of_the_last_units_cannot_both_succeed(scratch_engine: Engine) -> None:
     engine = scratch_engine
     """100 units on hand; two users each take 60 at the same moment: exactly one wins."""
-    with Session(engine) as session:
+    with Session(engine, info=IN_TEST_TENANT) as session:
         pcs = session.query(Uom).filter(Uom.code == "PCS").one()
         product = Product(
             sku=f"CONC-{uuid.uuid4().hex[:8]}",
@@ -50,7 +51,7 @@ def test_two_sales_of_the_last_units_cannot_both_succeed(scratch_engine: Engine)
     barrier = threading.Barrier(2)
 
     def sell(doc_id: int) -> None:
-        with Session(engine) as session:
+        with Session(engine, info=IN_TEST_TENANT) as session:
             try:
                 barrier.wait(timeout=10)
                 stock_out(
@@ -78,7 +79,7 @@ def test_two_sales_of_the_last_units_cannot_both_succeed(scratch_engine: Engine)
         t.join(timeout=30)
 
     assert sorted(outcomes) == ["insufficient", "ok"]
-    with Session(engine) as session:
+    with Session(engine, info=IN_TEST_TENANT) as session:
         qty, value = session.execute(
             text("SELECT qty_on_hand, total_value FROM product_costs WHERE product_id = :p"),
             {"p": product_id},

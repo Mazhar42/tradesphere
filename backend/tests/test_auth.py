@@ -4,8 +4,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.modules.tenancy.models import AuthEvent
 from app.modules.users.models import RefreshToken
-from app.shared.audit import AuditLog
 from tests.conftest import DEFAULT_PASSWORD, login
 
 REFRESH = "/api/v1/auth/refresh"
@@ -53,8 +53,8 @@ def test_wrong_password_is_401_problem_and_audited(
     assert response.status_code == 401
     assert response.headers["content-type"].startswith("application/problem+json")
     assert response.json()["code"] == "invalid_credentials"
-    failed = db.scalars(select(AuditLog).where(AuditLog.action == "login_failed")).all()
-    assert any(a.after == {"username": "karim"} for a in failed)
+    failed = db.scalars(select(AuthEvent).where(AuthEvent.action == "login_failed")).all()
+    assert any(a.identifier == "karim" for a in failed)
 
 
 def test_unknown_user_gets_same_error(client: TestClient) -> None:

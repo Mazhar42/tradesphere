@@ -1,6 +1,8 @@
 """Operational commands: `python -m app.cli --help`."""
 
 import os
+from collections.abc import Iterator
+from contextlib import contextmanager
 from datetime import datetime
 from typing import Annotated
 
@@ -9,17 +11,55 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
 import app.models as _models  # noqa: F401  (register all tables)
-from app.bootstrap import ensure_owner
+from app.bootstrap import ensure_owner, ensure_tenant
 from app.core import provision
 from app.core.config import settings
 from app.core.db import SessionLocal
+from app.core.tenant_context import set_context
 from app.modules.integrity.reconcile import reconcile as run_reconcile
 from app.modules.sales.rebuild import rebuild_sales_summary
+from app.modules.tenancy.models import Tenant
+from app.modules.tenancy.service import all_tenants as all_dealerships
+from app.modules.tenancy.service import business_config
 from app.modules.users.schemas import UserCreate
 from app.modules.users.service import count_active_owners, create_user, get_by_username
 from app.seed import run_seed
+from app.shared.business import business_scope, use_business
 
 cli = typer.Typer(no_args_is_help=True, add_completion=False)
+
+TenantOption = Annotated[str | None, typer.Option("--tenant", help="Dealership slug")]
+AllTenants = Annotated[bool, typer.Option("--all-tenants", help="Every dealership in turn")]
+
+
+def _platform_session() -> Session:
+    return Session(create_engine(settings.platform_url))
+
+
+def _selected(slug: str | None, all_tenants: bool = False) -> list[tuple[int, str]]:
+    """The dealerships a command works on. Nothing runs without one."""
+    with _platform_session() as session:
+        found = [(t.id, t.slug, business_config(t)) for t in all_dealerships(session)]
+    if slug:
+        found = [t for t in found if t[1] == slug]
+        if not found:
+            typer.echo(f"No dealership '{slug}'.", err=True)
+            raise typer.Exit(2)
+    elif not all_tenants and len(found) != 1:
+        typer.echo("Name a dealership with --tenant, or use --all-tenants.", err=True)
+        raise typer.Exit(2)
+    return [(tenant_id, name) for tenant_id, name, _ in found]
+
+
+@contextmanager
+def _in_tenant(tenant_id: int) -> Iterator[Session]:
+    """A session and business context for one dealership."""
+    with business_scope(), SessionLocal() as session:
+        set_context(session, tenant_id=tenant_id)
+        tenant = session.get(Tenant, tenant_id)
+        assert tenant is not None
+        use_business(business_config(tenant))
+        yield session
 
 
 @cli.command()
@@ -37,9 +77,15 @@ def create_owner(
     username: Annotated[str, typer.Option(prompt=True)],
     full_name: Annotated[str, typer.Option(prompt=True)],
     password: Annotated[str, typer.Option(prompt=True, hide_input=True, confirmation_prompt=True)],
+    tenant: TenantOption = None,
 ) -> None:
     """Create a user with the owner role (first-time setup)."""
     with SessionLocal() as session:
+        if tenant:
+            set_context(session, tenant_id=_selected(tenant)[0][0])
+        else:
+            with _platform_session() as platform:
+                ensure_tenant(platform, session)
         if get_by_username(session, username):
             typer.echo(f"User '{username}' already exists.", err=True)
             raise typer.Exit(1)
@@ -55,27 +101,35 @@ def create_owner(
 
 
 @cli.command()
-def reconcile() -> None:
+def reconcile(tenant: TenantOption = None, all_tenants: AllTenants = False) -> None:
     """Check stock/cost projections and the books against the ledgers (exit 1 on drift)."""
-    with SessionLocal() as session:
-        result = run_reconcile(session)
-    if result.ok:
-        typer.echo("Reconcile OK: stock, cost, inventory account and trial balance agree.")
-        return
-    for issue in result.issues:
-        typer.echo(f"[{issue.check}] {issue.detail}", err=True)
-    raise typer.Exit(1)
+    drift = False
+    for tenant_id, slug in _selected(tenant, all_tenants):
+        with _in_tenant(tenant_id) as session:
+            result = run_reconcile(session)
+        if result.ok:
+            typer.echo(
+                f"{slug}: Reconcile OK: stock, cost, inventory account and trial balance agree."
+            )
+        for issue in result.issues:
+            drift = True
+            typer.echo(f"{slug}: [{issue.check}] {issue.detail}", err=True)
+    if drift:
+        raise typer.Exit(1)
 
 
 @cli.command("rebuild-projections")
 def rebuild_projections(
     from_date: Annotated[datetime | None, typer.Option("--from", help="YYYY-MM-DD")] = None,
+    tenant: TenantOption = None,
+    all_tenants: AllTenants = False,
 ) -> None:
     """Rebuild the daily sales projection from posted invoices and returns."""
-    with SessionLocal() as session:
-        count = rebuild_sales_summary(session, from_date.date() if from_date else None)
-        session.commit()
-    typer.echo(f"Rebuilt the daily sales projection from {count} documents.")
+    for tenant_id, slug in _selected(tenant, all_tenants):
+        with _in_tenant(tenant_id) as session:
+            count = rebuild_sales_summary(session, from_date.date() if from_date else None)
+            session.commit()
+        typer.echo(f"{slug}: rebuilt the daily sales projection from {count} documents.")
 
 
 @cli.command("bootstrap-owner")
@@ -87,7 +141,11 @@ def bootstrap_owner() -> None:
         typer.echo("Owner bootstrap skipped: BOOTSTRAP_OWNER_USERNAME/PASSWORD not set.")
         return
     full_name = os.environ.get("BOOTSTRAP_OWNER_FULL_NAME", username)
-    with SessionLocal() as session:
+    with SessionLocal() as session, _platform_session() as platform:
+        if len(all_dealerships(platform)) > 1:
+            typer.echo("Several dealerships exist; nothing to bootstrap.")
+            return
+        ensure_tenant(platform, session)
         created = ensure_owner(session, username=username, full_name=full_name, password=password)
         session.commit()
     typer.echo("Owner created." if created else "Owner already exists; nothing to do.")

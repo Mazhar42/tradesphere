@@ -69,6 +69,7 @@ services:
       <<: *api-env
       # The API runs as the least-privileged role: data access only, no schema changes.
       DATABASE_URL: postgresql+psycopg://tradesphere_app:${APP_DB_PASSWORD}@db:5432/tradesphere
+      PLATFORM_DATABASE_URL: postgresql+psycopg://tradesphere_platform:${PLATFORM_DB_PASSWORD}@db:5432/tradesphere
     depends_on:
       db:
         condition: service_healthy

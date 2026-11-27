@@ -30,7 +30,7 @@ def list_users(
 ) -> Page[UserRead]:
     items, total = service.list_users(db, page, q, is_active)
     return Page(
-        items=[service.to_read(u) for u in items],
+        items=[service.to_read(db, u) for u in items],
         total=total,
         page=page.page,
         page_size=page.page_size,
@@ -41,19 +41,19 @@ def list_users(
 def create_user(db: DbSession, actor: CanWrite, data: UserCreate) -> UserRead:
     user = service.create_user(db, data, actor)
     db.commit()
-    return service.to_read(user)
+    return service.to_read(db, user)
 
 
 @router.get("/users/{user_id}", response_model=UserRead)
 def get_user(db: DbSession, _: CanRead, user_id: int) -> UserRead:
-    return service.to_read(service.get_user(db, user_id))
+    return service.to_read(db, service.get_user(db, user_id))
 
 
 @router.patch("/users/{user_id}", response_model=UserRead)
 def update_user(db: DbSession, actor: CanWrite, user_id: int, data: UserUpdate) -> UserRead:
     user = service.update_user(db, user_id, data, actor)
     db.commit()
-    return service.to_read(user)
+    return service.to_read(db, user)
 
 
 @router.post("/users/{user_id}/reset-password", status_code=status.HTTP_204_NO_CONTENT)

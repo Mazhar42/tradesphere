@@ -14,30 +14,46 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.core.context import client_ip_var, request_id_var
 from app.core.errors import RateLimitedError, UnauthorizedError
 from app.core.security import create_access_token, hash_token, new_refresh_token, verify_password
 from app.modules.auth.schemas import MeRead, TokenResponse
+from app.modules.tenancy import service as tenancy
+from app.modules.tenancy.models import AuthEvent
 from app.modules.users.models import RefreshToken, User
 from app.modules.users.service import get_by_username, lock_sessions
-from app.shared.audit import AuditLog, record_audit
 from app.shared.dates import now_utc
 
 INVALID_CREDENTIALS = "Invalid username or password."
 TOO_MANY_ATTEMPTS = "Too many failed sign-in attempts. Try again in a few minutes."
 
 
+def record_event(
+    session: Session, action: str, *, user_id: int | None, identifier: str | None = None
+) -> None:
+    session.add(
+        AuthEvent(
+            user_id=user_id,
+            identifier=identifier,
+            action=action,
+            ip=client_ip_var.get(),
+            request_id=request_id_var.get(),
+        )
+    )
+
+
 def _recent_failures(session: Session, *, username: str | None, ip: str | None) -> int:
     since = now_utc() - timedelta(minutes=settings.login_window_minutes)
-    conditions = [AuditLog.action == "login_failed", AuditLog.occurred_at >= since]
+    conditions = [AuthEvent.action == "login_failed", AuthEvent.occurred_at >= since]
     if username is not None:
-        conditions.append(AuditLog.after["username"].as_string() == username.lower())
+        conditions.append(AuthEvent.identifier == username.lower())
     else:
-        conditions.append(AuditLog.ip == ip)
-    return int(session.scalar(select(func.count(AuditLog.id)).where(*conditions)) or 0)
+        conditions.append(AuthEvent.ip == ip)
+    return int(session.scalar(select(func.count(AuthEvent.id)).where(*conditions)) or 0)
 
 
 def _sign_in_blocked(session: Session, username: str, ip: str | None) -> bool:
-    """Counts come from the audit log, so every worker and every restart sees the same limit."""
+    """Counts come from the database, so every worker and every restart sees the same limit."""
     if (
         _recent_failures(session, username=username, ip=None)
         >= settings.login_max_failures_per_user
@@ -64,12 +80,19 @@ def me_from_user(user: User) -> MeRead:
     )
 
 
-def _token_response(user: User) -> TokenResponse:
+def _token_response(session: Session, user: User, tenant_id: int) -> TokenResponse:
+    tenancy.enter(session, user.id, tenant_id)
+    session.expire(user, ["roles"])
     return TokenResponse(
-        access_token=create_access_token(user.id),
+        access_token=create_access_token(user.id, tenant_id),
         expires_in=settings.access_token_minutes * 60,
         user=me_from_user(user),
     )
+
+
+def _default_tenant(session: Session, user: User) -> int | None:
+    memberships = tenancy.memberships_of(session, user.id)
+    return memberships[0][0].id if memberships else None
 
 
 def _issue_refresh_token(
@@ -96,21 +119,23 @@ def login(
         raise RateLimitedError(TOO_MANY_ATTEMPTS, code="login_rate_limited")
     user = get_by_username(session, username)
     valid = verify_password(password, user.password_hash if user else None)
-    if user is None or not valid or not user.is_active:
-        record_audit(
+    tenant_id = None
+    if user is not None and valid and user.is_active:
+        tenant_id = _default_tenant(session, user)
+    if user is None or tenant_id is None:
+        record_event(
             session,
-            actor_id=user.id if user else None,
-            action="login_failed",
-            entity_type="auth",
-            after={"username": username.lower()},
+            "login_failed",
+            user_id=user.id if user else None,
+            identifier=username.lower(),
         )
         session.commit()  # keep the failed-attempt record even though we raise
         raise UnauthorizedError(INVALID_CREDENTIALS, code="invalid_credentials")
 
     user.last_login_at = now_utc()
     _, raw = _issue_refresh_token(session, user, str(uuid.uuid4()), user_agent, ip)
-    record_audit(session, actor_id=user.id, action="login", entity_type="auth", entity_id=user.id)
-    return AuthResult(_token_response(user), raw)
+    record_event(session, "login", user_id=user.id, identifier=user.username)
+    return AuthResult(_token_response(session, user, tenant_id), raw)
 
 
 def refresh(
@@ -129,7 +154,8 @@ def refresh(
         raise UnauthorizedError("Session expired. Please log in again.", code="session_expired")
 
     user = session.get(User, token.user_id)
-    if user is None or not user.is_active:
+    tenant_id = _default_tenant(session, user) if user is not None and user.is_active else None
+    if user is None or tenant_id is None:
         raise UnauthorizedError("Session expired. Please log in again.", code="session_expired")
 
     if token.revoked_at is not None:
@@ -145,18 +171,16 @@ def refresh(
                 raise UnauthorizedError(
                     "Session expired. Please log in again.", code="session_expired"
                 )
-            return AuthResult(_token_response(user), None)
+            return AuthResult(_token_response(session, user, tenant_id), None)
         _revoke_family(session, token.family_id, now)
-        record_audit(
-            session, actor_id=user.id, action="refresh_reuse", entity_type="auth", entity_id=user.id
-        )
+        record_event(session, "refresh_reuse", user_id=user.id)
         session.commit()
         raise UnauthorizedError("Session expired. Please log in again.", code="session_expired")
 
     new_token, raw = _issue_refresh_token(session, user, token.family_id, user_agent, ip)
     token.revoked_at = now
     token.replaced_by_id = new_token.id
-    return AuthResult(_token_response(user), raw)
+    return AuthResult(_token_response(session, user, tenant_id), raw)
 
 
 def logout(session: Session, raw_token: str | None) -> None:
@@ -169,13 +193,7 @@ def logout(session: Session, raw_token: str | None) -> None:
         return
     lock_sessions(session, token.user_id, ending=True)
     _revoke_family(session, token.family_id, now_utc())
-    record_audit(
-        session,
-        actor_id=token.user_id,
-        action="logout",
-        entity_type="auth",
-        entity_id=token.user_id,
-    )
+    record_event(session, "logout", user_id=token.user_id)
 
 
 def _family_is_alive(session: Session, family_id: str, now: datetime) -> bool:

@@ -144,7 +144,7 @@ Checklist:
 - After posting, check the trial balance balances (**Accounts**), and that the cash, customer dues and
   supplier balances match the books. Then run the reconcile check; it must report no drift:
   ```sh
-  docker compose -f docker-compose.prod.yml --env-file .env run --rm --no-deps migrate python -m app.cli reconcile
+  docker compose -f docker-compose.prod.yml --env-file .env run --rm --no-deps migrate python -m app.cli reconcile --all-tenants
   ```
   It exits with status 1 and lists each drift. There is no reconcile screen yet (see section 10).
 - Make a backup immediately after the opening balances are posted.

@@ -29,6 +29,9 @@ os.environ["DATABASE_URL"] = _as(make_url(TEST_DATABASE_URL), provision.APP).ren
 os.environ["MIGRATION_DATABASE_URL"] = _as(
     make_url(TEST_DATABASE_URL), provision.OWNER
 ).render_as_string(False)
+os.environ["PLATFORM_DATABASE_URL"] = _as(
+    make_url(TEST_DATABASE_URL), provision.PLATFORM
+).render_as_string(False)
 os.environ["ENVIRONMENT"] = "test"
 
 import uuid  # noqa: E402
@@ -45,7 +48,9 @@ from sqlalchemy.orm import Session  # noqa: E402
 from alembic import command  # noqa: E402
 from app.core.db import engine as app_engine  # noqa: E402
 from app.core.db import get_db  # noqa: E402
+from app.core.tenant_context import clear_context, set_context  # noqa: E402
 from app.main import app  # noqa: E402
+from app.modules.tenancy.service import create_tenant  # noqa: E402
 from app.modules.users.models import User  # noqa: E402
 from app.modules.users.schemas import UserCreate  # noqa: E402
 from app.modules.users.service import create_user  # noqa: E402
@@ -53,6 +58,10 @@ from app.seed import run_seed  # noqa: E402
 from app.shared import dates  # noqa: E402
 
 DEFAULT_PASSWORD = "Str0ng-Passw0rd"
+
+# The dealership every test works in unless it says otherwise: the first one of a new database.
+TEST_TENANT = 1
+IN_TEST_TENANT = {"tenant_id": TEST_TENANT}  # for `Session(engine, info=IN_TEST_TENANT)`
 
 
 @dataclass(frozen=True)
@@ -81,6 +90,10 @@ def _build(url: URL) -> Databases:
         run_seed(session)
         session.commit()
     app_role = create_engine(_as(url, provision.APP), pool_size=10)
+    with Session(app_role) as session:
+        tenant = create_tenant(session, slug="test", legal_name="Test Dealership")
+        assert tenant.id == TEST_TENANT
+        session.commit()
     return Databases(admin, owner, app_role, dict(ROLE_PASSWORDS))
 
 
@@ -155,6 +168,7 @@ def db(engine: Engine) -> Iterator[Session]:
         join_transaction_mode="create_savepoint",
         autoflush=False,
         expire_on_commit=False,
+        info=IN_TEST_TENANT,
     )
     try:
         yield session
@@ -167,12 +181,17 @@ def db(engine: Engine) -> Iterator[Session]:
 @pytest.fixture
 def client(db: Session) -> Iterator[TestClient]:
     def _override() -> Iterator[Session]:
-        # Same as production get_db: a failed request rolls back its uncommitted work.
+        # Same as production get_db: a new request knows no dealership until it has resolved
+        # one, and a failed request rolls back its uncommitted work.
+        clear_context(db)
         try:
             yield db
         except Exception:
             db.rollback()
             raise
+        finally:
+            clear_context(db)
+            set_context(db, tenant_id=TEST_TENANT)
 
     app.dependency_overrides[get_db] = _override
     with TestClient(app) as test_client:

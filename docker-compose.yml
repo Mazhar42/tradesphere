@@ -67,6 +67,7 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://tradesphere_app:dev-app@db:5432/tradesphere
       MIGRATION_DATABASE_URL: postgresql+psycopg://tradesphere_owner:dev-owner@db:5432/tradesphere
+      PLATFORM_DATABASE_URL: postgresql+psycopg://tradesphere_platform:dev-platform@db:5432/tradesphere
       TEST_DATABASE_URL: postgresql+psycopg://tradesphere:tradesphere@db-test:5432/tradesphere_test
       JWT_SECRET: dev-only-secret-change-me-in-production-0123456789
       CORS_ORIGINS: '["http://localhost:5173"]'

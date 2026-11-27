@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from app.core.config import Settings, settings
 from app.core.db import get_db
 from app.main import create_app
-from app.shared.audit import AuditLog
+from app.modules.tenancy.models import AuthEvent
 
 PROXY = "10.1.2.3"
 
@@ -35,7 +35,7 @@ def _recorded_ip(
         )
     assert response.status_code == 401
     return db.scalar(
-        select(AuditLog.ip).where(AuditLog.action == "login_failed").order_by(AuditLog.id.desc())
+        select(AuthEvent.ip).where(AuthEvent.action == "login_failed").order_by(AuthEvent.id.desc())
     )
 
 

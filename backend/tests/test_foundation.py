@@ -16,6 +16,7 @@ from app.seed import ACCOUNTS, run_seed
 from app.shared.audit import AuditLog
 from app.shared.dates import business_date, fiscal_year_code
 from app.shared.sequences import DocumentSequence, next_doc_number
+from tests.conftest import IN_TEST_TENANT
 
 
 # --- Dates & fiscal year ----------------------------------------------------------
@@ -55,7 +56,7 @@ def test_doc_numbers_are_gapless_under_concurrency(engine: Engine) -> None:
 
     def worker(i: int) -> None:
         try:
-            with Session(engine) as session:
+            with Session(engine, info=IN_TEST_TENANT) as session:
                 number = next_doc_number(session, doc_type, date(2025, 8, 1))
                 if i % 3 == 0:
                     session.rollback()  # e.g. a failed posting
@@ -76,7 +77,7 @@ def test_doc_numbers_are_gapless_under_concurrency(engine: Engine) -> None:
         assert sorted(committed) == list(range(1, len(committed) + 1))
         assert len(committed) == 20
     finally:
-        with Session(engine) as session:
+        with Session(engine, info=IN_TEST_TENANT) as session:
             session.execute(delete(DocumentSequence).where(DocumentSequence.doc_type == doc_type))
             session.commit()
 

@@ -20,7 +20,7 @@ from app.modules.users.permissions_catalog import PERMISSIONS
 from app.modules.users.schemas import UserCreate
 from app.modules.users.service import create_user, reset_password
 from app.shared.dates import business_date
-from tests.conftest import DEFAULT_PASSWORD, login
+from tests.conftest import DEFAULT_PASSWORD, IN_TEST_TENANT, login
 from tests.helpers import wait_until_blocked
 
 
@@ -68,7 +68,7 @@ def test_no_token_for_a_replaced_cookie_after_a_password_reset(
 
 
 def _session(engine: Engine) -> Session:
-    return Session(engine, autoflush=False, expire_on_commit=False)
+    return Session(engine, info=IN_TEST_TENANT, autoflush=False, expire_on_commit=False)
 
 
 def _owner(engine: Engine) -> CurrentUser:

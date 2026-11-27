@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     database_url: str
     # Migrations and `seed` connect as the schema owner. Unset: same as database_url.
     migration_database_url: str | None = None
+    # Platform administration and cross-dealership listings. Unset: same as database_url.
+    platform_database_url: str | None = None
     test_database_url: str | None = None
     db_pool_size: int = 10
     db_max_overflow: int = 10
@@ -56,7 +58,11 @@ class Settings(BaseSettings):
     def owner_database_url(self) -> str:
         return self.migration_database_url or self.database_url
 
-    @field_validator("database_url", "migration_database_url")
+    @property
+    def platform_url(self) -> str:
+        return self.platform_database_url or self.database_url
+
+    @field_validator("database_url", "migration_database_url", "platform_database_url")
     @classmethod
     def _use_psycopg_driver(cls, value: str | None) -> str | None:
         """Hosts such as Render give plain `postgresql://` URLs; the app uses psycopg 3."""

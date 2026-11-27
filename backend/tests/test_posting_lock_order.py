@@ -31,6 +31,7 @@ from app.modules.users.permissions_catalog import PERMISSIONS
 from app.modules.users.schemas import UserCreate
 from app.modules.users.service import create_user
 from app.shared.dates import business_date
+from tests.conftest import IN_TEST_TENANT
 from tests.helpers import wait_until_blocked
 
 D = Decimal
@@ -64,7 +65,9 @@ class Counter:
         return invoice.id
 
     def run(self, work: Callable[[Session], Any]) -> Any:
-        with Session(self.engine, autoflush=False, expire_on_commit=False) as session:
+        with Session(
+            self.engine, info=IN_TEST_TENANT, autoflush=False, expire_on_commit=False
+        ) as session:
             result = work(session)
             session.commit()
             return result
@@ -83,7 +86,9 @@ class Counter:
 
 @pytest.fixture
 def counter(scratch_engine: Engine) -> Counter:
-    with Session(scratch_engine, autoflush=False, expire_on_commit=False) as session:
+    with Session(
+        scratch_engine, info=IN_TEST_TENANT, autoflush=False, expire_on_commit=False
+    ) as session:
         user = create_user(
             session,
             UserCreate(

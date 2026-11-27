@@ -22,6 +22,7 @@ from app.modules.users.permissions_catalog import PERMISSIONS
 from app.modules.users.schemas import UserCreate
 from app.modules.users.service import create_user
 from app.shared.dates import business_date
+from tests.conftest import IN_TEST_TENANT
 
 D = Decimal
 
@@ -29,7 +30,7 @@ D = Decimal
 def test_two_sales_of_the_last_units_cannot_both_succeed(scratch_engine: Engine) -> None:
     engine = scratch_engine
     suffix = uuid.uuid4().hex[:8]
-    with Session(engine) as setup:
+    with Session(engine, info=IN_TEST_TENANT) as setup:
         user = create_user(
             setup,
             UserCreate(
@@ -94,7 +95,7 @@ def test_two_sales_of_the_last_units_cannot_both_succeed(scratch_engine: Engine)
     barrier = threading.Barrier(2)
 
     def sell(invoice_id: int) -> None:
-        with Session(engine) as session:
+        with Session(engine, info=IN_TEST_TENANT) as session:
             try:
                 barrier.wait(timeout=10)
                 invoices.post_invoice(session, invoice_id, actor)
@@ -113,7 +114,7 @@ def test_two_sales_of_the_last_units_cannot_both_succeed(scratch_engine: Engine)
         thread.join(timeout=30)
 
     assert sorted(outcomes) == ["insufficient_stock", "ok"]
-    with Session(engine) as session:
+    with Session(engine, info=IN_TEST_TENANT) as session:
         qty = session.scalar(
             text("SELECT qty_on_hand FROM product_costs WHERE product_id = :p"),
             {"p": product_id},

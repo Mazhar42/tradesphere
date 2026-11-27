@@ -1,11 +1,14 @@
 from collections.abc import Sequence
 
-from sqlalchemy import func, or_, select
-from sqlalchemy.orm import Session
+from sqlalchemy import Select, and_, func, not_, or_, select
+from sqlalchemy.orm import Session, selectinload
 
-from app.core.errors import BusinessRuleError, ConflictError, NotFoundError
+from app.core.errors import BusinessRuleError, ConflictError, ForbiddenError, NotFoundError
 from app.core.permissions import CurrentUser
 from app.core.security import hash_password
+from app.core.tenant_context import tenant_id_of
+from app.modules.tenancy import service as tenancy
+from app.modules.tenancy.models import TenantMembership
 from app.modules.users.models import RefreshToken, Role, User
 from app.modules.users.schemas import RoleRead, UserCreate, UserRead, UserUpdate
 from app.shared.audit import record_audit, snapshot
@@ -13,13 +16,15 @@ from app.shared.dates import now_utc
 from app.shared.pagination import PageParams, paginate
 
 
-def to_read(user: User) -> UserRead:
+def to_read(session: Session, user: User) -> UserRead:
+    """`is_active` is about this dealership: a person switched off here may work elsewhere."""
+    member = tenancy.membership(session, user.id)
     return UserRead(
         id=user.id,
         username=user.username,
         full_name=user.full_name,
         phone=user.phone,
-        is_active=user.is_active,
+        is_active=user.is_active and member.status == "active",
         last_login_at=user.last_login_at,
         roles=user.role_codes,
         created_at=user.created_at,
@@ -40,19 +45,32 @@ def list_roles(session: Session) -> Sequence[Role]:
     return session.scalars(select(Role).order_by(Role.id)).all()
 
 
+def _members(session: Session) -> Select[User]:
+    """The people of the current dealership. `users` itself is shared by all of them."""
+    return select(User).join(
+        TenantMembership,
+        and_(
+            TenantMembership.user_id == User.id,
+            TenantMembership.tenant_id == tenant_id_of(session),
+        ),
+    )
+
+
 def list_users(
     session: Session, params: PageParams, q: str | None, is_active: bool | None
 ) -> tuple[Sequence[User], int]:
-    stmt = select(User).order_by(User.username)
+    stmt = _members(session).options(selectinload(User.roles)).order_by(User.username)
     if q:
         like = f"%{q}%"
         stmt = stmt.where(or_(User.username.ilike(like), User.full_name.ilike(like)))
     if is_active is not None:
-        stmt = stmt.where(User.is_active == is_active)
+        active = and_(User.is_active.is_(True), TenantMembership.status == "active")
+        stmt = stmt.where(active if is_active else not_(active))
     return paginate(session, stmt, params)
 
 
 def get_user(session: Session, user_id: int) -> User:
+    tenancy.membership(session, user_id)  # 404 for people of other dealerships
     user = session.get(User, user_id)
     if user is None:
         raise NotFoundError("User not found.")
@@ -79,9 +97,14 @@ def _resolve_roles(session: Session, codes: list[str]) -> list[Role]:
 
 def _active_owner_count(session: Session, excluding_user_id: int | None = None) -> int:
     stmt = (
-        select(func.count(func.distinct(User.id)))
+        _members(session)
         .join(User.roles)
-        .where(Role.code == "owner", User.is_active.is_(True))
+        .where(
+            Role.code == "owner",
+            User.is_active.is_(True),
+            TenantMembership.status == "active",
+        )
+        .with_only_columns(func.count(func.distinct(User.id)))
     )
     if excluding_user_id is not None:
         stmt = stmt.where(User.id != excluding_user_id)
@@ -104,6 +127,7 @@ def create_user(session: Session, data: UserCreate, actor: CurrentUser | None) -
     )
     session.add(user)
     session.flush()
+    tenancy.add_member(session, user.id, managed=True, invited_by=actor.id if actor else None)
     record_audit(
         session,
         actor_id=actor.id if actor else None,
@@ -117,7 +141,8 @@ def create_user(session: Session, data: UserCreate, actor: CurrentUser | None) -
 
 def update_user(session: Session, user_id: int, data: UserUpdate, actor: CurrentUser) -> User:
     user = get_user(session, user_id)
-    before = snapshot(user, extra={"roles": user.role_codes})
+    member = tenancy.membership(session, user_id)
+    before = snapshot(user, extra={"roles": user.role_codes, "membership": member.status})
     changes = data.model_dump(exclude_unset=True)
 
     losing_owner = (
@@ -132,11 +157,18 @@ def update_user(session: Session, user_id: int, data: UserUpdate, actor: Current
     if "roles" in changes and changes["roles"] is not None:
         user.roles = _resolve_roles(session, changes.pop("roles"))
     changes.pop("roles", None)
+    is_active = changes.pop("is_active", None)
     for field, value in changes.items():
+        if getattr(user, field) != value and not member.managed_by_tenant:
+            raise ForbiddenError(
+                "This person manages their own profile.", code="profile_not_managed"
+            )
         setattr(user, field, value)
-    if changes.get("is_active") is False:
-        revoke_all_tokens(session, user.id)
+    if is_active is not None:
+        member.status = "active" if is_active else "inactive"
     session.flush()
+    if is_active is False and not tenancy.memberships_of(session, user.id):
+        revoke_all_tokens(session, user.id)
     record_audit(
         session,
         actor_id=actor.id,
@@ -144,7 +176,7 @@ def update_user(session: Session, user_id: int, data: UserUpdate, actor: Current
         entity_type="user",
         entity_id=user.id,
         before=before,
-        after=snapshot(user, extra={"roles": user.role_codes}),
+        after=snapshot(user, extra={"roles": user.role_codes, "membership": member.status}),
     )
     return user
 

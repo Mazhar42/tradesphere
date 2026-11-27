@@ -93,7 +93,8 @@ def test_deactivated_user_loses_access_immediately(client: TestClient, owner, ma
     assert client.get("/api/v1/products", headers=temp_headers).status_code == 200
     response = client.patch(f"/api/v1/users/{user.id}", headers=owner, json={"is_active": False})
     assert response.status_code == 200
-    assert client.get("/api/v1/products", headers=temp_headers).status_code == 401
+    refused = client.get("/api/v1/products", headers=temp_headers)
+    assert (refused.status_code, refused.json()["code"]) == (403, "membership_inactive")
 
 
 def test_password_reset(client: TestClient, owner, make_user) -> None:

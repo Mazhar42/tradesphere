@@ -36,7 +36,7 @@ trap cleanup EXIT
 echo "reconcile (stock, cost, inventory account, trial balance, daily projection):"
 "${COMPOSE[@]}" run --rm -T \
 	-e "DATABASE_URL=postgresql+psycopg://${POSTGRES_USER:-tradesphere}:${POSTGRES_PASSWORD}@db:5432/$DRILL_DB" \
-	migrate python -m app.cli reconcile
+	migrate python -m app.cli reconcile --all-tenants
 
 echo "row counts:"
 "${COMPOSE[@]}" exec -T db psql -U "${POSTGRES_USER:-tradesphere}" -d "$DRILL_DB" -At -c \
